@@ -1,0 +1,21 @@
+{
+    "name": "johnkevin/elms-api",
+    "autoload": {
+        "psr-4": {
+            "Johnkevin\\ElmsApi\\": "src/",
+            "App\\": "app/",
+            "Core\\": "core/"
+
+        }
+    },
+    "authors": [
+        {
+            "name": "kzuudev",
+            "email": "kzuudev@gmail.com"
+        }
+    ],
+    "require": {
+      "ext-pdo": "*",
+      "ext-json": "*"
+    }
+}
