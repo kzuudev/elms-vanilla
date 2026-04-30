@@ -58,6 +58,8 @@ export default function Login() {
         try {
             const response = await api.post('/', data);
             console.log(response);
+            localStorage.setItem("token", response.data.token);
+            console.log(localStorage.getItem("token"));
             setError("root", {
                 type: "server",
                 message: "",
