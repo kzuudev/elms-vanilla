@@ -59,11 +59,21 @@ export default function Login() {
             const response = await api.post('/', data);
             console.log(response);
             localStorage.setItem("token", response.data.token);
-            console.log(localStorage.getItem("token"));
+            localStorage.setItem("role", response.data.user.role);
+            const userRole = localStorage.getItem("role");
+            console.log(userRole);
             setError("root", {
                 type: "server",
                 message: "",
             });
+
+            if(userRole !== "manager") {
+                navigate("/employee/dashboard");
+                return;
+            }
+
+            navigate("/manager/dashboard");
+
         }catch (e) {
             setError("root", {
                 type: "server",
