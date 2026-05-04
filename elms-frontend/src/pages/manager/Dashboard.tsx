@@ -1,5 +1,5 @@
 
-export default function Dashboard() {
+export default function ManagerDashboard() {
 
 
    return (

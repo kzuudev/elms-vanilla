@@ -67,12 +67,17 @@ export default function Login() {
                 message: "",
             });
 
-            if(userRole !== "manager") {
+            if(userRole === 'employee') {
                 navigate("/employee/dashboard");
                 return;
             }
 
-            navigate("/manager/dashboard");
+            if(userRole === 'manager') {
+                navigate("/manager/dashboard");
+                return;
+            }
+
+            navigate("/admin/dashboard");
 
         }catch (e) {
             setError("root", {

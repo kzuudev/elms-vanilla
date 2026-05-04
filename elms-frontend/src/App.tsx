@@ -3,8 +3,9 @@ import './App.css'
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Register from './pages/auth/register'
 import Login from './pages/auth/login'
-import Dashboard from './pages/manager/Dashboard'
+import ManagerDashboard from './pages/manager/Dashboard'
 import EmployeeDashboard from './pages/employee/Dashboard'
+import AdminDashboard from './pages/admin/Admin'
 
 import { ProtectedRoute } from "@/components/ProtectedRoute.tsx";
 function App() {
@@ -30,13 +31,24 @@ function App() {
             <Route
                 path="/manager/dashboard"
                 element={
-                    // allowed 3 roles here because Managers and Admins are also employees!
+                    // allowed 2 roles here because Managers and Admins are also employees!
                     <ProtectedRoute allowedRoles={['manager', 'admin']}>
-                        <Dashboard />
+                        <ManagerDashboard />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/admin/dashboard"
+                element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                        <AdminDashboard />
                     </ProtectedRoute>
                 }
             />
         </Routes>
+
+
     </BrowserRouter>
     </>
   )
