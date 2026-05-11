@@ -61,6 +61,7 @@ export default function Login() {
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("role", response.data.user.role);
             const userRole = localStorage.getItem("role");
+            console.log(response.data.user.id);
             console.log(userRole);
             setError("root", {
                 type: "server",
@@ -78,6 +79,8 @@ export default function Login() {
             }
 
             navigate("/admin/dashboard");
+
+
 
         }catch (e) {
             setError("root", {

@@ -8,6 +8,7 @@ import EmployeeDashboard from './pages/employee/Dashboard'
 import AdminDashboard from './pages/admin/Admin'
 
 import { ProtectedRoute } from "@/components/ProtectedRoute.tsx";
+import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
 function App() {
 
 
@@ -46,9 +47,19 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+
+            <Route
+                path="/employee/leave-request"
+                element={
+                    <ProtectedRoute allowedRoles={['admin', 'manager', 'employee']}>
+                        <LeaveRequestDashboard />
+
+                    </ProtectedRoute>
+                }
+            />
+
+
         </Routes>
-
-
     </BrowserRouter>
     </>
   )

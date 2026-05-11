@@ -3,6 +3,8 @@
 
 namespace Core;
 
+use Exception;
+
 
 class Validator {
 
@@ -29,5 +31,24 @@ class Validator {
         return password_verify($input, $hashed_password);
     }
 
+    public static function date($date, $format = 'm/d/Y') {
+
+        $d = \DateTime::createFromFormat($format, $date);
+        return $d && $d->format($format) === $date;
+    }
+
+    public static function type($value) {
+
+        $allowedTypes = [
+            'annual_leave',
+            'maternity_leave',
+            'sick_leave',
+            'paternity_leave'
+        ];
+
+        if(in_array($value, $allowedTypes)) {
+            return true;
+        }
+    }
 
 }

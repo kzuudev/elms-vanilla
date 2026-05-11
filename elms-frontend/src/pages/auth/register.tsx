@@ -27,8 +27,6 @@ import { Input } from "@/components/ui/input"
 
 export default function Register() {
 
-    const { register, handleSubmit, setError, formState: { errors } } = useForm<LoginFormData>();
-
     const navigate = useNavigate();
 
     // rules for registration form
@@ -43,9 +41,9 @@ export default function Register() {
         path: ["confirm_password"],
     })
 
-
     type LoginFormData = z.infer<typeof schema>;
 
+    const { register, handleSubmit, setError, formState: { errors } } = useForm<LoginFormData>();
 
     // Set up the form with zod
     const form = useForm<LoginFormData>({
@@ -95,7 +93,7 @@ export default function Register() {
 
                                             <Input
                                                 {...field}
-                                                id="email"
+                                                id="name"
                                                 aria-invalid={fieldState.invalid}
                                                 autoComplete="off"
 
