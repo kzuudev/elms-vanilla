@@ -3,11 +3,11 @@ import {useState} from "react";
 import AppSidebar from "@/components/employee/AppSidebar.tsx";
 import Header from "@/components/employee/Header";
 import LeaveRequestForm from "@/components/employee/LeaveRequestForm.tsx";
-
+import LeaveBalanceSection from "@/components/LeaveBalanceSection.tsx";
+import LeaveRequestTable from "@/components/LeaveRequestTable.tsx";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -34,7 +34,20 @@ export default function LeaveRequestDashboard() {
                         </DialogContent>
                     </Dialog>
                 </div>
-            </AppSidebar>ph
+
+                <div className="mt-8">
+                    <LeaveBalanceSection/>
+
+                    <div className="mt-8">
+                        <h1>Leave Request History</h1>
+
+                       <div className="mt-4">
+                           <LeaveRequestTable/>
+                       </div>
+                    </div>
+                </div>
+
+            </AppSidebar>
         </>
     )
 }

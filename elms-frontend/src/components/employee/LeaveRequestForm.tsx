@@ -62,12 +62,13 @@ export default function LeaveRequestForm() {
     const onSubmit = async (data: LeaveRequestFormData) => {
         console.log("Form Submitted: ", data);
 
-        localStorage.getItem("token");
+        const holder = localStorage.getItem("token");
 
         try {
             const response = await api.post("/leave-request", data, {
+                // this is a verification for the bearer (holder) of the token has permission to access this account and do action
                 headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    Authorization: `Bearer ${holder}`,
                 },
             });
             console.log(response.data);

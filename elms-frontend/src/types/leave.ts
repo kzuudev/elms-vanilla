@@ -13,3 +13,11 @@ export enum LeaveStatus {
     Approved = "approved",
     Rejected = "rejected"
 }
+
+export type LeaveBalance = {
+    type: string,
+    icon: React.ReactNode
+    balance: number,
+    used: number,
+    total: number
+}
