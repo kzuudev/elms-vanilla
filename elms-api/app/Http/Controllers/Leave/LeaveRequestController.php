@@ -62,14 +62,42 @@ class LeaveRequestController {
         // date should always start with 1 (because if start and end are the same day, it should count as 1 day)
         $days_requested = $interval->days + 1;
 
-        // query the remaining balance and leave type
+        // query the remaining balance and leave types
         $remaining_balance = $db->query("SELECT remaining_balance from leave_balance WHERE user_id = :user_id AND leave_type = :leave_type", [
             'user_id' => $current_user_id,
             'leave_type' => $leave_type
         ])->find();
 
+        // validate the overlap (to check if the user already has a pending or approved request that covers the dates they just picked)
+        // and prevent users from submitting the EXACT SAME TYPE while one is already pending.
+        $overlap = $db->query("SELECT id FROM leave_requests WHERE user_id = :user_id AND status IN ('pending', 'approved') AND start_date <= :end_date AND end_date >= :start_date", [
+            'user_id' => $current_user_id,
+            'start_date' => $start_date,
+            'end_date' => $end_date
+        ])->find();
 
-        // validate remaining balance based on a leave type
+        $existingLeaveType = $db->query("SELECT id FROM leave_requests WHERE user_id = :user_id AND leave_type = :leave_type AND status = 'pending'", [
+            'user_id' => $current_user_id,
+            'leave_type' => $leave_type
+        ])->find();
+
+        if($overlap) {
+            http_response_code(422);
+            echo json_encode([
+                'message' => 'You already have a pending or approved leave request that covers this date range.',
+            ]);
+            exit();
+        }
+
+        if($existingLeaveType) {
+            http_response_code(422);
+            echo json_encode([
+                'message' => 'You already have a pending or approved leave request for this leave type.',
+            ]);
+            exit();
+        }
+
+        // validate the remaining balance based on a leave type
         if($remaining_balance['remaining_balance'] < $days_requested) {
             http_response_code(422);
             echo json_encode([
