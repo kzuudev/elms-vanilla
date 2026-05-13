@@ -24,6 +24,7 @@ class LeaveRequestController {
         $token = trim(str_replace('Bearer ', '', $authHeader));
         var_dump($token);
 
+        // identify the user first via token
         $tokenRow= $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
             'token' => $token
         ])->find();
@@ -88,10 +89,54 @@ class LeaveRequestController {
             'reason' => $reason
         ]);
 
-
-
-
+        http_response_code(200);
+        echo json_encode([
+            'message' => 'Leave request submitted successfully',
+            'user_id' => $current_user_id,
+        ]);
+        exit;
 
 
     }
+
+
+    // fetching all leave requests
+    public function index() {
+
+        $db = App::resolve(Database::class);
+
+        $headers = getallheaders();
+        $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        $token = trim(str_replace('Bearer ', '', $authHeader));
+
+        $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
+            'token' => $token
+        ])->find();
+
+        $current_user_id = $tokenRow['user_id'] ?? null;
+
+        if (!$current_user_id) {
+            http_response_code(404);
+            echo json_encode(["error" => "User not found"]);
+            exit();
+        }
+
+        $leaveRequests = $db->query('SELECT * FROM leave_requests WHERE user_id = :user_id', [
+            'user_id' => $current_user_id,
+        ])->all();
+
+
+        echo json_encode([
+            'message' => 'Leave requests fetched successfully',
+            'leave_requests' => $leaveRequests,
+            'user_id' => $current_user_id,
+        ]);
+
+    }
+
+    // show a specific leave request
+    public function show($id) {}
+
+
+
 }

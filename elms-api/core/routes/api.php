@@ -13,7 +13,9 @@ $router->post('/register', [RegisteredUserController::class, 'store'])->only('gu
 $router->post('/', [LoginController::class, 'login'])->only('guest');
 
 
+$router->get('/leave-request', [LeaveRequestController::class, 'index'])->only('auth');
 $router->post('/leave-request', [LeaveRequestController::class, 'submit'])->only('auth');
-
+$router->put('/leave-request', [LeaveRequestController::class, 'show'])->only('auth');
+$router->patch('/leave-request', [LeaveRequestController::class, 'patch'])->only('auth');
 // return the router with existing routes inside it
 return $router;

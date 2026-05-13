@@ -21,3 +21,12 @@ export type LeaveBalance = {
     used: number,
     total: number
 }
+export type TableData = {
+    id: number;
+    user_id: number;
+    leave_type: string;
+    start_date: string;
+    end_date: string;
+    reason: string;
+    status: string;
+};

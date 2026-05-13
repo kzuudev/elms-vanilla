@@ -5,7 +5,8 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
 import {useNavigate} from "react-router-dom";
-import {LeaveType} from "@/types/leave.ts";
+import {useState} from "react";
+import { LeaveType } from "@/types/leave.ts";
 
 
 import {Button} from "@/components/ui/button";
@@ -29,6 +30,8 @@ import {Textarea} from "@/components/ui/textarea.tsx";
 export default function LeaveRequestForm() {
 
     const navigate = useNavigate();
+
+    const [open, setOpen] = useState(false);
 
     const schema = z.object({
         leave_type: z.string().min(1, {message: "Leave Type is required"}),
@@ -76,6 +79,7 @@ export default function LeaveRequestForm() {
                 type: "server",
                 message: "",
             });
+            navigate("/employee/leave-request");
         }catch (e) {
             setError("root", {
                 type: "server",

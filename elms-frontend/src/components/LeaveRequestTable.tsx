@@ -1,5 +1,8 @@
 'use client'
 
+import {api} from "@/lib/api.ts";
+import {useEffect, useState} from "react";
+
 import {
     Table,
     TableBody,
@@ -8,25 +11,42 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {MoreVertical} from "lucide-react";
 
-const tableHeaders = ['Leave Type', 'Start Date', 'End Date', 'Status', 'Actions']
+import { Eye, Pencil, Trash } from 'lucide-react';
+import { Button } from './ui/button';
+import type {TableData} from "@/types/leave.ts";
 
-const leaveRequests = [
-    {
-        leaveType: 'Vacation Leave',
-        startDate: '2026-05-10',
-        endDate: '2026-05-12',
-        status: 'Pending',
-    },
-]
+
+const tableHeaders = ['Leave Type', 'Start Date', 'End Date', 'Reason', 'Status', 'Actions']
+
 export default function LeaveRequestTable() {
+
+    const [error, setError] = useState<string | null>(null);
+    const [leaveRequests, setLeaveRequests] = useState<TableData[]>([]);
+
+
+   useEffect(() => {
+       const getLeaveRequests = async () => {
+           try {
+
+               localStorage.getItem("token");
+               const holder = localStorage.getItem("token");
+
+               const response = await api.get("/leave-request", {
+                   // this is a verification for the bearer (holder) of the token has permission to access this account and do action
+                   headers: {
+                       Authorization: `Bearer ${holder}`,
+                   },
+               });
+               setLeaveRequests(response.data.leave_requests);
+               console.log(response.data.leave_requests);
+           }catch (e) {
+               setError(e.response.data.message);
+           }
+       };
+
+       getLeaveRequests();
+   }, [])
 
     return (
         <div className="border border-border rounded-lg bg-white overflow-hidden">
@@ -42,23 +62,23 @@ export default function LeaveRequestTable() {
                 </TableHeader>
 
                 <TableBody>
-                    {leaveRequests.map((leave, index) => (
-                        <TableRow key={index}>
-                            <TableCell>{leave.leaveType}</TableCell>
-                            <TableCell>{leave.startDate}</TableCell>
-                            <TableCell>{leave.endDate}</TableCell>
+                    {leaveRequests.map((leave) => (
+                        <TableRow key={leave.id}>
+                            <TableCell>{leave.leave_type}</TableCell>
+                            <TableCell>{leave.start_date}</TableCell>
+                            <TableCell>{leave.end_date}</TableCell>
+                            <TableCell>{leave.reason}</TableCell>
                             <TableCell>{leave.status}</TableCell>
                             <TableCell>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger className="p-1 hover:bg-gray-200 rounded transition-colors">
-                                        <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                                        <DropdownMenuItem>Delete</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                <Button>
+                                    <Eye />
+                                </Button>
+                                <Button>
+                                    <Pencil />
+                                </Button>
+                                <Button>
+                                    <Trash/>
+                                </Button>
                             </TableCell>
                         </TableRow>
                     ))}
