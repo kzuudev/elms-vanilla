@@ -17,13 +17,13 @@ import { Button } from './ui/button';
 import type {TableData} from "@/types/leave.ts";
 
 
-const tableHeaders = ['Leave Type', 'Start Date', 'End Date', 'Reason', 'Status', 'Actions']
+const tableHeaders = ['Leave Type', 'Start Date', 'End Date', 'Reason', 'Status', 'Assigned to','Actions']
 
 export default function LeaveRequestTable() {
 
     const [error, setError] = useState<string | null>(null);
     const [leaveRequests, setLeaveRequests] = useState<TableData[]>([]);
-
+    const [manager, setManager] = useState<string | null>(null);
 
    useEffect(() => {
        const getLeaveRequests = async () => {
@@ -38,8 +38,8 @@ export default function LeaveRequestTable() {
                        Authorization: `Bearer ${holder}`,
                    },
                });
-               setLeaveRequests(response.data.leave_requests);
-               console.log(response.data.leave_requests);
+               setLeaveRequests(response.data.leave_requests.data);
+               setManager(response.data.leave_requests.assigned_to.manager_name);
            }catch (e) {
                setError(e.response.data.message);
            }
@@ -69,6 +69,7 @@ export default function LeaveRequestTable() {
                             <TableCell>{leave.end_date}</TableCell>
                             <TableCell>{leave.reason}</TableCell>
                             <TableCell>{leave.status}</TableCell>
+                            <TableCell>{manager}</TableCell>
                             <TableCell>
                                 <Button>
                                     <Eye />

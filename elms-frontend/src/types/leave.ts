@@ -29,4 +29,9 @@ export type TableData = {
     end_date: string;
     reason: string;
     status: string;
+    assigned_to:
+        {
+            manager_id: number;
+            manager_name: string;
+        }
 };

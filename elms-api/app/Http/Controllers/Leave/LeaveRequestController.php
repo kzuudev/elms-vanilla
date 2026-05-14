@@ -22,7 +22,6 @@ class LeaveRequestController {
         $headers = getallheaders();
         $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
         $token = trim(str_replace('Bearer ', '', $authHeader));
-        var_dump($token);
 
         // identify the user first via token
         $tokenRow= $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
@@ -30,7 +29,11 @@ class LeaveRequestController {
         ])->find();
 
         $current_user_id = $tokenRow['user_id'] ?? null;
-        var_dump($current_user_id);
+
+        $assignedManager = $db->query("SELECT m.id AS manager_id, m.name AS manager_name FROM users e LEFT JOIN users m ON e.manager_id = m.id WHERE e.id = :id", [
+            'id' => $current_user_id,
+        ])->find();
+
 
         if (!$current_user_id) {
             http_response_code(404);
@@ -107,20 +110,32 @@ class LeaveRequestController {
             exit();
         }
 
-
         // insert it then
-        $db->query("INSERT INTO leave_requests(user_id, leave_type, start_date, end_date, reason) VALUES (:user_id, :leave_type, :start_date, :end_date,  :reason)", [
+        $db->query("INSERT INTO leave_requests(user_id, leave_type, start_date, end_date, reason, assigned_to) VALUES (:user_id, :leave_type, :start_date, :end_date,  :reason, :assigned_to)", [
             'user_id' => $current_user_id,
             'leave_type' => $leave_type,
             'start_date' => $start_date,
             'end_date' => $end_date,
-            'reason' => $reason
+            'reason' => $reason,
+            'assigned_to' => $assignedManager['manager_id'] ?? null ,
         ]);
 
         http_response_code(200);
         echo json_encode([
+            'success' => true,
             'message' => 'Leave request submitted successfully',
             'user_id' => $current_user_id,
+            'data' => [
+                'id' => $db->lastInsertId(), // Get the ID of the row just created
+                'leave_type' => $leave_type,
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'status' => 'pending',
+                'assigned_to' => [
+                    'manager_id' => $assignedManager['manager_id'] ?? null,
+                    'manager_name' => $assignedManager['manager_name'] ?? null,
+                ]
+            ]
         ]);
         exit;
 
@@ -143,21 +158,41 @@ class LeaveRequestController {
 
         $current_user_id = $tokenRow['user_id'] ?? null;
 
+        $assignedManager = $db->query("SELECT m.id AS manager_id, m.name AS manager_name FROM users e LEFT JOIN users m ON e.manager_id = m.id WHERE e.id = :id", [
+            'id' => $current_user_id,
+        ])->find();
+
+
         if (!$current_user_id) {
             http_response_code(404);
             echo json_encode(["error" => "User not found"]);
             exit();
         }
 
-        $leaveRequests = $db->query('SELECT * FROM leave_requests WHERE user_id = :user_id', [
+        $leaveRequests = $db->query('
+    SELECT 
+        lr.*, 
+        m.name AS manager_name 
+    FROM leave_requests lr
+    LEFT JOIN users m ON lr.assigned_to = m.id
+    WHERE lr.user_id = :user_id
+', [
             'user_id' => $current_user_id,
         ])->all();
 
 
         echo json_encode([
+            'success' => true,
+            'id' => $current_user_id,
             'message' => 'Leave requests fetched successfully',
-            'leave_requests' => $leaveRequests,
             'user_id' => $current_user_id,
+            'leave_requests' => [
+                'data' => $leaveRequests,
+                'assigned_to' => [
+                    'manager_id' => $assignedManager['manager_id'] ?? null,
+                    'manager_name' => $assignedManager['manager_name'] ?? 'Unassigned',
+                ],
+            ],
         ]);
 
     }
