@@ -6,23 +6,12 @@ import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
 import {useNavigate} from "react-router-dom";
 import {useState} from "react";
-import { LeaveType } from "@/types/leave.ts";
+import {LeaveType} from "@/types/leave.ts";
 
 
 import {Button} from "@/components/ui/button";
-import {
-    Field,
-    FieldError,
-    FieldGroup,
-    FieldLabel,
-} from "@/components/ui/field";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
 import {Input} from "@/components/ui/input"
 import {Textarea} from "@/components/ui/textarea.tsx";
 
@@ -34,15 +23,13 @@ export default function LeaveRequestForm() {
     const [open, setOpen] = useState(false);
 
     const schema = z.object({
-        leave_type: z.string().min(1, {message: "Leave Type is required"}),
+        leave_type: z.string().min(1, { message: "Leave Type is required" }),
         start_date: z.string().min(1, {message: "Start Date is required"}),
         end_date: z.string().min(1, {message: "End Date is required"}),
         reason: z.string().min(1, {message: "Reason is required"}),
     })
 
     type LeaveRequestFormData = z.infer<typeof schema>;
-
-    const {register, handleSubmit, setError, formState: {errors}} = useForm<LeaveRequestFormData>();
 
     const form = useForm<LeaveRequestFormData>({
         resolver: zodResolver(schema),
@@ -52,13 +39,20 @@ export default function LeaveRequestForm() {
             end_date: '',
             reason: ''
         }
-    })
+    });
+    const {register, handleSubmit, setError, formState: {errors}} = form;
 
     const leaveOptions: { label: string; value: LeaveType }[] = [
         {label: "Annual Leave", value: LeaveType.Annual},
-        {label: "Maternity Leave", value: LeaveType.Maternity},
-        {label: "Sick Leave", value: LeaveType.Sick},
-        {label: "Paternity Leave", value: LeaveType.Paternity},
+        {label: "Maternity Leave", value:  LeaveType.Maternity},
+        {label: "Sick Leave", value:  LeaveType.Sick},
+        {label: "Paternity Leave", value:  LeaveType.Paternity},
+        {label: "Bereavement Leave", value:  LeaveType.Beareavement},
+        {label: "Public Holidays", value:  LeaveType.Public},
+        {label: "Court Leave", value:  LeaveType.Court},
+        {label: "Compensatory Off Leave", value: LeaveType.Compoff},
+        {label: "Sabbatical Leave", value: LeaveType.Sabbatical},
+        {label: "Extended Medical Leave", value: LeaveType.Extended},
     ];
 
 
@@ -85,7 +79,6 @@ export default function LeaveRequestForm() {
                 type: "server",
                 message: e.response.data.message,
             });
-            console.log(e.response.data.message);
         }
     }
     return (
@@ -106,7 +99,7 @@ export default function LeaveRequestForm() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {leaveOptions.map((opt) => (
-                                                <SelectItem key={opt.value} value={opt.value}>
+                                                <SelectItem key={opt.value} value={opt.label}>
                                                     {opt.label}
                                                 </SelectItem>
                                             ))}

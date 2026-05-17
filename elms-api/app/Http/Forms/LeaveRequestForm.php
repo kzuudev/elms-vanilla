@@ -18,7 +18,6 @@ class LeaveRequestForm {
             $this->errors['leave_type'] = 'Leave type is required and must a valid leave type from the list';
         }
 
-
         if (!Validator::date($start_date, 'Y-m-d')) {
             $this->errors['start_date'] = 'Start date is required and must be in the format mm/dd/yyyy';
         }

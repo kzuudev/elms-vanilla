@@ -39,6 +39,7 @@ export default function LeaveRequestTable() {
                    },
                });
                setLeaveRequests(response.data.leave_requests.data);
+               console.log(response.data.leave_requests.data);
                setManager(response.data.leave_requests.assigned_to.manager_name);
            }catch (e) {
                setError(e.response.data.message);

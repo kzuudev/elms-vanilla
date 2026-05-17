@@ -40,10 +40,17 @@ class Validator {
     public static function type($value) {
 
         $allowedTypes = [
-            'annual_leave',
-            'maternity_leave',
-            'sick_leave',
-            'paternity_leave'
+            'Annual Leave',
+            'Maternity Leave',
+            'Sick Leave',
+            'Paternity Leave',
+            'Bereavement Leave',
+            'Public Holidays',
+            'Court Leave',
+            'Compensatory Off Leave',
+            'Sabbatical Leave',
+            'Extended Medical Leave'
+
         ];
 
         if(in_array($value, $allowedTypes)) {

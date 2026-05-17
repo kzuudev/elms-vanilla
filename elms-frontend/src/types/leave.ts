@@ -1,10 +1,17 @@
 
 
 export enum LeaveType {
-    Annual = "annual_leave",
-    Maternity = "maternity_leave",
-    Sick = "sick_leave",
-    Paternity = "paternity_leave",
+    Sick = "Sick Leave",
+    Annual = "Annual Leave",
+    Paternity = "Paternity Leave",
+    Maternity = "Maternity Leave",
+    Beareavement = "Bereavement Leave",
+    Public = "Public Holidays",
+    Court = "Court Leave",
+    Compoff = "Compensatory Off Leave",
+    Sabbatical = "Sabbatical Leave",
+    Extended = "Extended Medical Leave",
+
 }
 
 

@@ -65,10 +65,15 @@ class LeaveRequestController {
         // date should always start with 1 (because if start and end are the same day, it should count as 1 day)
         $days_requested = $interval->days + 1;
 
+        // get the name of leave type based on the leave_type_id
+        $leaveTypeRecord = $db->query("SELECT id FROM leave_types WHERE name = :name", [
+            'name' => $leave_type
+        ])->find();
+
         // query the remaining balance and leave types
-        $remaining_balance = $db->query("SELECT remaining_balance from leave_balance WHERE user_id = :user_id AND leave_type = :leave_type", [
+        $remaining_balance = $db->query("SELECT remaining_balance from leave_balance WHERE user_id = :user_id AND leave_type_id = :leave_type_id", [
             'user_id' => $current_user_id,
-            'leave_type' => $leave_type
+            'leave_type_id' => $leaveTypeRecord['id']
         ])->find();
 
         // validate the overlap (to check if the user already has a pending or approved request that covers the dates they just picked)
@@ -79,9 +84,9 @@ class LeaveRequestController {
             'end_date' => $end_date
         ])->find();
 
-        $existingLeaveType = $db->query("SELECT id FROM leave_requests WHERE user_id = :user_id AND leave_type = :leave_type AND status = 'pending'", [
+        $existingLeaveType = $db->query("SELECT id FROM leave_requests WHERE user_id = :user_id AND leave_type_id = :leave_type_id AND status = 'pending'", [
             'user_id' => $current_user_id,
-            'leave_type' => $leave_type
+            'leave_type_id' =>  $leaveTypeRecord['id']
         ])->find();
 
         if($overlap) {
@@ -110,10 +115,17 @@ class LeaveRequestController {
             exit();
         }
 
+//        echo json_encode([
+//            "error" => true,
+//            "message" => "Balance not found.",
+//            "debug_info" => "Searched for User ID: {$current_user_id}, Leave Type ID: {$leaveTypeRecord['id']}"
+//        ]);
+
+
         // insert it then
-        $db->query("INSERT INTO leave_requests(user_id, leave_type, start_date, end_date, reason, assigned_to) VALUES (:user_id, :leave_type, :start_date, :end_date,  :reason, :assigned_to)", [
+        $db->query("INSERT INTO leave_requests(user_id, leave_type_id, start_date, end_date, reason, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date,  :reason, :assigned_to)", [
             'user_id' => $current_user_id,
-            'leave_type' => $leave_type,
+            'leave_type_id' =>  $leaveTypeRecord['id'],
             'start_date' => $start_date,
             'end_date' => $end_date,
             'reason' => $reason,
@@ -127,7 +139,7 @@ class LeaveRequestController {
             'user_id' => $current_user_id,
             'data' => [
                 'id' => $db->lastInsertId(), // Get the ID of the row just created
-                'leave_type' => $leave_type,
+                'leave_type_id' => $leave_type,
                 'start_date' => $start_date,
                 'end_date' => $end_date,
                 'status' => 'pending',
@@ -137,7 +149,7 @@ class LeaveRequestController {
                 ]
             ]
         ]);
-        exit;
+        exit();
 
 
     }
@@ -169,14 +181,7 @@ class LeaveRequestController {
             exit();
         }
 
-        $leaveRequests = $db->query('
-    SELECT 
-        lr.*, 
-        m.name AS manager_name 
-    FROM leave_requests lr
-    LEFT JOIN users m ON lr.assigned_to = m.id
-    WHERE lr.user_id = :user_id
-', [
+        $leaveRequests = $db->query('SELECT lr.*, m.name AS manager_name FROM leave_requests lr LEFT JOIN users m ON lr.assigned_to = m.id WHERE lr.user_id = :user_id', [
             'user_id' => $current_user_id,
         ])->all();
 
