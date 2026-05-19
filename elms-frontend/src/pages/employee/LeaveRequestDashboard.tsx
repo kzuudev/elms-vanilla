@@ -30,7 +30,7 @@ export default function LeaveRequestDashboard() {
                             <DialogHeader className="text-lg font-bold">
                                 <DialogTitle>Apply for Leave</DialogTitle>
                             </DialogHeader>
-                            <LeaveRequestForm/>
+                            <LeaveRequestForm closeDialog={() => setOpen(false)} />
                         </DialogContent>
                     </Dialog>
                 </div>

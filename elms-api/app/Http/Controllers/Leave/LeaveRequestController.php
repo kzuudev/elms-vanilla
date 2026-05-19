@@ -65,7 +65,7 @@ class LeaveRequestController {
         // date should always start with 1 (because if start and end are the same day, it should count as 1 day)
         $days_requested = $interval->days + 1;
 
-        // get the name of leave type based on the leave_type_id
+        // get the name of the leave type based on the leave_type_id
         $leaveTypeRecord = $db->query("SELECT id FROM leave_types WHERE name = :name", [
             'name' => $leave_type
         ])->find();
@@ -139,9 +139,11 @@ class LeaveRequestController {
             'user_id' => $current_user_id,
             'data' => [
                 'id' => $db->lastInsertId(), // Get the ID of the row just created
-                'leave_type_id' => $leave_type,
+                'leave_type_id' => $leaveTypeRecord['id'],
+                'leave_type' => $leave_type,
                 'start_date' => $start_date,
                 'end_date' => $end_date,
+                'reason' => $reason,
                 'status' => 'pending',
                 'assigned_to' => [
                     'manager_id' => $assignedManager['manager_id'] ?? null,
@@ -170,9 +172,9 @@ class LeaveRequestController {
 
         $current_user_id = $tokenRow['user_id'] ?? null;
 
-        $assignedManager = $db->query("SELECT m.id AS manager_id, m.name AS manager_name FROM users e LEFT JOIN users m ON e.manager_id = m.id WHERE e.id = :id", [
-            'id' => $current_user_id,
-        ])->find();
+//        $assignedManager = $db->query("SELECT m.id AS manager_id, m.name AS manager_name FROM users e LEFT JOIN users m ON e.manager_id = m.id WHERE e.id = :id", [
+//            'id' => $current_user_id,
+//        ])->find();
 
 
         if (!$current_user_id) {
@@ -181,22 +183,28 @@ class LeaveRequestController {
             exit();
         }
 
-        $leaveRequests = $db->query('SELECT lr.*, m.name AS manager_name FROM leave_requests lr LEFT JOIN users m ON lr.assigned_to = m.id WHERE lr.user_id = :user_id', [
+        $leaveRequests = $db->query(' 
+        SELECT 
+        lr.*, 
+        m.name AS manager_name,
+        lt.name AS leave_type_name 
+        FROM leave_requests lr 
+        LEFT JOIN users m ON lr.assigned_to = m.id
+        LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+        WHERE lr.user_id = :user_id
+        ', [
             'user_id' => $current_user_id,
         ])->all();
 
 
+
         echo json_encode([
             'success' => true,
-            'id' => $current_user_id,
             'message' => 'Leave requests fetched successfully',
+            'id' => $current_user_id,
             'user_id' => $current_user_id,
             'leave_requests' => [
                 'data' => $leaveRequests,
-                'assigned_to' => [
-                    'manager_id' => $assignedManager['manager_id'] ?? null,
-                    'manager_name' => $assignedManager['manager_name'] ?? 'Unassigned',
-                ],
             ],
         ]);
 

@@ -19,6 +19,7 @@ import type {TableData} from "@/types/leave.ts";
 
 const tableHeaders = ['Leave Type', 'Start Date', 'End Date', 'Reason', 'Status', 'Assigned to','Actions']
 
+
 export default function LeaveRequestTable() {
 
     const [error, setError] = useState<string | null>(null);
@@ -39,10 +40,8 @@ export default function LeaveRequestTable() {
                    },
                });
                setLeaveRequests(response.data.leave_requests.data);
-               console.log(response.data.leave_requests.data);
-               setManager(response.data.leave_requests.assigned_to.manager_name);
            }catch (e) {
-               setError(e.response.data.message);
+               setError(e.response.data.error);
            }
        };
 
@@ -65,12 +64,12 @@ export default function LeaveRequestTable() {
                 <TableBody>
                     {leaveRequests.map((leave) => (
                         <TableRow key={leave.id}>
-                            <TableCell>{leave.leave_type}</TableCell>
+                            <TableCell>{leave.leave_type_name}</TableCell>
                             <TableCell>{leave.start_date}</TableCell>
                             <TableCell>{leave.end_date}</TableCell>
                             <TableCell>{leave.reason}</TableCell>
                             <TableCell>{leave.status}</TableCell>
-                            <TableCell>{manager}</TableCell>
+                            <TableCell>{leave.manager_name}</TableCell>
                             <TableCell>
                                 <Button>
                                     <Eye />

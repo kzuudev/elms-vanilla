@@ -29,6 +29,7 @@ export type LeaveBalance = {
     total: number
 }
 export type TableData = {
+    leave_type_name: string;
     id: number;
     user_id: number;
     leave_type: string;
@@ -36,9 +37,6 @@ export type TableData = {
     end_date: string;
     reason: string;
     status: string;
-    assigned_to:
-        {
-            manager_id: number;
-            manager_name: string;
-        }
+    manager_name: string;
+
 };
