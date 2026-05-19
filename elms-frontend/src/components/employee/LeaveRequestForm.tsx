@@ -5,9 +5,9 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
 import {useNavigate} from "react-router-dom";
-import {useState} from "react";
+import {useState, useContext} from "react";
 import {LeaveType} from "@/types/leave.ts";
-
+import {LeaveContext} from "@/context/LeaveContext.tsx";
 
 import {Button} from "@/components/ui/button";
 import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field";
@@ -15,17 +15,16 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/
 import {Input} from "@/components/ui/input"
 import {Textarea} from "@/components/ui/textarea.tsx";
 
-interface LeaveRequestProps{
+interface LeaveRequestFormProps {
     closeDialog: () => void;
-    refreshLeaveRequestTable: () => void;
 }
 
 
-export default function LeaveRequestForm({closeDialog}: LeaveRequestProps, refreshLeaveRequestTable: LeaveRequestProps ) {
 
+export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) {
+
+    const leaveContext = useContext(LeaveContext);
     const navigate = useNavigate();
-
-    const [open, setOpen] = useState(false);
 
     const schema = z.object({
         leave_type: z.string().min(1, {message: "Leave Type is required"}),
@@ -60,11 +59,13 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestProps, refre
         {label: "Extended Medical Leave", value: LeaveType.Extended},
     ];
 
-
     const onSubmit = async (data: LeaveRequestFormData) => {
         console.log("Form Submitted: ", data);
 
         const holder = localStorage.getItem("token");
+        closeDialog();
+
+        const { fetchLeaveRequests } = leaveContext;
 
         try {
             const response = await api.post("/leave-request", data, {
@@ -73,14 +74,14 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestProps, refre
                     Authorization: `Bearer ${holder}`,
                 },
             });
-            console.log(response.data);
-            setError("root", {
-                type: "server",
-                message: "",
-            });
-            navigate("/employee/leave-request");
-            closeDialog();
-            refreshLeaveRequestTable();
+            if(response.data.success) {
+                setError("root", {
+                    type: "server",
+                    message: "",
+                });
+                fetchLeaveRequests();
+                navigate("/employee/leave-request");
+            }
         } catch (e) {
             setError("root", {
                 type: "server",
