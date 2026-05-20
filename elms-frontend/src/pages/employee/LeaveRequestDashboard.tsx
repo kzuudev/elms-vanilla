@@ -36,12 +36,16 @@ export default function LeaveRequestDashboard() {
             setLeaveRequests(response.data.leave_requests.data);
         }
 
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchLeaveRequests();
+    }, []);
 
 
     return (
         <>
             <AppSidebar>
-                <LeaveContext.Provider value={{ fetchLeaveRequests, leaveRequests }}>
+                    <LeaveContext.Provider value={{ fetchLeaveRequests, leaveRequests }}>
                     <div className="flex justify-between items-center">
                         <Header/>
                         <Dialog open={open} onOpenChange={setOpen}>
@@ -58,21 +62,19 @@ export default function LeaveRequestDashboard() {
                             </DialogContent>
                         </Dialog>
                     </div>
-                </LeaveContext.Provider>
-
-
-                <div className="mt-8">
-                    <LeaveBalanceSection/>
 
                     <div className="mt-8">
-                        <h1>Leave Request History</h1>
+                        <LeaveBalanceSection/>
 
-                       <div className="mt-4">
-                           <LeaveRequestTable/>
-                       </div>
+                        <div className="mt-8">
+                            <h1>Leave Request History</h1>
+
+                            <div className="mt-4">
+                                <LeaveRequestTable/>
+                            </div>
+                        </div>
                     </div>
-                </div>
-
+                </LeaveContext.Provider>
             </AppSidebar>
         </>
     )

@@ -115,13 +115,6 @@ class LeaveRequestController {
             exit();
         }
 
-//        echo json_encode([
-//            "error" => true,
-//            "message" => "Balance not found.",
-//            "debug_info" => "Searched for User ID: {$current_user_id}, Leave Type ID: {$leaveTypeRecord['id']}"
-//        ]);
-
-
         // insert it then
         $db->query("INSERT INTO leave_requests(user_id, leave_type_id, start_date, end_date, reason, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date,  :reason, :assigned_to)", [
             'user_id' => $current_user_id,

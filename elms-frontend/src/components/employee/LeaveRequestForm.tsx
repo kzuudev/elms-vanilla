@@ -5,7 +5,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
 import {useNavigate} from "react-router-dom";
-import {useState, useContext} from "react";
+import {useState, useEffect, useContext} from "react";
 import {LeaveType} from "@/types/leave.ts";
 import {LeaveContext} from "@/context/LeaveContext.tsx";
 
@@ -59,13 +59,13 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
         {label: "Extended Medical Leave", value: LeaveType.Extended},
     ];
 
+    const { fetchLeaveRequests } = leaveContext;
+
     const onSubmit = async (data: LeaveRequestFormData) => {
         console.log("Form Submitted: ", data);
 
         const holder = localStorage.getItem("token");
         closeDialog();
-
-        const { fetchLeaveRequests } = leaveContext;
 
         try {
             const response = await api.post("/leave-request", data, {
@@ -89,6 +89,10 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
             });
         }
     }
+
+
+
+
     return (
         <>
             <div className="flex w-full items-center">
