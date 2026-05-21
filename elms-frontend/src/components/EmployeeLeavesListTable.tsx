@@ -36,7 +36,7 @@ export default function EmployeeLeavesListTable() {
                 <TableBody>
                     {managerLeaveList.map((leave) => (
                         <TableRow key={leave.id}>
-                            <TableCell>{leave.name}</TableCell>
+                            <TableCell>{leave.employee_name}</TableCell>
                             <TableCell>{leave.role}</TableCell>
                             <TableCell>{leave.leave_type_name}</TableCell>
                             <TableCell>{leave.start_date}</TableCell>

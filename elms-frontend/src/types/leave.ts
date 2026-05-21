@@ -42,7 +42,7 @@ export type TableData = {
 };
 
 export type ManagerTableData = {
-    name: string;
+    employee_name: string;
     role: string;
     leave_type_name: string;
     id: number;
