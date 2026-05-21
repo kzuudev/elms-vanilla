@@ -1,9 +1,18 @@
 
+
+import AppSidebar from "@/components/manager/AppSidebar.tsx";
+import SearchInput from "@/components/ui/search.tsx";
+
 export default function ManagerDashboard() {
 
 
    return (
-       <p>Hello, Manager</p>
+      <div>
+         <AppSidebar>
+             <h1>Dashboard</h1>
+         </AppSidebar>
+      </div>
+
    );
 }
 

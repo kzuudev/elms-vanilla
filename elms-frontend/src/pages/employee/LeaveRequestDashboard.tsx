@@ -6,6 +6,7 @@ import LeaveRequestForm from "@/components/employee/LeaveRequestForm.tsx";
 import LeaveBalanceSection from "@/components/LeaveBalanceSection.tsx";
 import LeaveRequestTable from "@/components/LeaveRequestTable.tsx";
 import { LeaveContext } from "@/context/LeaveContext.tsx";
+import {api} from "@/lib/api.ts";
 
 import {
     Dialog,
@@ -15,7 +16,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import {Button} from "@/components/ui/button";
-import {api} from "@/lib/api.ts";
+
 
 export default function LeaveRequestDashboard() {
 
@@ -24,7 +25,6 @@ export default function LeaveRequestDashboard() {
 
         const fetchLeaveRequests = async () => {
 
-            localStorage.getItem("token");
             const holder = localStorage.getItem("token");
 
             const response = await api.get("/leave-request", {

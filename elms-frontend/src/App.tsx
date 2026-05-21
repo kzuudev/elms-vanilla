@@ -9,7 +9,7 @@ import AdminDashboard from './pages/admin/Admin'
 
 import { ProtectedRoute } from "@/components/ProtectedRoute.tsx";
 import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
-
+import LeavesDashboard from "@/pages/manager/LeavesDashboard.tsx";
 function App() {
 
 
@@ -30,6 +30,14 @@ function App() {
                 }
             />
 
+            <Route
+                path="/employee/leave-request"
+                element={
+                    <ProtectedRoute allowedRoles={['admin', 'manager', 'employee']}>
+                        <LeaveRequestDashboard />
+                    </ProtectedRoute>
+                }
+            />
 
 
             <Route
@@ -43,19 +51,20 @@ function App() {
             />
 
             <Route
-                path="/admin/dashboard"
+                path="/manager/leaves"
                 element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                        <AdminDashboard />
+                    // allowed 2 roles here because Managers and Admins are also employees!
+                    <ProtectedRoute allowedRoles={['manager', 'admin']}>
+                        <LeavesDashboard />
                     </ProtectedRoute>
                 }
             />
 
             <Route
-                path="/employee/leave-request"
+                path="/admin/dashboard"
                 element={
-                    <ProtectedRoute allowedRoles={['admin', 'manager', 'employee']}>
-                        <LeaveRequestDashboard />
+                    <ProtectedRoute allowedRoles={['admin']}>
+                        <AdminDashboard />
                     </ProtectedRoute>
                 }
             />
