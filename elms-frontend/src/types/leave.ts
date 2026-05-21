@@ -40,3 +40,18 @@ export type TableData = {
     manager_name: string;
 
 };
+
+export type ManagerTableData = {
+    name: string;
+    role: string;
+    leave_type_name: string;
+    id: number;
+    user_id: number;
+    leave_type: string;
+    start_date: string;
+    end_date: string;
+    reason: string;
+    status: string;
+    manager_name: string;
+
+};

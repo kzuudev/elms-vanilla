@@ -177,16 +177,16 @@ class LeaveRequestController {
         }
 
         $leaveRequests = $db->query(' 
-        SELECT 
-        lr.*, 
-        m.name AS manager_name,
-        lt.name AS leave_type_name 
-        FROM leave_requests lr 
-        LEFT JOIN users m ON lr.assigned_to = m.id
-        LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
-        WHERE lr.user_id = :user_id
-        ', [
-            'user_id' => $current_user_id,
+            SELECT 
+            lr.*, 
+            m.name AS manager_name,
+            lt.name AS leave_type_name 
+            FROM leave_requests lr 
+            LEFT JOIN users m ON lr.assigned_to = m.id
+            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+            WHERE lr.user_id = :user_id
+            ', [
+                'user_id' => $current_user_id,
         ])->all();
 
 

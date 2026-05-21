@@ -1,28 +1,26 @@
 "use client"
 
-import SearchInput from "@/components/ui/search.tsx";
+
 import AppSidebar from "@/components/manager/AppSidebar.tsx";
+import EmployeeLeavesListDashboard from "@/pages/manager/EmployeeLeavesListDashboard.tsx";
+import SearchInput from "@/components/ui/search.tsx";
 import LeaveStats from "@/components/LeaveStats.tsx";
-import LeaveRequestTable from "@/components/LeaveRequestTable.tsx";
 export default function LeavesDashboard() {
 
     return (
         <>
             <AppSidebar>
-                <h1 className="text-gray-600">Dashboard</h1>
-                <h2 className="text-sm text-gray-500">Track employee activities, stats, and updates</h2>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-gray-600">Dashboard</h1>
+                        <h2 className="text-sm text-gray-500">Track employee activities, stats, and updates</h2>
 
-                <div>
-                    <SearchInput/>
+                        <div>
+                            <SearchInput />
+                        </div>
+                    </div>
                 </div>
-
-                <div>
-                    <LeaveStats/>
-                </div>
-
-                <div>
-
-                </div>
+               <EmployeeLeavesListDashboard/>
             </AppSidebar>
         </>
     )

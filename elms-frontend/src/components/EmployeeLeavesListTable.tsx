@@ -11,21 +11,14 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table'
-
-import { Eye, Pencil, Trash } from 'lucide-react';
 import { Button } from './ui/button';
+import {Eye, Pencil, Trash} from "lucide-react";
 
+const tableHeaders = ['Name', 'Role', 'Leave Type', 'Start Date', 'End Date', 'Reason', 'Status', 'Assigned to','Actions']
+export default function EmployeeLeavesListTable() {
 
-
-const tableHeaders = ['Leave Type', 'Start Date', 'End Date', 'Reason', 'Status', 'Assigned to','Actions']
-
-
-export default function LeaveRequestTable() {
-
+    const { managerLeaveList } = useContext(LeaveContext);
     const [error, setError] = useState<string | null>(null);
-
-    // get the leave request list directly from the Leave Context
-    const { leaveRequests } = useContext(LeaveContext);
 
     return (
         <div className="border border-border rounded-lg bg-white overflow-hidden">
@@ -41,8 +34,10 @@ export default function LeaveRequestTable() {
                 </TableHeader>
 
                 <TableBody>
-                    {leaveRequests.map((leave) => (
+                    {managerLeaveList.map((leave) => (
                         <TableRow key={leave.id}>
+                            <TableCell>{leave.name}</TableCell>
+                            <TableCell>{leave.role}</TableCell>
                             <TableCell>{leave.leave_type_name}</TableCell>
                             <TableCell>{leave.start_date}</TableCell>
                             <TableCell>{leave.end_date}</TableCell>

@@ -1,9 +1,10 @@
 import { createContext } from 'react';
-import {LeaveType, type TableData} from "@/types/leave.ts";
+import {LeaveType, type TableData, type ManagerTableData} from "@/types/leave.ts";
 
 type LeaveContextType = {
     fetchLeaveRequests: () => void,
-    leaveRequests: TableData[];
+    leaveRequests: TableData[],
+    managerLeaveList: ManagerTableData[];
 }
 
 export const LeaveContext = createContext<LeaveContextType | undefined>(undefined);
