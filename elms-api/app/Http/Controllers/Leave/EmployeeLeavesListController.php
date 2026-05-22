@@ -36,24 +36,20 @@ class EmployeeLeavesListController {
             echo json_encode(["error" => "User not found"]);
             exit();
         }
-//
-//        $employeeLeavesList = $db->query("SELECT * FROM leave_requests WHERE assigned_to = :assigned_to", [
-//            'assigned_to' => $current_user_id
-//        ])->all();
-
 
         $managerLeavesList = $db->query("
-    SELECT 
-        lr.*, 
-        e.name as employee_name, 
-        m.name as manager_name,
-        lt.name as leave_type_name 
-        FROM leave_requests lr 
-        LEFT JOIN users e ON lr.user_id = e.id 
-        LEFT JOIN users r ON lr.user_id = r.id
-        LEFT JOIN users m ON lr.assigned_to = m.id
-        LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id 
-        WHERE lr.assigned_to = :manager_id
+            SELECT 
+            lr.*, 
+            e.name as employee_name, 
+            m.name as manager_name,
+            e.role as employee_role,
+            lt.name as leave_type_name 
+            FROM leave_requests lr 
+            LEFT JOIN users e ON lr.user_id = e.id 
+            LEFT JOIN users m ON lr.assigned_to = m.id
+            LEFT JOIN users r ON lr.user_id = r.id
+            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id 
+            WHERE lr.assigned_to = :manager_id
         ", [
             'manager_id' => $current_manager_id
         ])->all();
@@ -62,7 +58,6 @@ class EmployeeLeavesListController {
             http_response_code(404);
             echo json_encode(["error" => "No employee leaves found"]);
         }
-
 
 
         echo json_encode([
