@@ -2,7 +2,7 @@
 
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
-import EmployeeLeavesListDashboard from "@/pages/manager/EmployeeLeavesListDashboard.tsx";
+import ManagerLeaveDashboard from "@/pages/manager/ManagerLeaveDashboard.tsx";
 import SearchInput from "@/components/ui/search.tsx";
 import LeaveStats from "@/features/leaves/components/LeaveStats.tsx";
 export default function LeavesDashboard() {
@@ -20,7 +20,7 @@ export default function LeavesDashboard() {
                         </div>
                     </div>
                 </div>
-               <EmployeeLeavesListDashboard/>
+               <ManagerLeaveDashboard/>
             </AppSidebar>
         </>
     )

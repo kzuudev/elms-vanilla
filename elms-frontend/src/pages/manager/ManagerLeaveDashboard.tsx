@@ -5,12 +5,10 @@ import {api} from "@/lib/api.ts";
 import { LeaveContext } from "@/features/context/LeaveContext.tsx";
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
-// import EmployeeLeavesListTable from "@/components/EmployeeLeavesListTable.tsx";
-
-import EmployeeLeaveTable from "@/features/leaves/components/EmployeeLeaveTable.tsx";
+import ManagerLeaveTable from "@/features/leaves/components/ManagerLeaveTable.tsx";
 
 
-export default function  EmployeeLeavesListDashboard() {
+export default function  ManagerLeaveDashboard() {
 
     const [managerLeaveList, setManagerLeaveList] = useState([]);
     const [error, setError] = useState(null);
@@ -38,10 +36,10 @@ export default function  EmployeeLeavesListDashboard() {
             <AppSidebar>
                 <LeaveContext.Provider value={{ fetchLeaveRequests, managerLeaveList, leaveRequests: [] }}>
                     <div className="justify-between items-center">
-                        <h1>Employee Leave Request History</h1>
+                        <h1>Manager Leave Request History</h1>
 
                         <div className="mt-4">
-                            <EmployeeLeaveTable />
+                            <ManagerLeaveTable />
                         </div>
                     </div>
                 </LeaveContext.Provider>
