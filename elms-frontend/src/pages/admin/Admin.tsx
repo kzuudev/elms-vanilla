@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import AppSidebar from "@/components/employee/AppSidebar.tsx";
+import AppSidebar from "@/components/layout/AppSidebar.tsx";
 
 
 

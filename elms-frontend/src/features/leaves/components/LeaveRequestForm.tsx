@@ -7,12 +7,12 @@ import {api} from "@/lib/api.ts";
 import {useNavigate} from "react-router-dom";
 import {useState, useEffect, useContext} from "react";
 import {LeaveType} from "@/types/leave.ts";
-import {LeaveContext} from "@/context/LeaveContext.tsx";
+import {LeaveContext} from "@/features/context/LeaveContext.tsx";
 
-import {Button} from "@/components/ui/button";
-import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
-import {Input} from "@/components/ui/input"
+import {Button} from "@/components/ui/button.tsx";
+import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field.tsx";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select.tsx";
+import {Input} from "@/components/ui/input.tsx"
 import {Textarea} from "@/components/ui/textarea.tsx";
 
 interface LeaveRequestFormProps {

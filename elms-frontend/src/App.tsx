@@ -7,7 +7,7 @@ import ManagerDashboard from './pages/manager/Dashboard'
 import EmployeeDashboard from './pages/employee/Dashboard'
 import AdminDashboard from './pages/admin/Admin'
 
-import { ProtectedRoute } from "@/components/ProtectedRoute.tsx";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute.tsx";
 import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
 import LeavesDashboard from "@/pages/manager/LeavesDashboard.tsx";
 function App() {

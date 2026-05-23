@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import Unauthorized from "@/pages/unauthorized/Unauthorized";
+import Unauthorized from "@/pages/unauthorized/Unauthorized.tsx";
 
 export const ProtectedRoute = ({ children, allowedRoles}) => {
 

@@ -1,11 +1,11 @@
 import {useState, useEffect} from "react";
 
-import AppSidebar from "@/components/employee/AppSidebar.tsx";
-import Header from "@/components/employee/Header";
-import LeaveRequestForm from "@/components/employee/LeaveRequestForm.tsx";
-import LeaveBalanceSection from "@/components/LeaveBalanceSection.tsx";
-import LeaveRequestTable from "@/components/LeaveRequestTable.tsx";
-import { LeaveContext } from "@/context/LeaveContext.tsx";
+import AppSidebar from "@/components/layout/AppSidebar.tsx";
+import Header from "@/components/layout/Header.tsx";
+import LeaveRequestForm from "@/features/leaves/components/LeaveRequestForm.tsx";
+import LeaveBalanceSection from "@/features/leaves/components/LeaveBalanceSection.tsx";
+import EmployeeLeaveTable from "@/features/leaves/components/EmployeeLeaveTable.tsx";
+import { LeaveContext } from "@/features/context/LeaveContext.tsx";
 import {api} from "@/lib/api.ts";
 
 import {
@@ -45,7 +45,7 @@ export default function LeaveRequestDashboard() {
     return (
         <>
             <AppSidebar>
-                    <LeaveContext.Provider value={{ fetchLeaveRequests, leaveRequests }}>
+                    <LeaveContext.Provider value={{ fetchLeaveRequests, leaveRequests, managerLeaveList: [] }}>
                     <div className="flex justify-between items-center">
                         <Header/>
                         <Dialog open={open} onOpenChange={setOpen}>
@@ -70,7 +70,7 @@ export default function LeaveRequestDashboard() {
                             <h1>Leave Request History</h1>
 
                             <div className="mt-4">
-                                <LeaveRequestTable/>
+                                <EmployeeLeaveTable/>
                             </div>
                         </div>
                     </div>

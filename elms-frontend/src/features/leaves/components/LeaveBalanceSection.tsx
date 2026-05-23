@@ -1,6 +1,6 @@
 'use client'
 
-import { Card } from '@/components/ui/card'
+import { Card } from '@/components/ui/card.tsx'
 import { Activity, Plane, Leaf, Users } from 'lucide-react'
 
 import type {LeaveBalance } from "@/types/leave.ts";

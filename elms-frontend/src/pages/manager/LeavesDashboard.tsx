@@ -1,10 +1,10 @@
 "use client"
 
 
-import AppSidebar from "@/components/manager/AppSidebar.tsx";
+import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import EmployeeLeavesListDashboard from "@/pages/manager/EmployeeLeavesListDashboard.tsx";
 import SearchInput from "@/components/ui/search.tsx";
-import LeaveStats from "@/components/LeaveStats.tsx";
+import LeaveStats from "@/features/leaves/components/LeaveStats.tsx";
 export default function LeavesDashboard() {
 
     return (

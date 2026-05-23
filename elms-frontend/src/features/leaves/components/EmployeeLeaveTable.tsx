@@ -1,7 +1,7 @@
 'use client'
 
 import {useState, useContext} from "react";
-import { LeaveContext } from "@/context/LeaveContext.tsx";
+import { LeaveContext } from "@/features/context/LeaveContext.tsx";
 
 import {
     Table,
@@ -10,22 +10,22 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '@/components/ui/table'
+} from '@/components/ui/table.tsx'
 
 import { Eye, Pencil, Trash } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from '../../../components/ui/button.tsx';
 
 
 
 const tableHeaders = ['Leave Type', 'Start Date', 'End Date', 'Reason', 'Status', 'Assigned to','Actions']
 
 
-export default function LeaveRequestTable() {
+export default function EmployeeLeaveTable() {
 
     const [error, setError] = useState<string | null>(null);
 
     // get the leave request list directly from the Leave Context
-    const { leaveRequests } = useContext(LeaveContext);
+    const { leaveRequests, managerLeaveList } = useContext(LeaveContext);
 
     return (
         <div className="border border-border rounded-lg bg-white overflow-hidden">

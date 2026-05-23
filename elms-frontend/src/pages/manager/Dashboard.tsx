@@ -1,6 +1,5 @@
 
-
-import AppSidebar from "@/components/manager/AppSidebar.tsx";
+import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import SearchInput from "@/components/ui/search.tsx";
 
 export default function ManagerDashboard() {

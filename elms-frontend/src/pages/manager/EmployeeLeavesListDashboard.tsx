@@ -2,12 +2,12 @@
 
 import {useState, useEffect} from "react";
 import {api} from "@/lib/api.ts";
-import { LeaveContext } from "@/context/LeaveContext.tsx";
+import { LeaveContext } from "@/features/context/LeaveContext.tsx";
 
-import AppSidebar from "@/components/manager/AppSidebar.tsx";
-import EmployeeLeavesListTable from "@/components/EmployeeLeavesListTable.tsx";
+import AppSidebar from "@/components/layout/AppSidebar.tsx";
+// import EmployeeLeavesListTable from "@/components/EmployeeLeavesListTable.tsx";
 
-
+import EmployeeLeaveTable from "@/features/leaves/components/EmployeeLeaveTable.tsx";
 
 
 export default function  EmployeeLeavesListDashboard() {
@@ -41,7 +41,7 @@ export default function  EmployeeLeavesListDashboard() {
                         <h1>Employee Leave Request History</h1>
 
                         <div className="mt-4">
-                            <EmployeeLeavesListTable />
+                            <EmployeeLeaveTable />
                         </div>
                     </div>
                 </LeaveContext.Provider>
