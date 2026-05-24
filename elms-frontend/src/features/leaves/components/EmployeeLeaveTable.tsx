@@ -25,7 +25,7 @@ export default function EmployeeLeaveTable() {
     const [error, setError] = useState<string | null>(null);
 
     // get the leave request list directly from the Leave Context
-    const { leaveRequests, managerLeaveList } = useContext(LeaveContext);
+    const { leaveRequests } = useContext(LeaveContext);
 
     return (
         <div className="border border-border rounded-lg bg-white overflow-hidden">

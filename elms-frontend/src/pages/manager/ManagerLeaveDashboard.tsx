@@ -33,17 +33,12 @@ export default function  ManagerLeaveDashboard() {
 
     return (
         <>
-            <AppSidebar>
-                <LeaveContext.Provider value={{ fetchLeaveRequests, managerLeaveList, leaveRequests: [] }}>
-                    <div className="justify-between items-center">
-                        <h1>Manager Leave Request History</h1>
-
-                        <div className="mt-4">
-                            <ManagerLeaveTable />
-                        </div>
-                    </div>
-                </LeaveContext.Provider>
-            </AppSidebar>
+            <LeaveContext.Provider value={{ fetchLeaveRequests, managerLeaveList, leaveRequests: [] }}>
+                <div className="flex flex-col gap-4 mt-8">
+                    <h2 className="text-xl font-semibold">Manager Leave Request History</h2>
+                    <ManagerLeaveTable />
+                </div>
+            </LeaveContext.Provider>
         </>
     )
 }
