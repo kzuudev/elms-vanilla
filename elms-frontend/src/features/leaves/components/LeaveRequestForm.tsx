@@ -5,7 +5,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
 import {useNavigate} from "react-router-dom";
-import {useState, useEffect, useContext} from "react";
+import {useContext} from "react";
 import {LeaveType} from "@/types/leave.ts";
 import {LeaveContext} from "@/features/context/LeaveContext.tsx";
 
@@ -14,6 +14,7 @@ import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field.
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select.tsx";
 import {Input} from "@/components/ui/input.tsx"
 import {Textarea} from "@/components/ui/textarea.tsx";
+import { AlertCircle } from "lucide-react";
 
 interface LeaveRequestFormProps {
     closeDialog: () => void;
@@ -25,6 +26,7 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
 
     const leaveContext = useContext(LeaveContext);
     const navigate = useNavigate();
+
 
     const schema = z.object({
         leave_type: z.string().min(1, {message: "Leave Type is required"}),
@@ -44,7 +46,7 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
             reason: ''
         }
     });
-    const {register, handleSubmit, setError, formState: {errors}} = form;
+    const {setError, formState: {errors}} = form;
 
     const leaveOptions: { label: string; value: LeaveType }[] = [
         {label: "Annual Leave", value: LeaveType.Annual},
@@ -65,7 +67,6 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
         console.log("Form Submitted: ", data);
 
         const holder = localStorage.getItem("token");
-        closeDialog();
 
         try {
             const response = await api.post("/leave-request", data, {
@@ -80,6 +81,7 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
                     message: "",
                 });
                 fetchLeaveRequests();
+                closeDialog();
                 navigate("/employee/leave-request");
             }
         } catch (e) {
@@ -87,6 +89,8 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
                 type: "server",
                 message: e.response.data.message,
             });
+
+            console.log(e.response.data.message);
         }
     }
 
@@ -200,6 +204,16 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
                             />
                         </div>
                     </FieldGroup>
+
+                    {errors.root && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-2 flex items-start gap-3 my-4">
+                            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                            <div>
+                                <h3 className="text-xs font-medium text-red-800">Submission Failed</h3>
+                                <p className="text-xs text-red-700 mt-1">{errors.root.message}</p>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="flex w-full">
                         <Button type="submit" className="w-full p-4 rounded-md text-sm bg-black text-white text-center"

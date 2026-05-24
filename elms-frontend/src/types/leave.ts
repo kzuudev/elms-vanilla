@@ -48,9 +48,10 @@ export type ManagerTableData = {
     id: number;
     user_id: number;
     leave_type: string;
+    reason: string;
     start_date: string;
     end_date: string;
-    reason: string;
+    total_days: number;
     status: string;
     manager_name: string;
 

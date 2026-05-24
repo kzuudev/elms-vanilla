@@ -12,9 +12,9 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import {Button} from "@/components/ui/button";
-import {Eye, Pencil, Trash} from "lucide-react";
+import {Eye, CircleCheck, X} from "lucide-react";
 
-const tableHeaders = ['Name', 'Role', 'Leave Type', 'Start Date', 'End Date', 'Reason', 'Status', 'Assigned to','Actions']
+const tableHeaders = ['Name', 'Role', 'Leave Type', 'Reason', 'Start Date', 'End Date', 'Days', 'Status','Actions']
 export default function ManagerLeaveTable() {
 
     const { managerLeaveList } = useContext(LeaveContext);
@@ -39,9 +39,10 @@ export default function ManagerLeaveTable() {
                             <TableCell>{leave.employee_name}</TableCell>
                             <TableCell>{leave.employee_role}</TableCell>
                             <TableCell>{leave.leave_type_name}</TableCell>
+                            <TableCell>{leave.reason}</TableCell>
                             <TableCell>{leave.start_date}</TableCell>
                             <TableCell>{leave.end_date}</TableCell>
-                            <TableCell>{leave.reason}</TableCell>
+                            <TableCell>{leave.total_days}</TableCell>
                             {leave.status === "pending" ? (
                                 <TableCell><span className="bg-orange-50 text-orange-700 border border-orange-200/60 px-2 py-1 rounded-md">{leave.status}</span></TableCell>
                             ) : leave.status === "approved" ? (
@@ -49,11 +50,10 @@ export default function ManagerLeaveTable() {
                             ) : (
                                 <TableCell className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-lg">{leave.status}</TableCell>
                             )}
-                            <TableCell>{leave.manager_name}</TableCell>
                             <TableCell>
                                 <Button variant="outline" className="p-2 mr-1"><Eye /></Button>
-                                <Button variant="outline" className="p-2 mr-1"><Pencil /></Button>
-                                <Button variant="outline" className="p-2 text-red-500"><Trash/></Button>
+                                <Button variant="outline" className="p-2 mr-1"><CircleCheck /></Button>
+                                <Button variant="outline" className="p-2 text-red-500"><X /></Button>
                             </TableCell>
                         </TableRow>
                     ))}

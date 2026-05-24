@@ -10,7 +10,7 @@ export default function LeavesDashboard() {
     return (
         <>
             <AppSidebar>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col justify-between">
                     <div>
                         <h1 className="text-gray-600">Dashboard</h1>
                         <h2 className="text-sm text-gray-500">Track employee activities, stats, and updates</h2>
@@ -19,8 +19,13 @@ export default function LeavesDashboard() {
                             <SearchInput />
                         </div>
                     </div>
+
+                    <LeaveStats/>
                 </div>
-               <ManagerLeaveDashboard/>
+
+                <main>
+                    <ManagerLeaveDashboard/>
+                </main>
             </AppSidebar>
         </>
     )
