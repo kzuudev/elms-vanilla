@@ -43,7 +43,8 @@ class EmployeeLeavesListController {
             e.name as employee_name, 
             m.name as manager_name,
             e.role as employee_role,
-            lt.name as leave_type_name 
+            lt.name as leave_type_name,
+            DATEDIFF(lr.end_date, lr.start_date) + 1 as total_days
             FROM leave_requests lr 
             LEFT JOIN users e ON lr.user_id = e.id 
             LEFT JOIN users m ON lr.assigned_to = m.id
