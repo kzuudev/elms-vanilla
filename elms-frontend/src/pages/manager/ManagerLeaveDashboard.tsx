@@ -1,44 +1,45 @@
 "use client"
 
-import {useState, useEffect} from "react";
-import {api} from "@/lib/api.ts";
-import { LeaveContext } from "@/features/context/LeaveContext.tsx";
+import { UserContext } from "@/features/context/UserContext.tsx";
+import { useContext } from "react";
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
-import ManagerLeaveTable from "@/features/leaves/components/ManagerLeaveTable.tsx";
+import LeaveDashboard from "@/pages/manager/LeaveDashboard.tsx";
+import SearchInput from "@/components/ui/search.tsx";
+import LeaveStats from "@/features/leaves/components/LeaveStats.tsx";
 
+export default function ManagerLeaveDashboard() {
 
-export default function  ManagerLeaveDashboard() {
-
-    const [managerLeaveList, setManagerLeaveList] = useState([]);
-    const [error, setError] = useState(null);
-
-    const fetchLeaveRequests = async () => {
-
-        const holder = localStorage.getItem("token");
-
-        const  response = await api.get("/leaves", {
-            headers: {
-                Authorization: `Bearer ${holder}`,
-            }
-        });
-        setManagerLeaveList(response.data.employee_leaves.data);
-        console.log(response.data.employee_leaves.data);
-    }
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchLeaveRequests();
-    }, []);
+    const {user} = useContext(UserContext);
 
     return (
         <>
-            <LeaveContext.Provider value={{ fetchLeaveRequests, managerLeaveList, leaveRequests: [] }}>
-                <div className="flex flex-col gap-4 mt-8">
-                    <h2 className="text-xl font-semibold">Manager Leave Request History</h2>
-                    <ManagerLeaveTable />
-                </div>
-            </LeaveContext.Provider>
+            <AppSidebar>
+                    <div>
+                        <div className="">
+                            <div className="w-full flex justify-between">
+                                <div>
+                                    <h1 className="text-gray-600">Dashboard</h1>
+                                    <h2 className="text-sm text-gray-500">Track employee activities, stats, and updates</h2>
+                                </div>
+
+                                <div>
+                                    <p className="text-sm text-gray-500">Hello, {user?.name || "Manager"}!</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <SearchInput />
+                            </div>
+                        </div>
+
+                        <LeaveStats/>
+                    </div>
+
+                <main>
+                    <LeaveDashboard/>
+                </main>
+            </AppSidebar>
         </>
     )
 }

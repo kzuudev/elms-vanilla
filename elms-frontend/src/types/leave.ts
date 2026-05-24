@@ -54,5 +54,11 @@ export type ManagerTableData = {
     total_days: number;
     status: string;
     manager_name: string;
-
 };
+
+export type Profile = {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+}

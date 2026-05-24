@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import {LeaveType, type TableData, type ManagerTableData} from "@/types/leave.ts";
+import { type TableData, type ManagerTableData} from "@/types/leave.ts";
 
 type LeaveContextType = {
     fetchLeaveRequests: () => void,

@@ -18,7 +18,6 @@ const tableHeaders = ['Name', 'Role', 'Leave Type', 'Reason', 'Start Date', 'End
 export default function ManagerLeaveTable() {
 
     const { managerLeaveList } = useContext(LeaveContext);
-    const [error, setError] = useState<string | null>(null);
 
     return (
         <div className="border border-border rounded-lg bg-white overflow-hidden">

@@ -1,11 +1,12 @@
 "use client";
 
-
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/lib/api.ts";
 import {Controller, useForm} from "react-hook-form";
 import {useNavigate} from "react-router-dom";
+import { useContext } from "react";
+import { UserContext } from "@/features/context/UserContext.tsx";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,10 +28,7 @@ import { Input } from "@/components/ui/input"
 export default function Login() {
 
 
-    const { register, handleSubmit, setError, formState: { errors } } = useForm<LoginFormData>();
-    console.log(errors);
-
-
+    const { setError, formState: { errors } } = useForm<LoginFormData>();
     const navigate = useNavigate();
 
     // Schema for login form
@@ -52,17 +50,19 @@ export default function Login() {
         }
     })
 
+    const { setUser } = useContext(UserContext);
     const onSubmit = async (data: LoginFormData) => {
         console.log("Form submitted:", data);
 
         try {
             const response = await api.post('/', data);
-            console.log(response);
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("role", response.data.user.role);
             const userRole = localStorage.getItem("role");
-            console.log(response.data.user.id);
-            console.log(userRole);
+
+            console.log(response.data.user);
+            setUser(response.data.user);
+
             setError("root", {
                 type: "server",
                 message: "",
