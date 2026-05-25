@@ -14,13 +14,12 @@ import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field.
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select.tsx";
 import {Input} from "@/components/ui/input.tsx"
 import {Textarea} from "@/components/ui/textarea.tsx";
-import { AlertCircle } from "lucide-react";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
+import { AlertCircle, CheckCircle2Icon } from "lucide-react";
 
 interface LeaveRequestFormProps {
     closeDialog: () => void;
 }
-
-
 
 export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) {
 
@@ -82,7 +81,11 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
                 });
                 fetchLeaveRequests();
                 closeDialog();
-                navigate("/employee/leave-request");
+                navigate("/employee/leave-request", {
+                    state: {
+                        successfullySubmitted: true,
+                    }
+                });
             }
         } catch (e) {
             setError("root", {

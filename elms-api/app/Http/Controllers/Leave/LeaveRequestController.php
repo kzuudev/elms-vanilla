@@ -30,7 +30,7 @@ class LeaveRequestController {
 
         $current_user_id = $tokenRow['user_id'] ?? null;
 
-        $assignedManager = $db->query("SELECT m.id AS manager_id, m.name AS manager_name FROM users e LEFT JOIN users m ON e.manager_id = m.id WHERE e.id = :id", [
+        $assignedManager = $db->query("SELECT m.id AS manager_id, m.first_name AS manager_name FROM users e LEFT JOIN users m ON e.manager_id = m.id WHERE e.id = :id", [
             'id' => $current_user_id,
         ])->find();
 
@@ -179,7 +179,7 @@ class LeaveRequestController {
         $leaveRequests = $db->query(' 
             SELECT 
             lr.*, 
-            m.name AS manager_name,
+            m.first_name AS manager_name,
             lt.name AS leave_type_name 
             FROM leave_requests lr 
             LEFT JOIN users m ON lr.assigned_to = m.id
