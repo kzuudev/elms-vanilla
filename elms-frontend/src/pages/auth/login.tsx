@@ -27,7 +27,6 @@ import { Input } from "@/components/ui/input"
 
 export default function Login() {
 
-
     const { setError, formState: { errors } } = useForm<LoginFormData>();
     const navigate = useNavigate();
 
@@ -58,10 +57,14 @@ export default function Login() {
             const response = await api.post('/', data);
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("role", response.data.user.role);
+            localStorage.setItem("user", JSON.stringify(response.data.user));
+
             const userRole = localStorage.getItem("role");
+            const user = localStorage.getItem("user");
 
             console.log(response.data.user);
-            setUser(response.data.user);
+            setUser();
+
 
             setError("root", {
                 type: "server",

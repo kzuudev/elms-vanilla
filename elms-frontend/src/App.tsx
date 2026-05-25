@@ -15,7 +15,12 @@ import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
 import ManagerLeaveDashboard from "@/pages/manager/ManagerLeaveDashboard.tsx";
 function App() {
 
-    const [user, setUser] = useState<Profile | null>(null);
+    // get the current user logged-in and parse it into object (Profile).
+    const [user, setUser] = useState<Profile | null>(() => {
+        const storedUser = localStorage.getItem("user");
+        return storedUser ? JSON.parse(storedUser) as Profile: null;
+    });
+
 
   return (
     <>

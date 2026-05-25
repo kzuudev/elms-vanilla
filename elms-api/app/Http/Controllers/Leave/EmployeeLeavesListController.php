@@ -40,8 +40,8 @@ class EmployeeLeavesListController {
         $managerLeavesList = $db->query("
             SELECT 
             lr.*, 
-            e.name as employee_name, 
-            m.name as manager_name,
+            e.first_name as employee_name, 
+            m.first_name as manager_name,
             e.role as employee_role,
             lt.name as leave_type_name,
             DATEDIFF(lr.end_date, lr.start_date) + 1 as total_days

@@ -16,7 +16,7 @@ export default function ManagerLeaveDashboard() {
         <>
             <AppSidebar>
                     <div>
-                        <div className="">
+                        <div className="w-full">
                             <div className="w-full flex justify-between">
                                 <div>
                                     <h1 className="text-gray-600">Dashboard</h1>
@@ -24,7 +24,10 @@ export default function ManagerLeaveDashboard() {
                                 </div>
 
                                 <div>
-                                    <p className="text-sm text-gray-500">Hello, {user?.name || "Manager"}!</p>
+                                    <p className="text-sm text-black">
+                                        {user?.name || "Manager"}
+                                    </p>
+                                    <p className="text-sm text-gray-500">{user?.email || "Manager"}!</p>
                                 </div>
                             </div>
 
