@@ -4,7 +4,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Leave\LeaveRequestController;
-use App\Http\Controllers\Leave\EmployeeLeavesListController;
+use App\Http\Controllers\Leave\LeaveReviewController;
 use Core\Router;
 
 $router = new Router();
@@ -13,13 +13,17 @@ $router->post('/register', [RegisteredUserController::class, 'store'])->only('gu
 
 $router->post('/', [LoginController::class, 'login'])->only('guest');
 
-// emplopyee
+// employee
 $router->get('/leave-request', [LeaveRequestController::class, 'index'])->only('auth');
 $router->post('/leave-request', [LeaveRequestController::class, 'submit'])->only('auth');
 $router->put('/leave-request', [LeaveRequestController::class, 'show'])->only('auth');
 $router->patch('/leave-request', [LeaveRequestController::class, 'patch'])->only('auth');
 
 // manager
-$router->get('/leaves', [EmployeeLeavesListController::class, 'index'])->only('auth');
+$router->get('/leaves', [LeaveReviewController::class, 'index'])->only('auth');
+$router->patch('/leaves/{id}', [LeaveReviewController::class, 'patch'])->only('auth');
+
+
+
 // return the router with existing routes inside it
 return $router;
