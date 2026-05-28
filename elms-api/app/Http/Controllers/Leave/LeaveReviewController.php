@@ -121,8 +121,13 @@ class LeaveReviewController {
         if($status == 'rejected' && empty($rejectionReason)) {
             http_response_code(422);
             echo json_encode(['error' => 'Rejection reason is required when status is rejected.']);
-
         }
+
+        $rejected = $db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
+            'id' => $id,
+            'status' => $status,
+            'rejection_reason' => $rejectionReason
+        ]);
 
         $approved = $db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
             'id' => $id,
@@ -130,14 +135,13 @@ class LeaveReviewController {
             'rejection_reason' => $rejectionReason
         ]);
 
-
-
         http_response_code(200);
         echo json_encode([
             'success' => true,
             'message' => 'Leave request status updated successfully',
             'id' => $id,
             'approved' => $approved,
+            'rejected' => $rejected,
         ]);
 
 

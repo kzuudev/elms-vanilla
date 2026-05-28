@@ -27,6 +27,7 @@ export default function ManagerLeaveTable() {
 
     const [activeLeaveId, setActiveLeaveId] = useState<number | null>(null);
     const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { managerLeaveList, fetchLeaveRequests } = useContext(LeaveContext);
 
@@ -46,11 +47,10 @@ export default function ManagerLeaveTable() {
 
     const {setError: setFormError, formState: {errors}} = form;
 
-    // Handles both approvals and rejections on the database level
+    // Handles both approvals and rejections on the database level (communicate with the server)
     const handleUpdateStatus = async (id: number, status: 'approved' | 'rejected', rejection_reason: string) => {
 
         setError(null);
-
         const holder = localStorage.getItem("token");
 
         try {
@@ -83,30 +83,56 @@ export default function ManagerLeaveTable() {
         setError(null);
         setActiveLeaveId(id);
         setRejectionReason(null);
+        setIsDialogOpen(true);
+    }
+
+    const handleApproveSubmit = async (id: number) => {
+        setError(null);
+
+        if(window.confirm("Are you sure you want to approve this leave?")) {
+            await handleUpdateStatus(id, "approved", "");
+        }
+
     }
 
     // Handles submission when manager clicks "Confirm Rejection" inside the modal form
-    const handleRejectSubmit = async (id: number, rejection_reason: string) => {}
+    const handleRejectSubmit = async (e: React.FormEvent) => {
+        setError(null);
+        e.preventDefault();
+
+        const {rejection_reason} = form.getValues();
+        const id = activeLeaveId;
+
+        // check if there's a specific selected id and a rejection reason is not null
+        if(activeLeaveId === id  && rejection_reason.trim() !== "") {
+            await handleUpdateStatus(id, "rejected", rejection_reason);
+            setActiveLeaveId(null);
+            setRejectionReason(null);
+            form.reset();
+        }
+
+
+    }
 
     return (
         <>
             <div>
-                <Dialog open={activeLeaveId} onOpenChange={setActiveLeaveId}>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} >
                     <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
+                        <DialogHeader className="mb-2">
                             <DialogTitle>Rejection Reason</DialogTitle>
                         </DialogHeader>
-                        <form id="rejection-form" >
+                        <form id="rejection-form" onSubmit={handleRejectSubmit} >
                             <FieldGroup className="mb-8">
                                 <div className="flex flex-col w-full gap-2">
                                     <Controller name="rejection_reason" control={form.control} render={({ field, fieldState }) => (
                                         <Field data-invalid={fieldState.invalid}>
                                             <FieldLabel htmlFor="login-form-title" className="m-0">
-                                               Rejection Reason
+                                                Reason
                                             </FieldLabel>
 
                                            <Textarea
-                                               id="rejection-reason"
+                                               id="rejection_reason"
                                                placeholder="Please provide a reason for rejecting this leave request..."
                                                required
                                            />
@@ -161,7 +187,7 @@ export default function ManagerLeaveTable() {
                                 )}
                                 <TableCell>
                                     <Button variant="outline" className="p-2 mr-1"><Eye /></Button>
-                                    <Button variant="outline" className="p-2 mr-1"><CircleCheck /></Button>
+                                    <Button onClick={() => handleApproveSubmit(leave.id)} variant="outline" className="p-2 mr-1"><CircleCheck /></Button>
                                     <Button onClick={() => handleRejectionReasonForm(leave.id)} variant="outline" className="p-2 text-red-500"><X /></Button>
                                 </TableCell>
                             </TableRow>
