@@ -27,7 +27,7 @@ export default function ManagerLeaveDashboard() {
                                     <p className="text-sm text-black">
                                         {user?.name || "Manager"}
                                     </p>
-                                    <p className="text-sm text-gray-500">{user?.email || "Manager"}!</p>
+                                    <p className="text-sm text-gray-500">{user?.email || "Manager"} </p>
                                 </div>
                             </div>
 

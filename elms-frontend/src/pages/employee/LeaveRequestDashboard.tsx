@@ -41,7 +41,6 @@ export default function LeaveRequestDashboard() {
         }
 
     useEffect(() => {
-
         // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchLeaveRequests();
         

@@ -107,6 +107,7 @@ class LeaveReviewController {
             exit;
         }
 
+        // capture the new value
         $input = json_decode(file_get_contents('php://input'), true);
         $status = $input['status'] ?? '';
         $rejectionReason = $input['rejection_reason'] ?? '';
@@ -128,6 +129,7 @@ class LeaveReviewController {
             'status' => $status,
             'rejection_reason' => $rejectionReason
         ]);
+
 
 
         http_response_code(200);

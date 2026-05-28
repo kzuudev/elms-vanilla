@@ -5,8 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/lib/api.ts";
 import {Controller, useForm} from "react-hook-form";
 import {useNavigate} from "react-router-dom";
-import { useContext } from "react";
-import { UserContext } from "@/features/context/UserContext.tsx";
+
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,7 +48,6 @@ export default function Login() {
         }
     })
 
-    const { setUser } = useContext(UserContext);
     const onSubmit = async (data: LoginFormData) => {
         console.log("Form submitted:", data);
 
@@ -58,13 +56,7 @@ export default function Login() {
             localStorage.setItem("token", response.data.token);
             localStorage.setItem("role", response.data.user.role);
             localStorage.setItem("user", JSON.stringify(response.data.user));
-
             const userRole = localStorage.getItem("role");
-            const user = localStorage.getItem("user");
-
-            console.log(response.data.user);
-            setUser();
-
 
             setError("root", {
                 type: "server",
