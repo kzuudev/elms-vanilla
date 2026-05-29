@@ -96,20 +96,26 @@ export default function ManagerLeaveTable() {
     }
 
     // Handles submission when manager clicks "Confirm Rejection" inside the modal form
-    const handleRejectSubmit = async (e: React.FormEvent) => {
+    const handleRejectSubmit = async () => {
         setError(null);
-        e.preventDefault();
 
+        // destructure rejection reason from form
         const {rejection_reason} = form.getValues();
+        console.log(rejection_reason);
         const id = activeLeaveId;
 
         // check if there's a specific selected id and a rejection reason is not null
-        if(activeLeaveId === id  && rejection_reason.trim() !== "") {
-            await handleUpdateStatus(id, "rejected", rejection_reason);
-            setActiveLeaveId(null);
-            setRejectionReason(null);
-            form.reset();
+        if(activeLeaveId !== id  || rejection_reason.trim() === "") {
+            console.error(form.formState.errors);
+            return;
         }
+
+        await handleUpdateStatus(id, "rejected", rejection_reason);
+        setActiveLeaveId(null);
+        setRejectionReason(null);
+        setIsDialogOpen(false);
+        form.reset();
+
 
 
     }
@@ -122,7 +128,7 @@ export default function ManagerLeaveTable() {
                         <DialogHeader className="mb-2">
                             <DialogTitle>Rejection Reason</DialogTitle>
                         </DialogHeader>
-                        <form id="rejection-form" onSubmit={handleRejectSubmit} >
+                        <form id="rejection-form" onSubmit={form.handleSubmit(handleRejectSubmit)} >
                             <FieldGroup className="mb-8">
                                 <div className="flex flex-col w-full gap-2">
                                     <Controller name="rejection_reason" control={form.control} render={({ field, fieldState }) => (
@@ -132,6 +138,7 @@ export default function ManagerLeaveTable() {
                                             </FieldLabel>
 
                                            <Textarea
+                                               {...field}
                                                id="rejection_reason"
                                                placeholder="Please provide a reason for rejecting this leave request..."
                                                required
@@ -183,7 +190,7 @@ export default function ManagerLeaveTable() {
                                 ) : leave.status === "approved" ? (
                                     <TableCell><span className="bg-green-50 text-green-700 border border-green-200/60 px-2 py-1 rounded-md">{leave.status}</span></TableCell>
                                 ) : (
-                                    <TableCell className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-lg">{leave.status}</TableCell>
+                                    <TableCell><span className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-md">{leave.status}</span></TableCell>
                                 )}
                                 <TableCell>
                                     <Button variant="outline" className="p-2 mr-1"><Eye /></Button>

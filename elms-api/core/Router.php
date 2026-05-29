@@ -51,8 +51,17 @@ class Router {
     public function route($uri, $method) {
 
         foreach ($this->routes as $route) {
-            if($route['uri'] === $uri && $route['method'] === $method) {
-                    Middleware::resolve($route['middleware']);
+
+            // match any URL that starts with exactly /leaves/
+            $pattern = preg_replace('/\{[a-zA-Z0-9_]+\}/', '([^/]+)', $route['uri']);
+            $pattern = "#^" . $pattern . "$#";
+
+            if(preg_match($pattern, $uri, $matches) && $route['method'] === strtoupper($method)) {
+
+                Middleware::resolve($route['middleware']);
+
+                // removes the first element of URL and leaving ONLY the variables (e.g., ["18"]) in the array.
+                array_shift($matches);
 
                 // create a logic for getting the class-based controller
                 // check first if the route controller was passed as an array
@@ -65,11 +74,11 @@ class Router {
                         $controller = new $class();
 
                         // call the method from controller
-                        return $controller->$function();
+                        return $controller->$function(...$matches);
 
                     }
 
-                return (new $route['controller'])->handle();
+                return (new $route['controller'])->{$method}(...$matches);
 
             }
         }

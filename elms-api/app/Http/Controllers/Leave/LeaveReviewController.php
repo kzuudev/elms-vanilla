@@ -92,7 +92,7 @@ class LeaveReviewController {
 
         $authorizedManager = $db->query("
             SELECT lr.*,
-            m.first_name as manager_name,
+            m.first_name as manager_name
             FROM leave_requests lr 
             LEFT JOIN users m ON lr.assigned_to = m.id
             WHERE lr.id = :id AND lr.assigned_to = :manager_id
