@@ -133,7 +133,7 @@ export default function ManagerLeaveTable() {
                                 <div className="flex flex-col w-full gap-2">
                                     <Controller name="rejection_reason" control={form.control} render={({ field, fieldState }) => (
                                         <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel htmlFor="login-form-title" className="m-0">
+                                            <FieldLabel htmlFor="rejection-reason-title" className="m-0">
                                                 Reason
                                             </FieldLabel>
 
@@ -141,7 +141,6 @@ export default function ManagerLeaveTable() {
                                                {...field}
                                                id="rejection_reason"
                                                placeholder="Please provide a reason for rejecting this leave request..."
-                                               required
                                            />
 
                                             {fieldState.invalid && (

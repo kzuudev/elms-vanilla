@@ -52,7 +52,7 @@ export default function EmployeeLeaveTable() {
                             ) : leave.status === "approved" ? (
                                 <TableCell><span className="bg-green-50 text-green-700 border border-green-200/60 px-2 py-1 rounded-md">{leave.status}</span></TableCell>
                             ) : (
-                                <TableCell className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-lg">{leave.status}</TableCell>
+                                <TableCell><span className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-md">{leave.status}</span></TableCell>
                             )}
                             <TableCell>{leave.manager_name}</TableCell>
                             <TableCell>
