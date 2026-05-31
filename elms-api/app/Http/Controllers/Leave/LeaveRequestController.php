@@ -204,7 +204,53 @@ class LeaveRequestController {
     }
 
     // show a specific leave request
-    public function show($id) {}
+    public function show($id) {
+
+        $db = App::resolve(Database::class);
+
+        $headers = getallheaders();
+        $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        $token = trim(str_replace('Bearer ', '', $authHeader));
+
+        $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
+            'token' => $token
+        ])->find();
+
+        $current_user_id = $tokenRow['user_id'] ?? null;
+
+        if (!$current_user_id) {
+            http_response_code(404);
+            echo json_encode(["error" => "User not found"]);
+            exit();
+        }
+
+        $leaveRequestDetails = $db->query("
+            SELECT 
+                lr.id,
+                lr.reason,
+                lr.start_date,
+                lr.end_date,
+                lr.status,
+                lr.created_at,
+                CONCAT(m.first_name, ' ', m.last_name) AS manager_name, 
+                lt.name AS leave_type_name,
+                DATEDIFF(lr.end_date, lr.start_date) + 1 AS total_days
+            FROM leave_requests lr 
+            LEFT JOIN users m ON lr.assigned_to = m.id
+            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+            WHERE lr.id = :id
+        ", [
+            'id' => $id,
+        ])->find();
+
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Leave request details fetched successfully',
+            'id' => $current_user_id,
+            'leave_request' => $leaveRequestDetails,
+        ]);
+    }
 
 
 

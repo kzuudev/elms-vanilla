@@ -17,7 +17,7 @@ $router->post('/', [LoginController::class, 'login'])->only('guest');
 // employee
 $router->get('/leave-request', [LeaveRequestController::class, 'index'])->only('auth');
 $router->post('/leave-request', [LeaveRequestController::class, 'submit'])->only('auth');
-$router->put('/leave-request', [LeaveRequestController::class, 'show'])->only('auth');
+$router->get('/leave-request/{id}', [LeaveRequestController::class, 'show'])->only('auth');
 $router->patch('/leave-request', [LeaveRequestController::class, 'patch'])->only('auth');
 
 // manager

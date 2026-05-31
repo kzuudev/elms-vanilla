@@ -14,6 +14,7 @@ import {
 
 import { Eye, Pencil, Trash } from 'lucide-react';
 import { Button } from '../../../components/ui/button.tsx';
+import {api} from "@/lib/api.ts";
 
 
 
@@ -26,6 +27,25 @@ export default function EmployeeLeaveTable() {
 
     // get the leave request list directly from the Leave Context
     const { leaveRequests } = useContext(LeaveContext);
+    const holder = localStorage.getItem("token");
+    const fetchLeaveRequestDetails = async (id: number) => {
+
+        try{
+            const response = await api.get(`/leave-request/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${holder}`,
+                }
+            });
+            console.log(response.data.leave_request);
+        }catch (e) {
+            setError(e.response.data.message);
+        }
+    }
+
+    const handleViewLeaveRequest = async (id: number) => {
+        await fetchLeaveRequestDetails(id);
+    }
+
 
     return (
         <div className="border border-border rounded-lg bg-white overflow-hidden">
@@ -56,7 +76,7 @@ export default function EmployeeLeaveTable() {
                             )}
                             <TableCell>{leave.manager_name}</TableCell>
                             <TableCell>
-                                <Button variant="outline" className="p-2 mr-1"><Eye /></Button>
+                                <Button onClick={() => handleViewLeaveRequest(leave.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>
                                 <Button variant="outline" className="p-2 mr-1"><Pencil /></Button>
                                 <Button variant="outline" className="p-2 text-red-500"><Trash/></Button>
                             </TableCell>
