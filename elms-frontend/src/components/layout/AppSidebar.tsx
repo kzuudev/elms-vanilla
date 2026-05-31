@@ -89,7 +89,7 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                           onClick={() => setOpen(!open)}
                                           className="hover:bg-gray-100 flex items-center justify-between w-full"
                                       >
-                                          <Link to="/manager/employees" className="flex items-center gap-2">
+                                          <Link to="/manager/employees-list" className="flex items-center gap-2">
                                               <Users />
                                               <span>Total Employees</span>
                                           </Link>

@@ -1,6 +1,6 @@
 'use client'
 
-import {useState, useContext} from "react";
+import {useState, useContext, type ReactEventHandler} from "react";
 import { LeaveContext } from "@/features/context/LeaveContext.tsx";
 import {api} from "@/lib/api.ts";
 import {Controller, useForm} from "react-hook-form";
@@ -101,7 +101,6 @@ export default function ManagerLeaveTable() {
 
         // destructure rejection reason from form
         const {rejection_reason} = form.getValues();
-        console.log(rejection_reason);
         const id = activeLeaveId;
 
         // check if there's a specific selected id and a rejection reason is not null

@@ -57,7 +57,6 @@ class Router {
             $pattern = "#^" . $pattern . "$#";
 
             if(preg_match($pattern, $uri, $matches) && $route['method'] === strtoupper($method)) {
-
                 Middleware::resolve($route['middleware']);
 
                 // removes the first element of URL and leaving ONLY the variables (e.g., ["18"]) in the array.

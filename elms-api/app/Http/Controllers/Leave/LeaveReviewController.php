@@ -34,7 +34,7 @@ class LeaveReviewController {
         if (!$current_manager_id) {
             http_response_code(404);
             echo json_encode(["error" => "User not found"]);
-            exit();
+            exit;
         }
 
         $managerLeavesList = $db->query("

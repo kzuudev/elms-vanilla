@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Leave\LeaveRequestController;
 use App\Http\Controllers\Leave\LeaveReviewController;
+use App\Http\Controllers\Employee\EmployeeController;
 use Core\Router;
 
 $router = new Router();
@@ -22,7 +23,7 @@ $router->patch('/leave-request', [LeaveRequestController::class, 'patch'])->only
 // manager
 $router->get('/leaves', [LeaveReviewController::class, 'index'])->only('auth');
 $router->patch('/leaves/{id}', [LeaveReviewController::class, 'patch'])->only('auth');
-
+$router->get('/employees-list', [EmployeeController::class, 'index'])->only('auth');
 
 
 // return the router with existing routes inside it

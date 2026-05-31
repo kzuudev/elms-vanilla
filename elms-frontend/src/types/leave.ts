@@ -41,6 +41,16 @@ export type TableData = {
 
 };
 
+export type Employee = {
+    id: number;
+    employee_first_name: string;
+    employee_last_name: string;
+    employee_email: string;
+    employee_phone: string;
+    employee_role: string;
+
+}
+
 export type ManagerTableData = {
     employee_name: string;
     employee_role: string;

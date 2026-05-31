@@ -8,11 +8,12 @@ import ManagerDashboard from './pages/manager/Dashboard'
 import EmployeeDashboard from './pages/employee/Dashboard'
 import AdminDashboard from './pages/admin/Admin'
 import {UserContext} from "@/features/context/UserContext.tsx";
-import { type Profile} from "@/types/leave.ts";
+import { type Profile, type Employee} from "@/types/leave.ts";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute.tsx";
 import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
 import ManagerLeaveDashboard from "@/pages/manager/ManagerLeaveDashboard.tsx";
+import EmployeeListDashboard from "@/pages/manager/EmployeeListDashboard.tsx";
 function App() {
 
     // get the current user logged-in and parse it into object (Profile).
@@ -20,8 +21,7 @@ function App() {
         const storedUser = localStorage.getItem("user");
         return storedUser ? JSON.parse(storedUser) as Profile: null;
     });
-
-
+    
   return (
     <>
     <BrowserRouter>
@@ -66,6 +66,16 @@ function App() {
                         // allowed 2 roles here because Managers and Admins are also employees!
                         <ProtectedRoute allowedRoles={['manager', 'admin']}>
                             <ManagerLeaveDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/manager/employees-list"
+                    element={
+                        // allowed 2 roles here because Managers and Admins are also employees!
+                        <ProtectedRoute allowedRoles={['manager', 'admin']}>
+                            <EmployeeListDashboard />
                         </ProtectedRoute>
                     }
                 />
