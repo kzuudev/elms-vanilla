@@ -1,17 +1,12 @@
 "use client"
 
-import { UserContext } from "@/features/context/UserContext.tsx";
-import { useContext } from "react";
-
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
+import UserProfile from "@/components/layout/UserProfile.tsx";
 import LeaveDashboard from "@/pages/manager/LeaveDashboard.tsx";
 import SearchInput from "@/components/ui/search.tsx";
 import LeaveStats from "@/features/leaves/components/LeaveStats.tsx";
 
 export default function ManagerLeaveDashboard() {
-
-    const {user} = useContext(UserContext);
-
     return (
         <>
             <AppSidebar>
@@ -23,12 +18,8 @@ export default function ManagerLeaveDashboard() {
                                     <h2 className="text-sm text-gray-500">Track employee activities, stats, and updates</h2>
                                 </div>
 
-                                <div>
-                                    <p className="text-sm text-black">
-                                        {user?.name || "Manager"}
-                                    </p>
-                                    <p className="text-sm text-gray-500">{user?.email || "Manager"} </p>
-                                </div>
+
+                                <UserProfile />
                             </div>
 
                             <div>

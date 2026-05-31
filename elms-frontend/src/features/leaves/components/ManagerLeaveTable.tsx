@@ -1,6 +1,6 @@
 'use client'
 
-import {useState, useContext, type ReactEventHandler} from "react";
+import {useState, useContext } from "react";
 import { LeaveContext } from "@/features/context/LeaveContext.tsx";
 import {api} from "@/lib/api.ts";
 import {Controller, useForm} from "react-hook-form";
@@ -95,7 +95,7 @@ export default function ManagerLeaveTable() {
 
     }
 
-    // Handles submission when manager clicks "Confirm Rejection" inside the modal form
+    // Handles submission when the manager clicks "Confirm Rejection" inside the modal form
     const handleRejectSubmit = async () => {
         setError(null);
 
