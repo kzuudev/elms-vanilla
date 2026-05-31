@@ -232,8 +232,9 @@ class LeaveRequestController {
                 lr.end_date,
                 lr.status,
                 lr.created_at,
+                lr.updated_at,
                 CONCAT(m.first_name, ' ', m.last_name) AS manager_name, 
-                lt.name AS leave_type_name,
+                lt.name AS leave_type,
                 DATEDIFF(lr.end_date, lr.start_date) + 1 AS total_days
             FROM leave_requests lr 
             LEFT JOIN users m ON lr.assigned_to = m.id

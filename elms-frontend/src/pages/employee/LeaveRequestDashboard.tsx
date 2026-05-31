@@ -11,7 +11,6 @@ import EmployeeLeaveTable from "@/features/leaves/components/EmployeeLeaveTable.
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,} from "@/components/ui/card"
 import {Button} from "@/components/ui/button";
 import { CheckCircle2Icon } from "lucide-react";
 

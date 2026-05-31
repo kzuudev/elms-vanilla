@@ -14,7 +14,6 @@ export enum LeaveType {
 
 }
 
-
 export enum LeaveStatus {
     Pending = "pending",
     Approved = "approved",
@@ -38,7 +37,6 @@ export type TableData = {
     reason: string;
     status: string;
     manager_name: string;
-
 };
 
 export type Employee = {
@@ -48,7 +46,19 @@ export type Employee = {
     employee_email: string;
     employee_phone: string;
     employee_role: string;
+}
 
+export type LeaveRequest = {
+    id: number;
+    leave_type: string;
+    start_date: string;
+    end_date: string;
+    total_days: number;
+    reason: string;
+    status: string;
+    manager_name: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export type ManagerTableData = {
