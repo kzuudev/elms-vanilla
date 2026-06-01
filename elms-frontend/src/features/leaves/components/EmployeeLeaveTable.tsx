@@ -66,12 +66,52 @@ export default function EmployeeLeaveTable() {
                         </DialogHeader>
                         <div className="w-full flex flex-col gap-4">
                             <div className="w-full flex flex-col gap-2">
-                                <p className="text-sm text-muted-foreground">Leave Type:<span className="">{leaveRequestDetails.leave_type}</span></p>
-                                <p className="text-sm text-muted-foreground">Start Date:<span className="">{leaveRequestDetails.start_date}</span></p>
-                                <p className="text-sm text-muted-foreground">End Date:<span className="">{leaveRequestDetails.end_date}</span></p>
-                                <p className="text-sm text-muted-foreground text-nowrap">Assigned To:<span className="">{leaveRequestDetails.manager_name}</span></p>
-                                <p className="text-sm text-muted-foreground">Leave Reason:<span className="">{leaveRequestDetails.reason}</span></p>
-                                <p className="text-sm text-muted-foreground">Status:<span className="">{leaveRequestDetails.status}</span></p>
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Leave Type:</span>
+                                    <span>{leaveRequestDetails.leave_type}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Start Date:</span>
+                                    <span>{leaveRequestDetails.start_date}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">End Date:</span>
+                                    <span>{leaveRequestDetails.end_date}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Total Days:</span>
+                                    <span>{leaveRequestDetails.total_days}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Leave Reason:</span>
+                                    <span>{leaveRequestDetails.reason}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Assigned to:</span>
+                                    <span>{leaveRequestDetails.manager_name}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Created At:</span>
+                                    <span>{leaveRequestDetails.created_at}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Status:</span>
+                                    {leaveRequestDetails.status === "pending" ? (
+                                        <span className="bg-orange-50 text-orange-700 border border-orange-200/60 px-2 py-1 rounded-md">{leaveRequestDetails.status}</span>
+                                    ) : leaveRequestDetails.status === "approved" ? (
+                                        <span className="bg-green-50 text-green-700 border border-green-200/60 px-2 py-1 rounded-md">{leaveRequestDetails.status}</span>
+                                    ) : (
+                                        <span className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-md">{leaveRequestDetails.status}</span>
+                                    )}
+                                </div>
+
                             </div>
 
                             <DialogFooter className="p-2">
