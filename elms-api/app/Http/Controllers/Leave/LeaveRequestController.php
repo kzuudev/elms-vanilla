@@ -254,6 +254,52 @@ class LeaveRequestController {
     }
 
 
+    public function patch($id) {
+
+        $leaveRequestForm = new LeaveRequestForm();
+        $db = App::resolve(Database::class);
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $headers = getallheaders();
+        $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        $token = trim(str_replace('Bearer ', '', $authHeader));
+
+        $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
+            'token' => $token
+        ])->find();
+
+        $current_user_id = $tokenRow['user_id'] ?? null;
+
+        if (!$current_user_id) {
+            http_response_code(404);
+            echo json_encode(["error" => "User not found"]);
+        }
+
+        $updateLeaveRequest = $db->query("UPDATE leave_requests SET leave_type_id = :leave_type_id, start_date = :start_date, end_date = :end_date, reason = :reason WHERE id = :id", [
+            'id' => $id,
+            'leave_type_id' => $input['leave_type_id'] ?? null,
+            'start_date' => $input['start_date'] ?? null,
+            'end_date' => $input['end_date'] ?? null,
+            'reason' => $input['reason'] ?? null,
+        ]);
+
+        if(!$updateLeaveRequest) {
+            http_response_code(404);
+            echo json_encode(["error" => "Leave request not found"]);
+        }
+
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Leave request updated successfully',
+            'id' => $id,
+            'leave_request' => $updateLeaveRequest,
+        ]);
+
+    }
+
+
 
 
 
