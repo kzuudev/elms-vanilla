@@ -1,9 +1,12 @@
 'use client'
 
-import {useState, useContext} from "react";
+import * as z from 'zod';
+import {useState, useContext, useEffect} from "react";
 import { LeaveContext } from "@/features/context/LeaveContext.tsx";
-import type {LeaveRequest} from "@/types/leave.ts";
+import {type LeaveRequest, leaveOptions} from "@/types/leave.ts";
+
 import {api} from "@/lib/api.ts";
+import {Controller, useForm} from "react-hook-form";
 
 import {
     Table,
@@ -16,7 +19,12 @@ import {
 import { Button } from '@/components/ui/button.tsx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog.tsx";
 
-import { Eye, Pencil, Trash } from 'lucide-react';
+import {AlertCircle, Eye, Pencil, Trash} from 'lucide-react';
+import {Field, FieldError, FieldGroup, FieldLabel} from "@/components/ui/field.tsx";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
+import {Input} from "@/components/ui/input.tsx";
+import {Textarea} from "@/components/ui/textarea.tsx";
+import {zodResolver} from "@hookform/resolvers/zod";
 
 
 
@@ -30,10 +38,38 @@ export default function EmployeeLeaveTable() {
     const [error, setError] = useState<string | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [leaveRequestDetails, setLeaveRequestDetails] = useState<LeaveRequest>({} as LeaveRequest);
+    const [newLeaveRequest, setNewLeaveRequest] = useState<LeaveRequest>({} as LeaveRequest);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     // get the leave request list directly from the Leave Context
     const { leaveRequests } = useContext(LeaveContext);
     const holder = localStorage.getItem("token");
+
+    const schema = z.object({
+        leave_type: z.string().min(1, {message: "Leave Type is required"}),
+        start_date: z.string().min(1, {message: "Start Date is required"}),
+        end_date: z.string().min(1, {message: "End Date is required"}),
+        reason: z.string().min(1, {message: "Reason is required"}),
+    })
+
+    type LeaveRequestFormData = z.infer<typeof schema>;
+
+    const form = useForm<LeaveRequestFormData>({
+        resolver: zodResolver(schema),
+        defaultValues: {
+            leave_type: "",
+            start_date: "",
+            end_date: "",
+            reason: "",
+        }
+    });
+
+    const { formState: {errors}, getValues} = form;
+
+    const values = getValues();
+    console.log(values);
+
+
     const fetchLeaveRequestDetails = async (id: number) => {
 
         try{
@@ -49,12 +85,50 @@ export default function EmployeeLeaveTable() {
         }
     }
 
-    const handleViewLeaveRequest = async (id: number) => {
-        await fetchLeaveRequestDetails(id);
-        setIsDialogOpen(true);
+    const fetchLeaveRequestEdit = async (id: number, data: LeaveRequestFormData) => {
+
+        try {
+            const response = await api.patch(`/leave-request/${id}`, data, {
+                headers: {
+                    Authorization: `Bearer ${holder}`,
+                }
+            });
+            setNewLeaveRequest(response.data.leave_request);
+            console.log(response.data.leave_request);
+        }catch (e) {
+            setError(e.response.data.message);
+        }
     }
 
+    // handle view leave request
+    const handleViewLeaveRequest = async (id: number) => {
+        setIsDialogOpen(true);
+        await fetchLeaveRequestDetails(id);
+    }
 
+    // navigation for open the edit form
+    const handleOpenEditForm = async (id: number) => {
+        setIsEditMode(true);
+        await fetchLeaveRequestDetails(id);
+    }
+
+    // handle for the leave request edit form submission
+    const handleLeaveRequestEditSubmit = async () => {
+        await fetchLeaveRequestEdit(leaveRequestDetails.id, newLeaveRequest);
+        setIsEditMode(false);
+        form.reset();
+    }
+
+    useEffect(() => {
+        if (leaveRequestDetails && leaveRequestDetails.id) {
+            form.reset({
+                leave_type: leaveRequestDetails.leave_type,
+                start_date: leaveRequestDetails.start_date,
+                end_date: leaveRequestDetails.end_date,
+                reason: leaveRequestDetails.reason,
+            });
+        }
+    }, [leaveRequestDetails, form]);
 
     return (
         <>
@@ -128,6 +202,140 @@ export default function EmployeeLeaveTable() {
                     </DialogContent>
                 </Dialog>
             </div>
+
+            <div>
+                <Dialog open={isEditMode} onOpenChange={setIsEditMode} >
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader className="mb-2">
+                            <DialogTitle>Leave Request Details</DialogTitle>
+                        </DialogHeader>
+                        <form id="leave-request-edit" onSubmit={form.handleSubmit(handleLeaveRequestEditSubmit)} className="w-full">
+                            <FieldGroup className="mb-8">
+                                <div className="flex flex-col w-full">
+                                    <Controller name="leave_type" defaultValue="leave_type" control={form.control} render={({field, fieldState}) => (
+                                        <Field data-invalid={fieldState.invalid}>
+                                            <FieldLabel htmlFor="login-form-title" className="m-0">
+                                                Leave Type
+                                            </FieldLabel>
+
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <SelectTrigger className="w-[280px]">
+                                                    <SelectValue placeholder="Select Leave Type"/>
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {leaveOptions.map((opt) => (
+                                                        <SelectItem key={opt.value} value={opt.label}>
+                                                            {opt.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+
+                                            {fieldState.invalid && (
+                                                <FieldError errors={[fieldState.error]}/>
+                                            )}
+                                        </Field>
+                                    )}
+                                    />
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <Controller name="start_date" control={form.control} render={({field, fieldState}) => (
+                                        <Field data-invalid={fieldState.invalid}>
+                                            <FieldLabel htmlFor="login-form-title">
+                                                Start date
+                                            </FieldLabel>
+
+                                            <Input
+                                                {...field}
+                                                id="start-date"
+                                                type="date"
+                                                aria-invalid={fieldState.invalid}
+                                                autoComplete="off"
+
+                                            />
+
+                                            {fieldState.invalid && (
+                                                <FieldError errors={[fieldState.error]}/>
+                                            )}
+                                        </Field>
+                                    )}
+                                    />
+
+                                    <Controller name="end_date" control={form.control} render={({field, fieldState}) => (
+                                        <Field data-invalid={fieldState.invalid}>
+                                            <FieldLabel htmlFor="login-form-title">
+                                                End date
+                                            </FieldLabel>
+
+                                            <Input
+                                                {...field}
+                                                id="end-date"
+                                                type="date"
+                                                aria-invalid={fieldState.invalid}
+                                                autoComplete="off"
+
+                                            />
+
+                                            {fieldState.invalid && (
+                                                <FieldError errors={[fieldState.error]}/>
+                                            )}
+                                        </Field>
+                                    )}
+
+
+                                    />
+                                </div>
+
+
+                                <div className="flex flex-col gap-2">
+                                    <Controller name="reason" control={form.control}
+                                                render={({field, fieldState}) => (
+                                                    <Field data-invalid={fieldState.invalid}>
+                                                        <FieldLabel htmlFor="login-form-title">
+                                                            Leave Reason
+                                                        </FieldLabel>
+
+                                                        <Textarea
+                                                            {...field}
+                                                            className="h-[140px]"
+                                                            id="leave-reson"
+                                                            aria-invalid={fieldState.invalid}
+                                                            autoComplete="off"
+
+                                                        />
+
+                                                        {fieldState.invalid && (
+                                                            <FieldError errors={[fieldState.error]}/>
+                                                        )}
+                                                    </Field>
+                                                )}
+                                    />
+                                </div>
+                            </FieldGroup>
+
+                            {errors.root && (
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-2 flex items-start gap-3 my-4">
+                                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                                    <div>
+                                        <h3 className="text-xs font-medium text-red-800">Submission Failed</h3>
+                                        <p className="text-xs text-red-700 mt-1">{errors.root.message}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex w-full">
+                                <Button type="submit" className="w-full p-4 rounded-md text-sm bg-black text-white text-center"
+                                        variant="outline">
+                                    Submit Leave
+                                </Button>
+                            </div>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </div>
+
+
             <div className="border border-border rounded-lg bg-white overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-50">
@@ -157,7 +365,7 @@ export default function EmployeeLeaveTable() {
                                 <TableCell>{leave.manager_name}</TableCell>
                                 <TableCell>
                                     <Button onClick={() => handleViewLeaveRequest(leave.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>
-                                    <Button variant="outline" className="p-2 mr-1"><Pencil /></Button>
+                                    <Button onClick={() => handleOpenEditForm(leave.id)} variant="outline" className="p-2 mr-1"><Pencil /></Button>
                                     <Button variant="outline" className="p-2 text-red-500"><Trash/></Button>
                                 </TableCell>
                             </TableRow>
