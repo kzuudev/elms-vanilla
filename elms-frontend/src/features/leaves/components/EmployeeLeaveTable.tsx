@@ -38,7 +38,6 @@ export default function EmployeeLeaveTable() {
     const [error, setError] = useState<string | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [leaveRequestDetails, setLeaveRequestDetails] = useState<LeaveRequest>({} as LeaveRequest);
-    const [newLeaveRequest, setNewLeaveRequest] = useState<LeaveRequest>({} as LeaveRequest);
     const [isEditMode, setIsEditMode] = useState(false);
 
     // get the leave request list directly from the Leave Context
@@ -64,10 +63,7 @@ export default function EmployeeLeaveTable() {
         }
     });
 
-    const { formState: {errors}, getValues} = form;
-
-    const values = getValues();
-
+    const { formState: {errors}} = form;
 
     const fetchLeaveRequestDetails = async (id: number) => {
 
@@ -94,9 +90,10 @@ export default function EmployeeLeaveTable() {
             });
 
             console.log(response.data.leave_request);
-            return response
+            return response;
         }catch (e) {
             setError(e.response.data.message);
+            throw e;
         }
     }
 
@@ -113,23 +110,23 @@ export default function EmployeeLeaveTable() {
     }
 
     // handle for the leave request edit form submission
-    const handleLeaveRequestEditSubmit = async (formData: LeaveRequestFormData) => {
+    const handleLeaveRequestEditSubmit = async (data: LeaveRequestFormData) => {
         // await fetchLeaveRequestEdit(leaveRequestDetails.id, newLeaveRequest);
         // setIsEditMode(false);
 
         try {
-            // 1. Send data to the API function
-            const response = await fetchLeaveRequestEdit(leaveRequestDetails.id, formData);
+            // Send data to the API function
+            const response = await fetchLeaveRequestEdit(leaveRequestDetails.id, data);
 
-            // 2. Close the modal
             setIsEditMode(false);
 
-            // 3. Update React Hook Form directly with the new data!
+            // Update React Hook Form directly with the new data
             if (response?.data?.leave_request) {
-                form.reset(response.data.leave_request);
+                form.reset(newLeaveRequest);
             }
-        } catch (error) {
+        } catch (e) {
             console.error("Submission failed");
+            throw e;
         }
     }
 
@@ -144,6 +141,7 @@ export default function EmployeeLeaveTable() {
 
             console.log(leaveRequestDetails);
         }
+
     }, [leaveRequestDetails, form]);
 
     return (
