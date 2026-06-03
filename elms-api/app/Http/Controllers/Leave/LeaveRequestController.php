@@ -256,48 +256,99 @@ class LeaveRequestController {
 
     public function patch($id) {
 
-        $leaveRequestForm = new LeaveRequestForm();
-        $db = App::resolve(Database::class);
+            $db = App::resolve(Database::class);
 
-        $input = json_decode(file_get_contents('php://input'), true);
+            $input = json_decode(file_get_contents('php://input'), true);
 
-        $headers = getallheaders();
-        $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-        $token = trim(str_replace('Bearer ', '', $authHeader));
+            $headers = getallheaders();
+            $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+            $token = trim(str_replace('Bearer ', '', $authHeader));
 
-        $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
-            'token' => $token
-        ])->find();
+            $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
+                'token' => $token
+            ])->find();
 
-        $current_user_id = $tokenRow['user_id'] ?? null;
+            $current_user_id = $tokenRow['user_id'] ?? null;
 
-        if (!$current_user_id) {
-            http_response_code(404);
-            echo json_encode(["error" => "User not found"]);
-        }
+            if (!$current_user_id) {
+                http_response_code(401);
+                echo json_encode(["error" => "User not found"]);
+                exit;
+            }
 
-        $updateLeaveRequest = $db->query("UPDATE leave_requests SET leave_type_id = :leave_type_id, start_date = :start_date, end_date = :end_date, reason = :reason WHERE id = :id", [
-            'id' => $id,
-            'leave_type_id' => $input['leave_type_id'] ?? null,
-            'start_date' => $input['start_date'] ?? null,
-            'end_date' => $input['end_date'] ?? null,
-            'reason' => $input['reason'] ?? null,
-        ]);
+            $existingLeaveRequest = $db->query("SELECT * FROM leave_requests WHERE id = :id", ['id' => $id])->find();
 
-        if(!$updateLeaveRequest) {
-            http_response_code(404);
-            echo json_encode(["error" => "Leave request not found"]);
-        }
+            if(!$existingLeaveRequest) {
+                http_response_code(404);
+                echo json_encode(["error" => "Leave request not found"]);
+                exit;
+            }
 
+            if($existingLeaveRequest['user_id'] !== $current_user_id) {
+                http_response_code(403);
+                echo json_encode(["error" => "Unauthorized to update this leave request"]);
+                exit;
+            }
+
+
+            if(!empty($leave_type)) {
+                $leaveTypeRecord = $db->query("SELECT id FROM leave_types WHERE name = :name", [
+                    'name' => $input['leave_type']
+                ])->find();
+
+                $leave_type_id = $leaveTypeRecord ? $leaveTypeRecord['id'] : $existingLeaveRequest['leave_type_id'];
+            }else {
+                $leave_type_id = $existingLeaveRequest['leave_type_id'];
+            }
+
+            $start_date = $input['start_date'] ?? $existingLeaveRequest['start_date'];
+            $end_date   = $input['end_date'] ?? $existingLeaveRequest['end_date'];
+            $reason     = $input['reason'] ?? $existingLeaveRequest['reason'];
+
+            $updateLeaveRequest = $db->query("UPDATE leave_requests SET leave_type_id = :leave_type_id, start_date = :start_date, end_date = :end_date, reason = :reason WHERE id = :id", [
+                'id' => $id,
+                'leave_type_id' => $leave_type_id,
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'reason' => $reason,
+            ]);
+
+            if(!$updateLeaveRequest) {
+                http_response_code(404);
+                echo json_encode(["error" => "Leave request not found"]);
+                exit;
+            }
+
+        // 2. FETCH THE FRESH DATA ROW FROM THE DATABASE RIGHT AFTER CHANGING IT
+        $freshlyUpdatedRecord = $db->query("
+        SELECT 
+            lr.id,
+            lr.reason,
+            lr.start_date,
+            lr.end_date,
+            lr.status,
+            lr.created_at,
+            lr.updated_at,
+            CONCAT(m.first_name, ' ', m.last_name) AS manager_name, 
+            lt.name AS leave_type,
+            DATEDIFF(lr.end_date, lr.start_date) + 1 AS total_days
+        FROM leave_requests lr 
+        LEFT JOIN users m ON lr.assigned_to = m.id
+        LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+        WHERE lr.id = :id
+    ", ['id' => $id])->find();
+
+    // 3. Return the fresh database object to your frontend React app
         http_response_code(200);
         echo json_encode([
             'success' => true,
             'message' => 'Leave request updated successfully',
             'id' => $id,
-            'leave_request' => $updateLeaveRequest,
+            'leave_request' => $freshlyUpdatedRecord,
         ]);
 
-    }
+
+        }
 
 
 

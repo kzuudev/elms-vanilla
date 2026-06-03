@@ -67,7 +67,6 @@ export default function EmployeeLeaveTable() {
     const { formState: {errors}, getValues} = form;
 
     const values = getValues();
-    console.log(values);
 
 
     const fetchLeaveRequestDetails = async (id: number) => {
@@ -93,8 +92,9 @@ export default function EmployeeLeaveTable() {
                     Authorization: `Bearer ${holder}`,
                 }
             });
-            setNewLeaveRequest(response.data.leave_request);
+
             console.log(response.data.leave_request);
+            return response
         }catch (e) {
             setError(e.response.data.message);
         }
@@ -113,10 +113,24 @@ export default function EmployeeLeaveTable() {
     }
 
     // handle for the leave request edit form submission
-    const handleLeaveRequestEditSubmit = async () => {
-        await fetchLeaveRequestEdit(leaveRequestDetails.id, newLeaveRequest);
-        setIsEditMode(false);
-        form.reset();
+    const handleLeaveRequestEditSubmit = async (formData: LeaveRequestFormData) => {
+        // await fetchLeaveRequestEdit(leaveRequestDetails.id, newLeaveRequest);
+        // setIsEditMode(false);
+
+        try {
+            // 1. Send data to the API function
+            const response = await fetchLeaveRequestEdit(leaveRequestDetails.id, formData);
+
+            // 2. Close the modal
+            setIsEditMode(false);
+
+            // 3. Update React Hook Form directly with the new data!
+            if (response?.data?.leave_request) {
+                form.reset(response.data.leave_request);
+            }
+        } catch (error) {
+            console.error("Submission failed");
+        }
     }
 
     useEffect(() => {
@@ -127,6 +141,8 @@ export default function EmployeeLeaveTable() {
                 end_date: leaveRequestDetails.end_date,
                 reason: leaveRequestDetails.reason,
             });
+
+            console.log(leaveRequestDetails);
         }
     }, [leaveRequestDetails, form]);
 
@@ -212,7 +228,7 @@ export default function EmployeeLeaveTable() {
                         <form id="leave-request-edit" onSubmit={form.handleSubmit(handleLeaveRequestEditSubmit)} className="w-full">
                             <FieldGroup className="mb-8">
                                 <div className="flex flex-col w-full">
-                                    <Controller name="leave_type" defaultValue="leave_type" control={form.control} render={({field, fieldState}) => (
+                                    <Controller name="leave_type" control={form.control} render={({field, fieldState}) => (
                                         <Field data-invalid={fieldState.invalid}>
                                             <FieldLabel htmlFor="login-form-title" className="m-0">
                                                 Leave Type
