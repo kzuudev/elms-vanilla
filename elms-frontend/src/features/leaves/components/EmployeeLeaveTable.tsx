@@ -1,11 +1,11 @@
 'use client'
 
 import * as z from 'zod';
+import {format} from 'date-fns';
+import {api} from "@/lib/api.ts";
 import {useState, useContext, useEffect} from "react";
 import { LeaveContext } from "@/features/context/LeaveContext.tsx";
 import {type LeaveRequest, leaveOptions} from "@/types/leave.ts";
-
-import {api} from "@/lib/api.ts";
 import {Controller, useForm} from "react-hook-form";
 
 import {
@@ -35,7 +35,6 @@ const tableHeaders = ['Leave Type', 'Start Date', 'End Date', 'Reason', 'Status'
 
 export default function EmployeeLeaveTable() {
 
-    const [error, setError] = useState<string | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [leaveRequestDetails, setLeaveRequestDetails] = useState<LeaveRequest>({} as LeaveRequest);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -82,6 +81,7 @@ export default function EmployeeLeaveTable() {
 
     const fetchLeaveRequestEdit = async (id: number, data: LeaveRequestFormData) => {
 
+        form.setError("root", null);
         try {
             const response = await api.patch(`/leave-request/${id}`, data, {
                 headers: {
@@ -92,7 +92,11 @@ export default function EmployeeLeaveTable() {
             console.log(response.data.leave_request);
             return response;
         }catch (e) {
-            setError(e.response.data.message);
+            form.setError("root",
+                {
+                    type: "server",
+                    message: e.response.data.message
+                });
             throw e;
         }
     }
@@ -111,6 +115,7 @@ export default function EmployeeLeaveTable() {
 
     // handle for the leave request edit form submission
     const handleLeaveRequestEditSubmit = async (data: LeaveRequestFormData) => {
+        form.setError("root", null);
         await fetchLeaveRequestEdit(leaveRequestDetails.id, data);
         setIsEditMode(false);
         form.reset(data)
@@ -365,8 +370,8 @@ export default function EmployeeLeaveTable() {
                         {leaveRequests.map((leave) => (
                             <TableRow key={leave.id}>
                                 <TableCell>{leave.leave_type_name}</TableCell>
-                                <TableCell>{leave.start_date}</TableCell>
-                                <TableCell>{leave.end_date}</TableCell>
+                                <TableCell>{format(leave.start_date, 'MMMM dd, yyyy')}</TableCell>
+                                <TableCell>{format(leave.end_date, 'MMMM dd, yyyy')}</TableCell>
                                 <TableCell>{leave.reason}</TableCell>
                                 {leave.status === "pending" ? (
                                     <TableCell><span className="bg-orange-50 text-orange-700 border border-orange-200/60 px-2 py-1 rounded-md">{leave.status}</span></TableCell>

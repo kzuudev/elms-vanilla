@@ -294,7 +294,6 @@
                 exit;
             }
 
-
             if (!empty($leave_type)) {
                 $leaveTypeRecord = $db->query("SELECT id FROM leave_types WHERE name = :name", [
                     'name' => $input['leave_type']
@@ -308,20 +307,6 @@
             $start_date = $input['start_date'] ?? $existingLeaveRequest['start_date'];
             $end_date = $input['end_date'] ?? $existingLeaveRequest['end_date'];
             $reason = $input['reason'] ?? $existingLeaveRequest['reason'];
-
-            $updateLeaveRequest = $db->query("UPDATE leave_requests SET leave_type_id = :leave_type_id, start_date = :start_date, end_date = :end_date, reason = :reason WHERE id = :id", [
-                'id' => $id,
-                'leave_type_id' => $leave_type_id,
-                'start_date' => $start_date,
-                'end_date' => $end_date,
-                'reason' => $reason,
-            ]);
-
-            if (!$updateLeaveRequest) {
-                http_response_code(404);
-                echo json_encode(["error" => "Leave request not found"]);
-                exit;
-            }
 
             // validate if there's already an existing leave request in the date range
             $overlappingConflict = $db->query("
@@ -337,7 +322,7 @@
                 'current_id' => $id, // The ID of the request being edited passed from the route
                 'start_date' => $start_date,
                 'end_date'   => $end_date
-                ])->find();
+            ])->find();
 
             if($overlappingConflict) {
                 http_response_code(422);
@@ -346,6 +331,21 @@
                 ]);
                 exit;
             }
+
+            $updateLeaveRequest = $db->query("UPDATE leave_requests SET leave_type_id = :leave_type_id, start_date = :start_date, end_date = :end_date, reason = :reason WHERE id = :id", [
+                'id' => $id,
+                'leave_type_id' => $leave_type_id,
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'reason' => $reason,
+            ]);
+
+            if (!$updateLeaveRequest) {
+                http_response_code(404);
+                echo json_encode(["error" => "Leave request not found"]);
+                exit;
+            }
+
 
             // Fetch the fresh data row from the database right after changing it
             $updatedLeaveRequest = $db->query("
