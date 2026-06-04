@@ -64,7 +64,7 @@ export default function EmployeeLeaveTable() {
     });
 
     const { formState: {errors}} = form;
-
+    const { fetchLeaveRequests } = useContext(LeaveContext);
     const fetchLeaveRequestDetails = async (id: number) => {
 
         try{
@@ -111,23 +111,26 @@ export default function EmployeeLeaveTable() {
 
     // handle for the leave request edit form submission
     const handleLeaveRequestEditSubmit = async (data: LeaveRequestFormData) => {
-        // await fetchLeaveRequestEdit(leaveRequestDetails.id, newLeaveRequest);
-        // setIsEditMode(false);
+        await fetchLeaveRequestEdit(leaveRequestDetails.id, data);
+        setIsEditMode(false);
+        form.reset(data)
+        fetchLeaveRequests();
 
-        try {
-            // Send data to the API function
-            const response = await fetchLeaveRequestEdit(leaveRequestDetails.id, data);
 
-            setIsEditMode(false);
-
-            // Update React Hook Form directly with the new data
-            if (response?.data?.leave_request) {
-                form.reset(newLeaveRequest);
-            }
-        } catch (e) {
-            console.error("Submission failed");
-            throw e;
-        }
+        // try {
+        //     // Send data to the API function
+        //     const response = await fetchLeaveRequestEdit(leaveRequestDetails.id, data);
+        //
+        //     setIsEditMode(false);
+        //
+        //     // Update React Hook Form directly with the new data
+        //     if (response?.data?.leave_request) {
+        //         form.reset(data);
+        //     }
+        // } catch (e) {
+        //     console.error("Submission failed");
+        //     throw e;
+        // }
     }
 
     useEffect(() => {
@@ -138,8 +141,6 @@ export default function EmployeeLeaveTable() {
                 end_date: leaveRequestDetails.end_date,
                 reason: leaveRequestDetails.reason,
             });
-
-            console.log(leaveRequestDetails);
         }
 
     }, [leaveRequestDetails, form]);
@@ -232,7 +233,7 @@ export default function EmployeeLeaveTable() {
                                                 Leave Type
                                             </FieldLabel>
 
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                                 <SelectTrigger className="w-[280px]">
                                                     <SelectValue placeholder="Select Leave Type"/>
                                                 </SelectTrigger>
