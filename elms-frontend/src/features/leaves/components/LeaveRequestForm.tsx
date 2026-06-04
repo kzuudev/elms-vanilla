@@ -63,7 +63,6 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
     const { fetchLeaveRequests } = leaveContext;
 
     const onSubmit = async (data: LeaveRequestFormData) => {
-        console.log("Form Submitted: ", data);
 
         const holder = localStorage.getItem("token");
 

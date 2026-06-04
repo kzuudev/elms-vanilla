@@ -3,6 +3,7 @@
     namespace App\Http\Controllers\Leave;
 
     use App\Http\Forms\LeaveRequestForm;
+    use App\Http\Middleware\Auth;
     use Core\App;
     use Core\Database;
     use DateTime;
@@ -14,23 +15,13 @@
         /**
          * @throws \Exception
          */
+
         public function submit()
         {
 
-            $leaveRequestForm = new LeaveRequestForm();
             $db = App::resolve(Database::class);
-
-            // get the token using header authorization
-            $headers = getallheaders();
-            $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-            $token = trim(str_replace('Bearer ', '', $authHeader));
-
-            // identify the user first via token
-            $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
-                'token' => $token
-            ])->find();
-
-            $current_user_id = $tokenRow['user_id'] ?? null;
+            $leaveRequestForm = new LeaveRequestForm();
+            $current_user_id = Auth::authenticate();
 
             $assignedManager = $db->query("SELECT m.id AS manager_id, m.first_name AS manager_name FROM users e LEFT JOIN users m ON e.manager_id = m.id WHERE e.id = :id", [
                 'id' => $current_user_id,
@@ -80,13 +71,22 @@
 
             // validate the overlap (to check if the user already has a pending or approved request that covers the dates they just picked)
             // and prevent users from submitting the EXACT SAME TYPE while one is already pending.
-            $overlap = $db->query("SELECT id FROM leave_requests WHERE user_id = :user_id AND status IN ('pending', 'approved') AND start_date <= :end_date AND end_date >= :start_date", [
+            $overlap = $db->query("
+                SELECT id FROM leave_requests WHERE user_id = :user_id 
+                AND status IN ('pending', 'approved') 
+                AND deleted_at IS NULL 
+                AND start_date <= :end_date AND end_date >= :start_date", [
                 'user_id' => $current_user_id,
                 'start_date' => $start_date,
                 'end_date' => $end_date
             ])->find();
 
-            $existingLeaveType = $db->query("SELECT id FROM leave_requests WHERE user_id = :user_id AND leave_type_id = :leave_type_id AND status = 'pending'", [
+            $existingLeaveType = $db->query("
+                SELECT id FROM leave_requests WHERE user_id = :user_id 
+                AND leave_type_id = :leave_type_id 
+                AND status = 'pending'
+                AND deleted_at IS NULL
+                ", [
                 'user_id' => $current_user_id,
                 'leave_type_id' => $leaveTypeRecord['id']
             ])->find();
@@ -157,21 +157,11 @@
         {
 
             $db = App::resolve(Database::class);
-
-            $headers = getallheaders();
-            $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-            $token = trim(str_replace('Bearer ', '', $authHeader));
-
-            $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
-                'token' => $token
-            ])->find();
-
-            $current_user_id = $tokenRow['user_id'] ?? null;
+            $current_user_id = Auth::authenticate() ?? null;
 
 //        $assignedManager = $db->query("SELECT m.id AS manager_id, m.name AS manager_name FROM users e LEFT JOIN users m ON e.manager_id = m.id WHERE e.id = :id", [
 //            'id' => $current_user_id,
 //        ])->find();
-
 
             if (!$current_user_id) {
                 http_response_code(404);
@@ -187,7 +177,7 @@
             FROM leave_requests lr 
             LEFT JOIN users m ON lr.assigned_to = m.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
-            WHERE lr.user_id = :user_id
+            WHERE lr.user_id = :user_id AND lr.deleted_at IS NULL
             ', [
                 'user_id' => $current_user_id,
             ])->all();
@@ -211,15 +201,7 @@
 
             $db = App::resolve(Database::class);
 
-            $headers = getallheaders();
-            $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-            $token = trim(str_replace('Bearer ', '', $authHeader));
-
-            $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
-                'token' => $token
-            ])->find();
-
-            $current_user_id = $tokenRow['user_id'] ?? null;
+            $current_user_id = Auth::authenticate() ?? null;
 
             if (!$current_user_id) {
                 http_response_code(404);
@@ -261,18 +243,9 @@
         {
 
             $db = App::resolve(Database::class);
+            $current_user_id = Auth::authenticate() ?? null;
 
             $input = json_decode(file_get_contents('php://input'), true);
-
-            $headers = getallheaders();
-            $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-            $token = trim(str_replace('Bearer ', '', $authHeader));
-
-            $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
-                'token' => $token
-            ])->find();
-
-            $current_user_id = $tokenRow['user_id'] ?? null;
 
             if (!$current_user_id) {
                 http_response_code(401);
@@ -294,7 +267,7 @@
                 exit;
             }
 
-            if (!empty($leave_type)) {
+            if (!empty($input['leave_type'])) {
                 $leaveTypeRecord = $db->query("SELECT id FROM leave_types WHERE name = :name", [
                     'name' => $input['leave_type']
                 ])->find();
@@ -316,7 +289,8 @@
                   AND id != :current_id                 
                   AND status IN ('pending', 'approved') 
                   AND :start_date <= end_date           
-                  AND :end_date >= start_date        
+                  AND :end_date >= start_date
+                  AND deleted_at IS NULL
             ", [
                 'user_id'    => $current_user_id,
                 'current_id' => $id, // The ID of the request being edited passed from the route
@@ -341,7 +315,7 @@
             ]);
 
             if (!$updateLeaveRequest) {
-                http_response_code(404);
+                http_response_code(500);
                 echo json_encode(["error" => "Leave request not found"]);
                 exit;
             }
@@ -377,6 +351,39 @@
 
 
         }
+
+
+        public function destroy($id) {
+
+            $db = App::resolve(Database::class);
+            $current_user_id = Auth::authenticate() ?? null;
+
+            if (!$current_user_id) {
+                http_response_code(401);
+                echo json_encode(["error" => "User not found"]);
+                exit;
+            }
+
+            $deleteLeaveRequest = $db->query("
+                UPDATE leave_requests 
+                SET deleted_at = NOW() 
+                WHERE id = :id AND user_id = :user_id", [
+                'id' => $id,
+                'user_id' => $current_user_id,
+            ]);
+
+
+            http_response_code(200);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Leave request deleted successfully.',
+                'id' => $id,
+                'user_id' => $current_user_id,
+                'leave_request' => $deleteLeaveRequest,
+            ]);
+            exit;
+        }
+
 
 
     }

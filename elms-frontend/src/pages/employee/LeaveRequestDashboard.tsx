@@ -1,7 +1,8 @@
 import {useState, useEffect} from "react";
-import { useLocation } from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import { LeaveContext } from "@/features/context/LeaveContext.tsx";
 import {api} from "@/lib/api.ts";
+import { toast } from 'sonner';
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import Header from "@/components/layout/Header.tsx";
@@ -17,13 +18,12 @@ import { CheckCircle2Icon } from "lucide-react";
 export default function LeaveRequestDashboard() {
 
     const location = useLocation();
+    const navigate = useNavigate();
 
     const isSuccessfullySubmitted = location.state?.successfullySubmitted;
+    const [successAlert, setSuccessAlert] = useState(false);
 
     const [leaveRequests, setLeaveRequests] = useState([]);
-    const [visibleAlert, setVisibleAlert] = useState(
-        !!isSuccessfullySubmitted
-    );
     const [open, setOpen] = useState(false);
 
         const fetchLeaveRequests = async () => {
@@ -39,21 +39,33 @@ export default function LeaveRequestDashboard() {
             setLeaveRequests(response.data.leave_requests.data);
         }
 
-
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchLeaveRequests();
-        
-        if(visibleAlert) {
+
+        if (isSuccessfullySubmitted) {
+            setSuccessAlert(true);
+
             const timer = setTimeout(() => {
-                setVisibleAlert(false);
+                setSuccessAlert(false);
             }, 3000);
+
+            //  Instantly clear the history cache so it's clean on refresh
+            navigate(location.pathname, { replace: true, state: {} });
 
             return () => clearTimeout(timer);
         }
-    }, [visibleAlert]);
+    }, [isSuccessfullySubmitted, navigate, location.pathname], );
 
+    useEffect(() => {
+        if (!successAlert) return;
 
+        const timer = setTimeout(() => {
+            setSuccessAlert(false);
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, [successAlert]);
 
 
     return (
@@ -63,7 +75,7 @@ export default function LeaveRequestDashboard() {
                     <div className="flex flex-col justify-between items-center">
 
                         <div>
-                            {visibleAlert && (
+                            {successAlert && (
                                 <Alert className=" bg-green-100 border-green-400 text-green-700 mb-6 animate-in fade-in duration-300">
                                     <CheckCircle2Icon className="w-4 h-4 text-green-700" />
                                     <AlertTitle className="text-green-700">Success</AlertTitle>

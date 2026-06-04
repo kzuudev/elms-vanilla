@@ -75,7 +75,10 @@ export default function EmployeeLeaveTable() {
             setLeaveRequestDetails(response.data.leave_request);
             console.log(response.data.leave_request);
         }catch (e) {
-            setError(e.response.data.message);
+            form.setError("root", {
+                type: "server",
+                message: e.response.data.message
+            })
         }
     }
 
@@ -98,6 +101,25 @@ export default function EmployeeLeaveTable() {
                     message: e.response.data.message
                 });
             throw e;
+        }
+    }
+
+
+    const fetchLeaveRequestDelete = async (id: number) => {
+
+        try {
+            const response = await api.delete(`/leave-request/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${holder}`,
+                }
+            });
+            console.log(response.data.message);
+            return response;
+        }catch (e) {
+            form.setError("root", {
+                type: "server",
+                message: e.response.data.message
+            })
         }
     }
 
@@ -136,6 +158,26 @@ export default function EmployeeLeaveTable() {
         //     console.error("Submission failed");
         //     throw e;
         // }
+    }
+
+
+    // handle delete of leave request
+    const handleDeleteLeaveRequests = async (id: number) => {
+        form.setError("root", null);
+
+        if(window.confirm("Are you sure you want to delete this leave request?")){
+            await fetchLeaveRequestDelete(id);
+        }
+        form.reset(
+            {
+                leave_type: "",
+                start_date: "",
+                end_date: "",
+                reason: "",
+            }
+        )
+        fetchLeaveRequests();
+
     }
 
     useEffect(() => {
@@ -384,7 +426,7 @@ export default function EmployeeLeaveTable() {
                                 <TableCell>
                                     <Button onClick={() => handleViewLeaveRequest(leave.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>
                                     <Button onClick={() => handleOpenEditForm(leave.id)} variant="outline" className="p-2 mr-1"><Pencil /></Button>
-                                    <Button variant="outline" className="p-2 text-red-500"><Trash/></Button>
+                                    <Button onClick={() => handleDeleteLeaveRequests(leave.id)} variant="outline" className="p-2 text-red-500"><Trash/></Button>
                                 </TableCell>
                             </TableRow>
                         ))}
