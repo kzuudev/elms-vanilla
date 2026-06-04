@@ -297,8 +297,6 @@ export default function EmployeeLeaveTable() {
                                             )}
                                         </Field>
                                     )}
-
-
                                     />
                                 </div>
 
