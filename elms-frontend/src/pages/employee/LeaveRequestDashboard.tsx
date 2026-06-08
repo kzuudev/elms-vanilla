@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,} from 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {Button} from "@/components/ui/button";
 import { CheckCircle2Icon } from "lucide-react";
+import type {LeaveRequest} from "@/types/leave.ts";
 
 export default function LeaveRequestDashboard() {
 
@@ -24,20 +25,38 @@ export default function LeaveRequestDashboard() {
     const [successAlert, setSuccessAlert] = useState(false);
 
     const [leaveRequests, setLeaveRequests] = useState([]);
+    const [leaveRequestDetails, setLeaveRequestDetails] = useState<LeaveRequest>({} as LeaveRequest);
+    const [error, setError] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
-        const fetchLeaveRequests = async () => {
+    const holder = localStorage.getItem("token");
+    const fetchLeaveRequests = async () => {
 
-            const holder = localStorage.getItem("token");
-
-            const response = await api.get("/leave-request", {
-                // this is a verification for the bearer (holder) of the token has permission to access this account and do action
-                headers: {
-                    Authorization: `Bearer ${holder}`,
+        const response = await api.get("/leave-request", {
+            // this is a verification for the bearer (holder) of the token has permission to access this account and do action
+            headers: {
+                Authorization: `Bearer ${holder}`,
                 },
             });
             setLeaveRequests(response.data.leave_requests.data);
         }
+
+    const fetchLeaveRequestDetails = async (id: number) => {
+
+        try{
+            const response = await api.get(`/leave-request/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${holder}`,
+                }
+            });
+            setLeaveRequestDetails(response.data.leave_request);
+            console.log(response.data.leave_request);
+        }catch (e) {
+            setError(e.response.data.message);
+        }
+    }
+
+
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -71,7 +90,7 @@ export default function LeaveRequestDashboard() {
     return (
         <>
             <AppSidebar>
-                    <LeaveContext.Provider value={{ fetchLeaveRequests, leaveRequests, managerLeaveList: [] }}>
+                    <LeaveContext.Provider value={{ fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequests, managerLeaveList: [], leaveRequestDetails }}>
                     <div className="flex flex-col justify-between items-center">
 
                         <div>

@@ -5,7 +5,7 @@ import {format} from 'date-fns';
 import {api} from "@/lib/api.ts";
 import {useState, useContext, useEffect} from "react";
 import { LeaveContext } from "@/features/context/LeaveContext.tsx";
-import {type LeaveRequest, leaveOptions} from "@/types/leave.ts";
+import {leaveOptions} from "@/types/leave.ts";
 import {Controller, useForm} from "react-hook-form";
 
 import {
@@ -27,20 +27,18 @@ import {Textarea} from "@/components/ui/textarea.tsx";
 import {zodResolver} from "@hookform/resolvers/zod";
 
 
-
-
-
 const tableHeaders = ['Leave Type', 'Start Date', 'End Date', 'Reason', 'Status', 'Assigned to','Actions']
 
 
 export default function EmployeeLeaveTable() {
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [leaveRequestDetails, setLeaveRequestDetails] = useState<LeaveRequest>({} as LeaveRequest);
     const [isEditMode, setIsEditMode] = useState(false);
 
     // get the leave request list directly from the Leave Context
-    const { leaveRequests } = useContext(LeaveContext);
+    const { leaveRequests, fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequestDetails } = useContext(LeaveContext);
+
+
     const holder = localStorage.getItem("token");
 
     const schema = z.object({
@@ -63,24 +61,24 @@ export default function EmployeeLeaveTable() {
     });
 
     const { formState: {errors}} = form;
-    const { fetchLeaveRequests } = useContext(LeaveContext);
-    const fetchLeaveRequestDetails = async (id: number) => {
 
-        try{
-            const response = await api.get(`/leave-request/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${holder}`,
-                }
-            });
-            setLeaveRequestDetails(response.data.leave_request);
-            console.log(response.data.leave_request);
-        }catch (e) {
-            form.setError("root", {
-                type: "server",
-                message: e.response.data.message
-            })
-        }
-    }
+    // const fetchLeaveRequestDetails = async (id: number) => {
+    //
+    //     try{
+    //         const response = await api.get(`/leave-request/${id}`, {
+    //             headers: {
+    //                 Authorization: `Bearer ${holder}`,
+    //             }
+    //         });
+    //         setLeaveRequestDetails(response.data.leave_request);
+    //         console.log(response.data.leave_request);
+    //     }catch (e) {
+    //         form.setError("root", {
+    //             type: "server",
+    //             message: e.response.data.message
+    //         })
+    //     }
+    // }
 
     const fetchLeaveRequestEdit = async (id: number, data: LeaveRequestFormData) => {
 

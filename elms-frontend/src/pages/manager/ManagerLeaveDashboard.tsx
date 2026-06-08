@@ -1,5 +1,6 @@
 "use client"
 
+import {LeaveContext} from "@/features/context/LeaveContext.tsx";
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import UserProfile from "@/components/layout/UserProfile.tsx";
 import LeaveDashboard from "@/pages/manager/LeaveDashboard.tsx";
@@ -7,9 +8,11 @@ import SearchInput from "@/components/ui/search.tsx";
 import LeaveStats from "@/features/leaves/components/LeaveStats.tsx";
 
 export default function ManagerLeaveDashboard() {
+
+
     return (
         <>
-            <AppSidebar>
+                <AppSidebar>
                     <div>
                         <div className="w-full">
                             <div className="w-full flex justify-between">
@@ -30,10 +33,10 @@ export default function ManagerLeaveDashboard() {
                         <LeaveStats/>
                     </div>
 
-                <main>
-                    <LeaveDashboard/>
-                </main>
-            </AppSidebar>
+                    <main>
+                        <LeaveDashboard/>
+                    </main>
+                </AppSidebar>
         </>
     )
 }

@@ -1,11 +1,14 @@
 'use client'
 
+import * as z from 'zod';
 import {useState, useContext } from "react";
+import {format} from 'date-fns';
 import { LeaveContext } from "@/features/context/LeaveContext.tsx";
+
 import {api} from "@/lib/api.ts";
 import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {z} from "zod";
+
 import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field.tsx";
 
 import {
@@ -18,16 +21,19 @@ import {
 } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog.tsx";
 import {Button} from "@/components/ui/button";
-import {Eye, CircleCheck, X} from "lucide-react";
+import {Eye, CircleCheck, X, Trash, Pencil} from "lucide-react";
 import {Textarea} from "@/components/ui/textarea.tsx";
 
 
 const tableHeaders = ['Name', 'Role', 'Leave Type', 'Reason', 'Start Date', 'End Date', 'Days', 'Status','Actions']
 export default function ManagerLeaveTable() {
 
+    const {leaveRequestDetails, fetchLeaveRequestDetails} = useContext(LeaveContext);
+
     const [activeLeaveId, setActiveLeaveId] = useState<number | null>(null);
     const [rejectionReason, setRejectionReason] = useState<string | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isViewMode, setIsViewMode] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { managerLeaveList, fetchLeaveRequests } = useContext(LeaveContext);
 
@@ -115,12 +121,86 @@ export default function ManagerLeaveTable() {
         setIsDialogOpen(false);
         form.reset();
 
+    }
 
-
+    const handleViewLeaveRequest = async (id: number) => {
+        setIsViewMode(true);
+        await fetchLeaveRequestDetails(id);
     }
 
     return (
         <>
+            <div>
+                <Dialog open={isViewMode} onOpenChange={setIsViewMode} >
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader className="mb-2">
+                            <DialogTitle>Leave Request Details</DialogTitle>
+                        </DialogHeader>
+                        <div className="w-full flex flex-col gap-4">
+                            <div className="w-full flex flex-col gap-2">
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Leave Type:</span>
+                                    <span>{leaveRequestDetails.leave_type}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Start Date:</span>
+                                    <span>{leaveRequestDetails.start_date}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">End Date:</span>
+                                    <span>{leaveRequestDetails.end_date}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Total Days:</span>
+                                    <span>{leaveRequestDetails.total_days}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Leave Reason:</span>
+                                    <span>{leaveRequestDetails.reason}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Assigned to:</span>
+                                    <span>{leaveRequestDetails.manager_name}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Created At:</span>
+                                    <span>{leaveRequestDetails.created_at}</span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Status:</span>
+                                    {leaveRequestDetails.status === "pending" ? (
+                                        <span className="bg-orange-50 text-orange-700 border border-orange-200/60 px-2 py-1 rounded-md">{leaveRequestDetails.status}</span>
+                                    ) : leaveRequestDetails.status === "approved" ? (
+                                        <span className="bg-green-50 text-green-700 border border-green-200/60 px-2 py-1 rounded-md">{leaveRequestDetails.status}</span>
+                                    ) : (
+                                        <span className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-md">{leaveRequestDetails.status}</span>
+                                    )}
+                                </div>
+
+                            </div>
+
+                            <DialogFooter className="p-2">
+                                <div className="w-full flex justify-between items-center">
+                                    <Button variant="outline" className="p-2 text-red-500"><Trash/></Button>
+                                    <div className="flex gap-2 items-center">
+                                        <Button variant="outline" className="text-sm p-2 mr-1">Cancel</Button>
+                                        <Button variant="outline" className="p-2 mr-1"><Pencil /></Button>
+                                    </div>
+                                </div>
+                            </DialogFooter>
+
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            </div>
+
             <div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} >
                     <DialogContent className="sm:max-w-[425px]">
@@ -180,8 +260,8 @@ export default function ManagerLeaveTable() {
                                 <TableCell>{leave.employee_role}</TableCell>
                                 <TableCell>{leave.leave_type_name}</TableCell>
                                 <TableCell>{leave.reason}</TableCell>
-                                <TableCell>{leave.start_date}</TableCell>
-                                <TableCell>{leave.end_date}</TableCell>
+                                <TableCell>{format(leave.start_date, 'MMMM dd, yyyy')}</TableCell>
+                                <TableCell>{format(leave.end_date, 'MMMM dd, yyyy')}</TableCell>
                                 <TableCell>{leave.total_days}</TableCell>
                                 {leave.status === "pending" ? (
                                     <TableCell><span className="bg-orange-50 text-orange-700 border border-orange-200/60 px-2 py-1 rounded-md">{leave.status}</span></TableCell>
@@ -191,7 +271,7 @@ export default function ManagerLeaveTable() {
                                     <TableCell><span className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-md">{leave.status}</span></TableCell>
                                 )}
                                 <TableCell>
-                                    <Button variant="outline" className="p-2 mr-1"><Eye /></Button>
+                                    <Button onClick={() => handleViewLeaveRequest(leave.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>
                                     <Button onClick={() => handleApproveSubmit(leave.id)} variant="outline" className="p-2 mr-1"><CircleCheck /></Button>
                                     <Button onClick={() => handleRejectionReasonForm(leave.id)} variant="outline" className="p-2 text-red-500"><X /></Button>
                                 </TableCell>

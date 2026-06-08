@@ -24,6 +24,7 @@ function App() {
         return storedUser ? JSON.parse(storedUser) as Profile: null;
     });
 
+
   return (
     <>
     <BrowserRouter>
