@@ -76,8 +76,7 @@ class EmployeeController {
          ", [
              'id' => $id
          ], [
-
-         ])->find();
+         ])->all();
 
          if(!$viewEmployeeDetails) {
              http_response_code(404);
@@ -85,11 +84,38 @@ class EmployeeController {
              exit;
          }
 
+         // return the very first row of all fetch data
+         $structuredData = [
+             'id' => $viewEmployeeDetails[0]['id'],
+             'employee_first_name' => $viewEmployeeDetails[0]['employee_first_name'],
+             'employee_last_name' => $viewEmployeeDetails[0]['employee_last_name'],
+             'employee_email' => $viewEmployeeDetails[0]['employee_email'],
+             'employee_phone' => $viewEmployeeDetails[0]['employee_phone'],
+             'employee_role' => $viewEmployeeDetails[0]['employee_role'],
+             'manager_id' => $viewEmployeeDetails[0]['manager_id'],
+             'employee_department' => $viewEmployeeDetails[0]['employee_department'],
+             'employee_salary' => $viewEmployeeDetails[0]['employee_salary'],
+             'employee_hired_date' => $viewEmployeeDetails[0]['employee_hired_date'],
+             'employee_is_active' => $viewEmployeeDetails[0]['employee_is_active'],
+             "employee_leave_balance" => []
+         ];
+
+         // loop through an array and structured the employee_leave_balances
+         foreach($viewEmployeeDetails as $employee) {
+             if(!empty($employee['leave_type_name'])) {
+                 $structuredData['employee_leave_balance'][] = [
+                     'leave_type_name' => $employee['leave_type_name'],
+                     'remaining_balance' => $employee['remaining_balance'],
+                 ];
+             }
+         }
+
+
          echo json_encode([
              'success' => true,
              'message' => 'Employee details fetched successfully',
              'id' => $id,
-             'employee_details' => $viewEmployeeDetails
+             'employee_details' => $structuredData
          ]);
 
      }

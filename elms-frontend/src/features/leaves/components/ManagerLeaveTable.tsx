@@ -19,7 +19,14 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog.tsx";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+    DialogDescription
+} from "@/components/ui/dialog.tsx";
 import {Button} from "@/components/ui/button";
 import {Eye, CircleCheck, X, Trash, Pencil} from "lucide-react";
 import {Textarea} from "@/components/ui/textarea.tsx";

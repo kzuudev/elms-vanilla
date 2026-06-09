@@ -39,7 +39,7 @@ export type TableData = {
     manager_name: string;
 };
 
-export type Employee = {
+export type EmployeeDataTable = {
     id: number;
     employee_first_name: string;
     employee_last_name: string;
@@ -47,6 +47,26 @@ export type Employee = {
     employee_phone: string;
     employee_role: string;
 }
+
+export type EmployeeDetails = {
+    id: number;
+    employee_first_name: string;
+    employee_last_name: string;
+    employee_email: string;
+    employee_phone: string;
+    employee_role: string;
+    employee_leave_balance: [
+        {
+            leave_type_name: string,
+            remaining_balance: number,
+        },
+    ]
+    employee_department: string;
+    employee_salary: string;
+    employee_hired_date: string;
+    employee_is_active: number;
+}
+
 
 export type LeaveRequest = {
     id: number;

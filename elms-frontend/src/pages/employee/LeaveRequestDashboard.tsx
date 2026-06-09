@@ -2,7 +2,6 @@ import {useState, useEffect} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
 import { LeaveContext } from "@/features/context/LeaveContext.tsx";
 import {api} from "@/lib/api.ts";
-import { toast } from 'sonner';
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import Header from "@/components/layout/Header.tsx";

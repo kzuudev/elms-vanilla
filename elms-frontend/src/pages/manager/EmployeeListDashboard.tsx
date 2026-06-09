@@ -8,12 +8,19 @@ import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import EmployeeListTable from "@/features/employee/components/EmployeeListTable.tsx";
 import UserProfile from "@/components/layout/UserProfile.tsx";
 import LeaveStats from "@/features/leaves/components/LeaveStats.tsx";
+import { type EmployeeDetails} from "@/types/leave.ts";
 
 export default function EmployeeListDashboard() {
 
-    const [users, setUsers] = useState([]);
+    const [employees, setEmployees] = useState([]);
+    const [employeeDetails, setEmployeeDetails] = useState<EmployeeDetails>({} as EmployeeDetails);
 
-    const fetchUsers = async () => {
+    const [error, setError] = useState<string | null>(null);
+
+    const holder = localStorage.getItem("token");
+
+    const fetchEmployees = async () => {
+
 
         const holder = localStorage.getItem("token");
 
@@ -23,18 +30,36 @@ export default function EmployeeListDashboard() {
             }
         });
         console.log(response.data.employee_list);
-        setUsers(response.data.employee_list);
+        setEmployees(response.data.employee_list);
     }
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchUsers();
+        fetchEmployees();
     }, [])
+
+    const fetchEmployeeDetails = async (id: number) => {
+
+        try {
+
+            const response = await api.get(`/employees-list/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${holder}`,
+                }
+            });
+            setEmployeeDetails(response.data.employee_details);
+            console.log(response.data.employee_details);
+        }catch (e) {
+            setError(e.response.data.message);
+        }
+    }
+
+
 
     return (
         <>
             <AppSidebar>
-                <UsersContext.Provider value={{users, setUsers, fetchUsers}}>
+                <UsersContext.Provider value={{employees, setEmployees, fetchEmployees, employeeDetails, fetchEmployeeDetails}}>
                   <div>
                       <div className="w-full flex justify-between">
                           <div>

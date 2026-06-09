@@ -1,11 +1,14 @@
 
 import { createContext } from "react";
-import { type Employee} from "@/types/leave.ts";
+import { type EmployeeDataTable, type EmployeeDetails} from "@/types/leave.ts";
 
-type UserContextEmployee = {
-    users: Employee[];
-    fetchUsers: () => void;
-    setUsers: (users: Employee[]) => void;
+type EmployeeContextEmployee = {
+    employees: EmployeeDataTable[];
+    fetchEmployees: () => void;
+    setEmployees: (users: EmployeeDataTable[]) => void;
+    employeeDetails: EmployeeDetails | null;
+    fetchEmployeeDetails: (id: number) => void;
+
 }
 
-export const UsersContext = createContext<UserContextEmployee | undefined>(undefined);
+export const UsersContext = createContext<EmployeeContextEmployee | undefined>(undefined);
