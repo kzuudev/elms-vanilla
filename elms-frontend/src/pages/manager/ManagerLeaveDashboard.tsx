@@ -1,6 +1,5 @@
 "use client"
 
-import {LeaveContext} from "@/features/context/LeaveContext.tsx";
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import UserProfile from "@/components/layout/UserProfile.tsx";
 import LeaveDashboard from "@/pages/manager/LeaveDashboard.tsx";

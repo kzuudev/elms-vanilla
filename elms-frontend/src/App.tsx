@@ -14,7 +14,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute.tsx";
 import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
 import ManagerLeaveDashboard from "@/pages/manager/ManagerLeaveDashboard.tsx";
 import EmployeeListDashboard from "@/pages/manager/EmployeeListDashboard.tsx";
-
+import UsersDashboard from "@/pages/admin/UsersDashboard.tsx";
 
 function App() {
 
@@ -31,7 +31,6 @@ function App() {
         <UserContext.Provider value={{user, setUser}}>
             <Routes>
                 <Route path="/" element={<Login />}/>
-                <Route path="/register" element={<Register />}/>
 
                 <Route
                     path="/employee/dashboard"
@@ -84,10 +83,28 @@ function App() {
                 />
 
                 <Route
+                    path="/"
+                    element={
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <Register />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
                     path="/admin/dashboard"
                     element={
                         <ProtectedRoute allowedRoles={['admin']}>
                             <AdminDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/admin/users"
+                    element={
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <UsersDashboard />
                         </ProtectedRoute>
                     }
                 />

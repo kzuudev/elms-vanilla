@@ -11,12 +11,23 @@ class RegisterForm {
     protected $errors;
 
 
-    public function validate($name, $email, $password) {
+    public function validate($first_name, $last_name, $email, $phone, $password) {
 
-        if(!Validator::string($name, 3, 20)) {
+        if(!Validator::string($first_name, 3, 20)) {
 
-            $this->errors['name'] = 'Name is required and  must be between 3 and 20 characters';
+            $this->errors['first_name'] = 'First Name is required and  must be between 3 and 20 characters';
         }
+
+        if(!Validator::string($last_name, 3, 20)) {
+
+            $this->errors['last_name'] = 'Last Name is required and  must be between 3 and 20 characters';
+        }
+
+        if(!Validator::phone($phone)) {
+
+            $this->errors['phone'] = 'Phone number is required and must be a valid phone number';
+        }
+
 
         if(!Validator::string($email, 3, 20)) {
 

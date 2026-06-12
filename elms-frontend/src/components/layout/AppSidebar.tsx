@@ -121,7 +121,7 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                   </SidebarMenuItem>
                               </SidebarMenu>
                           </SidebarContent>
-                      ) : (
+                      ) : role === "employee" ? (
                           <SidebarContent>
                               <SidebarMenu>
                                   <SidebarMenuItem>
@@ -146,7 +146,44 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                   </SidebarMenuItem>
                               </SidebarMenu>
                           </SidebarContent>
-                      )}
+                      ) : role === "admin" ? (
+                          <SidebarContent>
+                              <SidebarMenu>
+                                  <SidebarMenuItem>
+                                      <SidebarMenuButton asChild className="hover:bg-gray-100">
+                                          <Link to="/admin/dashboard" className="flex items-center gap-2">
+                                              <LayoutDashboard />
+                                              <span>Dashboard</span>
+                                          </Link>
+                                      </SidebarMenuButton>
+                                  </SidebarMenuItem>
+
+                                  <SidebarMenuItem>
+                                      <SidebarMenuButton
+                                          onClick={() => setOpen(!open)}
+                                          className="hover:bg-gray-100 flex items-center justify-between w-full"
+                                      >
+                                          <Link to="/admin/users" className="flex items-center gap-2">
+                                              <Users />
+                                              <span>Total Users</span>
+                                          </Link>
+                                      </SidebarMenuButton>
+                                  </SidebarMenuItem>
+
+                                  <SidebarMenuItem>
+                                      <SidebarMenuButton
+                                          onClick={() => setOpen(!open)}
+                                          className="hover:bg-gray-100 flex items-center justify-between w-full"
+                                      >
+                                          <Link to="/admin/leaves" className="flex items-center gap-2">
+                                              <CalendarOff />
+                                              <span>Leaves</span>
+                                          </Link>
+                                      </SidebarMenuButton>
+                                  </SidebarMenuItem>
+                              </SidebarMenu>
+                          </SidebarContent>
+                      ) : null}
 
                       <SidebarFooter>
                           <SidebarContent>

@@ -15,6 +15,16 @@ class Validator {
         return strlen($input) >= $min && strlen($input) <= $max;
     }
 
+    public static function phone($value) {
+
+        // normalizes: "+63 917-123-4567" into "+639171234567"
+        $input = preg_replace('/[\s\-()]/', '', $value);
+
+        $e164pattern = '/^\+[1-9]\d{1,14}$/';
+
+        return preg_match($e164pattern, $input) === 1;
+    }
+
     public static function email($value) {
 
         $input = trim($value);

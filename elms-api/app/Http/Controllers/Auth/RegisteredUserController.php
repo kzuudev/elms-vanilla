@@ -17,11 +17,13 @@ class RegisteredUserController {
             $register = new RegisterForm();
             $db = App::resolve(Database::class);
 
-            $name = $input['name'] ?? '';
+            $first_name = $input['first_name'] ?? '';
+            $last_name = $input['last_name'] ?? '';
             $email = $input['email'] ?? '';
+            $phone = $input['phone'] ?? '';
             $password = $input['password'] ?? '';
 
-            if($register->validate($name, $email, $password)) {
+            if($register->validate($first_name, $last_name, $email, $phone, $password)) {
 
                 // check if email exists
                 $user = $db->query("SELECT * FROM users WHERE email = :email", [
@@ -36,14 +38,20 @@ class RegisteredUserController {
                 }
 
                 // Insert the new user
-                $db->query("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)", [
-                    'name' => $name,
+                $registerUser = $db->query("INSERT INTO users (first_name, last_name, email, phone, password) VALUES (:first_name, :last_name, :email, :phone, :password)", [
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
                     'email' => $email,
+                    'phone' => $phone,
                     'password' => password_hash($password, PASSWORD_DEFAULT)
                 ]);
 
                 http_response_code(201);
-                echo json_encode(['message' => 'User created successfully']);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'User created successfully',
+                    'user' => $registerUser
+                ]);
                 return;
             }
 
@@ -55,7 +63,10 @@ class RegisteredUserController {
         }
 
         http_response_code(400);
-        echo json_encode(['message' => 'Invalid request']);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid Registration Request'
+        ]);
 
 
     }

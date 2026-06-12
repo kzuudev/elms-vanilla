@@ -73,7 +73,12 @@ export default function Login() {
                 return;
             }
 
-            navigate("/admin/dashboard");
+            if(userRole === 'admin') {
+                navigate("/admin/dashboard");
+                return;
+            }
+
+
 
 
 
@@ -100,7 +105,7 @@ export default function Login() {
                     </CardHeader>
                     <CardContent>
                         <form id="login" onSubmit={form.handleSubmit(onSubmit)} className="">
-                            <FieldGroup className="mb-8">
+                            <FieldGroup className="mb-5">
                                 <div className="flex flex-col gap-1">
                                     <Controller name="email" control={form.control} render={({ field, fieldState }) => (
                                         <Field data-invalid={fieldState.invalid}>
@@ -155,13 +160,6 @@ export default function Login() {
                             <div className="flex flex-col items-center justify-between gap-3">
                                 <Button type="submit" className="w-full rounded-md bg-black text-white  text-center" variant="outline">
                                     Log In
-                                </Button>
-
-
-                                <Button asChild>
-                                    <a href="/register" className="w-full">
-                                        Register
-                                    </a>
                                 </Button>
                             </div>
                         </form>
