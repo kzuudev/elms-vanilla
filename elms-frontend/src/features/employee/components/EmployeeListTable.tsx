@@ -12,7 +12,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table.tsx'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog.tsx";
+import { Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Eye, Calendar} from "lucide-react";
 import {format} from "date-fns";
@@ -112,8 +112,6 @@ export default function EmployeeListTable() {
                     </DialogContent>
                 </Dialog>
             </div>
-
-
 
             <div className="border border-border rounded-lg bg-white overflow-hidden">
                 <Table>

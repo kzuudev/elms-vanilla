@@ -42,4 +42,15 @@ class Database {
     public function lastInsertId() {
         return $this->connection->lastInsertId();
     }
+
+    public static function abort($code, $message) {
+        http_response_code($code);
+
+        echo json_encode([
+            "success" => false,
+            "error" => $message
+        ]);
+
+        die();
+    }
 }

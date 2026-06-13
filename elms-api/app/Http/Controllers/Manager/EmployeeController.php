@@ -75,7 +75,6 @@ class EmployeeController {
             WHERE u.id = :id
          ", [
              'id' => $id
-         ], [
          ])->all();
 
          if(!$viewEmployeeDetails) {

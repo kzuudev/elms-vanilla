@@ -58,25 +58,62 @@ class UsersController {
         }
 
         $user = $db->query("
-            SELECT id, 
-                   first_name, 
-                   last_name, 
-                   email, 
-                   phone, 
-                   role, 
-                   department, 
-                   is_active, 
-                   hired_date 
+             SELECT u.id,
+                 u.first_name, 
+                 u.last_name,
+                 u.email,  
+                 u.phone,
+                 u.role, 
+                 u.manager_id,
+                 u.department,
+                 u.salary,
+                 u.hired_date,
+                 u.is_active,
+                 lt.name as leave_type_name,
+                 lb.remaining_balance as remaining_balance
+            FROM users u 
+            LEFT JOIN leave_balance lb ON lb.user_id = u.id
+            LEFT JOIN leave_types lt ON lb.leave_type_id = lt.id
+            WHERE u.id = :id
         ", [
             'id' => $id
-        ])->find();
+        ])->all();
+
+        if(!$user) {
+            http_response_code(404);
+            echo json_encode(["error" => "User not found"]);
+            exit;
+        }
+
+        $structuredData = [
+            'id' => $user[0]['id'],
+            'first_name' => $user[0]['first_name'],
+            'last_name' => $user[0]['last_name'],
+            'email' => $user[0]['email'],
+            'phone' => $user[0]['phone'],
+            'role' => $user[0]['role'],
+            'department' => $user[0]['department'],
+            'is_active' => $user[0]['is_active'],
+            'hired_date' => $user[0]['hired_date'],
+            'salary' => $user[0]['salary'],
+            'leave_balance' => []
+        ];
+
+        foreach($user as $employee) {
+            if(!empty($employee['leave_type_name'])) {
+                $structuredData['leave_balance'][] = [
+                    'leave_type_name' => $employee['leave_type_name'],
+                    'remaining_balance' => $employee['remaining_balance'],
+                ];
+            }
+        }
 
         http_response_code(200);
         echo json_encode([
             'success' => true,
             'message' => 'Employee details fetched successfully',
             'id' => $id,
-            'user' => $user
+            'user' => $structuredData
         ]);
     }
 
