@@ -131,32 +131,39 @@ class UsersController {
             exit;
         }
 
-        $input = json_decode(file_get_contents('php://input'), true);
         $first_name = $input['first_name'] ?? '';
-        $last_name = $input['last_name'] ?? '';
-        $email = $input['email'] ?? '';
-        $phone = $input['phone'] ?? '';
-        $role = $input['role'] ?? '';
+        $last_name  = $input['last_name'] ?? '';
+        $email      = $input['email'] ?? '';
+        $phone      = $input['phone'] ?? '';
+        $role       = $input['role'] ?? '';
         $department = $input['department'] ?? '';
-        $manager_id = !empty($input['manager_id']) ? $input['manager_id'] : null;
         $is_active  = isset($input['is_active']) ? (int)$input['is_active'] : 1;
+        $salary     = $input['salary'] ?? '';
         $hired_date = $input['hired_date'] ?? '';
-        $password = $input['password'] ?? '';
-        $confirm_password = $input['confirm_password'] ?? '';
-        $new_password = $input['new_password'] ?? '';
-        $confirm_new_password = $input['confirm_new_password'] ?? '';
-        $salary = $input['salary'] ?? '';
+        $manager_id = !empty($input['manager_id']) ? (int)$input['manager_id'] : null;
 
-
-
-        $editUser = $db->query("UPDATE users SET first_name = :first_name, last_name = :last_name, email = :email, phone = :phone, role = :role, department = :department, is_active = :is_active, hired_date = :hired_date, salary = :salary WHERE id = :id", [
-            'id' => $id,
+        $editUser = $db->query("
+        UPDATE users 
+        SET first_name = :first_name, 
+            last_name = :last_name, 
+            email = :email, 
+            phone = :phone, 
+            role = :role, 
+            department = :department, 
+            manager_id = :manager_id,
+            is_active = :is_active, 
+            hired_date = :hired_date, 
+            salary = :salary 
+        WHERE id = :id
+    ", [
+            'id'          => $id,
             'first_name'  => $first_name,
             'last_name'   => $last_name,
             'email'       => $email,
             'phone'       => $phone,
             'role'        => $role,
             'department'  => $department,
+            'manager_id'  => $manager_id, // PDO binds this cleanly as null if no manager is chosen
             'is_active'   => $is_active,
             'hired_date'  => $hired_date,
             'salary'      => $salary
@@ -169,15 +176,7 @@ class UsersController {
         }
 
         $editedUser = $db->query("
-        SELECT id, 
-               first_name, 
-               last_name, 
-               email, phone, 
-               role, 
-               department, 
-               is_active, 
-               hired_date, 
-               salary 
+        SELECT id, first_name, last_name, email, phone, role, department, manager_id, is_active, hired_date, salary 
         FROM users 
         WHERE id = :id
     ", ['id' => $id])->find();

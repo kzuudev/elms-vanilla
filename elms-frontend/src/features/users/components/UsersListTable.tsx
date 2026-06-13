@@ -1,12 +1,17 @@
 "use client"
 
 import {useEffect, useState} from "react";
+import * as z from 'zod';
 import {api} from "@/lib/api.ts";
 import {type UserData, type User} from "@/types/users.ts";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
 
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog.tsx";
+import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field.tsx";
 import {Button} from "@/components/ui/button.tsx";
+import { Input } from "@/components/ui/input";
 import {Eye, Pencil, Trash} from "lucide-react";
 import {format} from "date-fns";
 
@@ -17,9 +22,52 @@ export default function UsersListTable() {
     const tableHeaders = ["First Name", "Last Name", "Email", "Phone", "Role", "Department", "Status", "Actions"];
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [activeUserId, setActiveUserId] = useState<number | null>(null);
     const [users, setUsers] = useState<UserData[]>([]);
     const [userDetails, setUserDetails] = useState<User>({} as User);
     const [error, setError] = useState<string | null>(null);
+
+    // Define the validation rules for editing a user profile
+    const schema = z.object({
+        first_name: z.string().min(1, { message: "First Name is required" }),
+        last_name: z.string().min(1, { message: "Last Name is required" }),
+        email: z.string().email("Please enter a valid email address"),
+        phone: z.string().min(1, { message: "Phone number is required" }),
+        role: z.string().min(1, { message: "Role is required" }),
+        department: z.string().min(1, { message: "Department is required" }),
+        hired_date: z.string().min(1, { message: "Hired date is required" }),
+        salary: z.string().min(1, { message: "Salary is required" }),
+
+        // manager_id can be empty/null if they don't have a manager assigned
+        manager_id: z.string().optional().nullable(),
+
+        // accepts string or number since dropdown selects return values as strings ("1" or "0")
+        is_active: z.union([z.string(), z.number()]),
+    });
+
+    // Infer the type from our Zod schema
+    type EditUserDetailsFormData = z.infer<typeof schema>;
+
+    // Initialize the form hook with proper default values
+    const form = useForm<EditUserDetailsFormData>({
+        resolver: zodResolver(schema),
+        defaultValues: {
+            first_name: '',
+            last_name: '',
+            email: '',
+            phone: '',
+            role: 'employee',
+            department: '',
+            hired_date: '',
+            salary: '',
+            manager_id: '',
+            is_active: 1,
+        }
+    });
+
+
+    const { setError: setFormError, formState: { errors } } = form;
 
     const fetchUsers = async () => {
         const holder = localStorage.getItem("token");
@@ -67,7 +115,67 @@ export default function UsersListTable() {
         }catch (e) {
             setError(e.response.data.message || "A network error occurred.");
         }
+
+    const fetchUpdateUser = async (id: number) => {
+
+            form.setError("root", null);
+
+            try {
+                const holder = localStorage.getItem("token");
+                const response = await api.patch(`/admin/users/${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${holder}`,
+                    }
+                });
+                setUserDetails(response.data.user);
+                return response;
+            }catch (e) {
+                form.setError("root",
+                    {
+                        type: "server",
+                        message: e.response.data.message
+                    });
+                throw e;
+            }
+        }
     }
+
+    const fetchDeleteUser = async (id: number) => {
+        const holder = localStorage.getItem("token");
+        try {
+            const response = await api.delete(`/admin/users/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${holder}`,
+                }
+            });
+            fetchUsers();
+            return response;
+        }catch (e) {
+            setError(e.response.data.message || "A network error occurred.");
+        }
+    }
+    const handleEditUserForm = async (id: number) => {
+        setIsFormOpen(true);
+        setActiveUserId(id);
+    }
+
+    const handleEditSubmit = async () => {
+
+        const id = activeUserId;
+
+    }
+
+    const handleDeleteUser = async (id: number) => {
+        form.setError("root", null);
+
+        if (window.confirm("Are you sure you want to delete this user?")) {
+            await fetchDeleteUser(id);
+        }
+    }
+
+
+
+
 
     return (
 
@@ -152,6 +260,145 @@ export default function UsersListTable() {
                 </Dialog>
             </div>
 
+            <div>
+                <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Edit User</DialogTitle>
+                            <DialogDescription>
+                                Make changes to the user here. Click save when you're done.
+                            </DialogDescription>
+                        </DialogHeader>
+                            <div className="">
+                                <form onSubmit={form.handleSubmit(handleEditSubmit)}>
+                                    <FieldGroup className="mb-8">
+                                    {/* First & Last Name */}
+                                    <div className="flex gap-2">
+                                        <Controller name="first_name" control={form.control} render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid} className="w-1/2">
+                                                <FieldLabel htmlFor="first_name" className="m-0">First Name</FieldLabel>
+                                                <Input {...field} id="first_name" aria-invalid={fieldState.invalid} autoComplete="off" />
+                                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                            </Field>
+                                        )} />
+                                        <Controller name="last_name" control={form.control} render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid} className="w-1/2">
+                                                <FieldLabel htmlFor="last_name" className="m-0">Last Name</FieldLabel>
+                                                <Input {...field} id="last_name" aria-invalid={fieldState.invalid} autoComplete="off" />
+                                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                            </Field>
+                                        )} />
+                                    </div>
+                                    {/* Email & Phone */}
+                                    <div className="flex gap-2">
+                                        <Controller name="email" control={form.control} render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid} className="w-1/2">
+                                                <FieldLabel htmlFor="email">Email Address</FieldLabel>
+                                                <Input {...field} id="email" type="email" aria-invalid={fieldState.invalid} autoComplete="off" />
+                                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                            </Field>
+                                        )} />
+                                        <Controller name="phone" control={form.control} render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid} className="w-1/2">
+                                                <FieldLabel htmlFor="phone">Contact No.</FieldLabel>
+                                                <Input {...field} id="phone" type="tel" aria-invalid={fieldState.invalid} autoComplete="off" />
+                                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                            </Field>
+                                        )} />
+                                    </div>
+
+                                    {/* Role & Department */}
+                                    <div className="flex gap-2">
+                                        <Controller name="role" control={form.control} render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid} className="w-1/2">
+                                                <FieldLabel htmlFor="role" className="m-0">Role</FieldLabel>
+                                                <select {...field} id="role" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                                    <option value="employee">Employee</option>
+                                                    <option value="manager">Manager</option>
+                                                    <option value="admin">Admin</option>
+                                                </select>
+                                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                            </Field>
+                                        )} />
+                                        <Controller name="department" control={form.control} render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid} className="w-1/2">
+                                                <FieldLabel htmlFor="department" className="m-0">Department</FieldLabel>
+                                                <Input {...field} id="department" aria-invalid={fieldState.invalid} autoComplete="off" />
+                                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                            </Field>
+                                        )} />
+                                    </div>
+
+                                    {/* Hired Date & Salary */}
+                                    <div className="flex gap-2">
+                                        <Controller name="hired_date" control={form.control} render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid} className="w-1/2">
+                                                <FieldLabel htmlFor="hired_date">Hired Date</FieldLabel>
+                                                <Input {...field} id="hired_date" type="date" aria-invalid={fieldState.invalid} />
+                                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                            </Field>
+                                        )} />
+                                        <Controller name="salary" control={form.control} render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid} className="w-1/2">
+                                                <FieldLabel htmlFor="salary">Salary</FieldLabel>
+                                                <Input {...field} id="salary" type="number" step="0.01" aria-invalid={fieldState.invalid} />
+                                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                            </Field>
+                                        )} />
+                                    </div>
+
+                                    {/* Manager ID & Status */}
+                                    <div className="flex gap-2">
+                                        <Controller name="manager_id" control={form.control} render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid} className="w-1/2">
+                                                <FieldLabel htmlFor="manager_id">Manager ID (Optional)</FieldLabel>
+                                                <Input
+                                                    {...field}
+                                                    value={field.value || ''}
+                                                    id="manager_id"
+                                                    type="number"
+                                                    placeholder="Leave blank if none"
+                                                    aria-invalid={fieldState.invalid}
+                                                />
+                                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                            </Field>
+                                        )} />
+                                        <Controller name="is_active" control={form.control} render={({ field, fieldState }) => (
+                                            <Field data-invalid={fieldState.invalid} className="w-1/2">
+                                                <FieldLabel htmlFor="is_active" className="m-0">Account Status</FieldLabel>
+                                                <select
+                                                    {...field}
+                                                    id="is_active"
+                                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                                >
+                                                    <option value={1}>Active</option>
+                                                    <option value={0}>Inactive</option>
+                                                </select>
+                                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                            </Field>
+                                        )} />
+                                    </div>
+
+                                </FieldGroup>
+
+                                {errors.root && (
+                                    <div className="text-red-500 text-sm mb-4 text-center">
+                                        {errors.root.message}
+                                    </div>
+                                )}
+
+                                <DialogFooter>
+                                    <Button type="button" variant="ghost">Cancel</Button>
+                                    <Button type="submit" className="rounded-md bg-black text-white text-center">
+                                        Save Changes
+                                    </Button>
+                                </DialogFooter>
+                                </form>
+                            </div>
+                    </DialogContent>
+                </Dialog>
+            </div>
+
             <div className="border border-border rounded-lg bg-white overflow-hidden">
                 <Table>
                     <TableHeader className="bg-gray-50">
@@ -180,8 +427,8 @@ export default function UsersListTable() {
                                 ) : null}</TableCell>
                                 <TableCell>
                                     <Button onClick={() => fetchUserDetails(user.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>
-                                    <Button variant="outline" className="p-2 mr-1"><Pencil /></Button>
-                                    <Button variant="outline" className="p-2 text-red-500"><Trash/></Button>
+                                    <Button onClick={() => handleEditUserForm(user.id)} variant="outline" className="p-2 mr-1"><Pencil /></Button>
+                                    <Button onClick={() => handleDeleteUser(user.id)} variant="outline" className="p-2 text-red-500"><Trash/></Button>
                                 </TableCell>
                             </TableRow>
                         ))}

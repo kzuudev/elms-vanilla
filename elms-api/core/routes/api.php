@@ -33,7 +33,7 @@ $router->get('/admin/users', [UsersController::class, 'index'])->only('auth');
 $router->post('/register', [RegisteredUserController::class, 'store'])->only('auth');
 $router->get('/admin/users/{id}', [UsersController::class, 'show'])->only('auth');
 $router->patch('/admin/users/{id}', [UsersController::class, 'patch'])->only('auth');
-$router->destroy('/admin/users/{id}', [UsersController::class, 'delete'])->only('auth');
+$router->destroy('/admin/users/{id}', [UsersController::class, 'destroy'])->only('auth');
 
 
 // return the router with existing routes inside it

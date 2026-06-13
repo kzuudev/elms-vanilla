@@ -67,7 +67,6 @@ export default function ManagerLeaveTable() {
         const holder = localStorage.getItem("token");
 
         try {
-            // add api here (patch)
             const response = await api.patch(`/leaves/${id}`, {
                 status: status,
                 rejection_reason: rejection_reason,
