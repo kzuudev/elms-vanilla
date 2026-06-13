@@ -16,13 +16,13 @@ import {Eye, Pencil, Trash} from "lucide-react";
 export default function UsersListTable() {
 
     const tableHeaders = ["First Name", "Last Name", "Email", "Phone", "Role", "Department", "Status", "Actions"];
-    const holder = localStorage.getItem("token");
+
 
     const [users, setUsers] = useState<UserData[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-
     const fetchUsers = async () => {
+        const holder = localStorage.getItem("token");
 
         try {
             const response = await api.get("/admin/users", {
@@ -30,15 +30,24 @@ export default function UsersListTable() {
                     Authorization: `Bearer ${holder}`,
                 }
             })
-
             setUsers(response.data.users);
         }catch (e) {
-            setError(e.response.data.message);
+            setError(e.response.data.message || "A network error occurred.");
         }
     }
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchUsers();
+
+        window.addEventListener("user-mutated", () => {
+            fetchUsers();
+        })
+
+        // clean up to prevent memory leaks when navigating from this page
+        return () => {
+            window.removeEventListener("user-mutated", fetchUsers);
+        };
     }, [])
 
     return (
@@ -78,8 +87,6 @@ export default function UsersListTable() {
                         ))}
                     </TableBody>
                 </Table>
-
-
             </div>
         </>
     );

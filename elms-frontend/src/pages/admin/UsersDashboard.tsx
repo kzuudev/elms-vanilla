@@ -20,7 +20,7 @@ export default function UsersDashboard() {
         <>
            <AppSidebar>
                <div className="flex justify-between">
-                   <h1 className="mb-8">Users Dashboard</h1>
+                   <h1 className="mb-8">Users List</h1>
 
                    <Dialog open={isFormOpen} onOpenChange={setIsOpenForm}>
                        <DialogTrigger asChild>
@@ -28,8 +28,8 @@ export default function UsersDashboard() {
                                Register New User
                            </Button>
                        </DialogTrigger>
-                       <DialogContent className="sm:max-w-[425px]">
-                           <Register/>
+                       <DialogContent className="w-full sm:max-w-[425px] py-6 px-2 bg-white border-0 outline-none shadow-xl">
+                           <Register closeDialog={() => setIsOpenForm(false)}/>
                        </DialogContent>
                    </Dialog>
                </div>
