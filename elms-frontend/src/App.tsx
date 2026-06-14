@@ -24,6 +24,8 @@ function App() {
         return storedUser ? JSON.parse(storedUser) as Profile: null;
     });
 
+    const [isFormOpen, setIsOpenForm] = useState(false);
+
 
   return (
     <>
@@ -86,7 +88,7 @@ function App() {
                     path="/"
                     element={
                         <ProtectedRoute allowedRoles={['admin']}>
-                            <Register />
+                            <Register closeDialog={() => setIsOpenForm(false)} />
                         </ProtectedRoute>
                     }
                 />

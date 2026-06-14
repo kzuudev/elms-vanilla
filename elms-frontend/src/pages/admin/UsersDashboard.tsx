@@ -9,7 +9,7 @@ import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import Register from "@/pages/auth/register.tsx";
 
 
-import { Dialog, DialogContent, DialogTrigger} from "@/components/ui/dialog.tsx";
+import {Dialog, DialogContent, DialogTrigger} from "@/components/ui/dialog.tsx";
 import {Button} from "@/components/ui/button.tsx";
 
 export default function UsersDashboard() {

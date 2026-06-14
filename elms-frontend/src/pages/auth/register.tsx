@@ -4,17 +4,10 @@ import * as z from 'zod';
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
-import {useNavigate} from "react-router-dom";
+
 
 
 import {Button} from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
 import {
     Field,
     FieldError,
@@ -28,8 +21,6 @@ interface RegisterFormProps {
 }
 
 export default function Register({closeDialog}: RegisterFormProps) {
-
-    const navigate = useNavigate();
 
     // rules for registration form
     const schema = z.object({
@@ -74,12 +65,11 @@ export default function Register({closeDialog}: RegisterFormProps) {
             });
             console.log(response.data);
             window.dispatchEvent(new Event('user-mutated'));
-
             closeDialog();
         } catch (e) {
             setError("root", {
                 type: "server",
-                message: e.response.data.message,
+                message: e.response.data.message || "An error occurred during registration",
             });
         }
     }
@@ -91,7 +81,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
                     <h1 className="text-lg font-bold">Register</h1>
                     <h2 className="text-sm text-gray-500">Fill up the form to register a new user</h2>
                 </div>
-                <form id="login" onSubmit={form.handleSubmit(onSubmit)} className="">
+                <form id="login" onSubmit={form.handleSubmit(onSubmit)}>
                     <FieldGroup className="mb-8">
                         <div className="flex gap-2">
                             <Controller name="first_name" control={form.control}
@@ -248,13 +238,11 @@ export default function Register({closeDialog}: RegisterFormProps) {
                     )}
 
                     <div className="flex items-center gap-3 justify-end">
-                        <Button asChild>
-                            <a href="/">
-                                Already registered?
-                            </a>
+                        <Button type="button" onClick={closeDialog} className="rounded-md bg-black text-white text-center"  variant="outline">
+                            Cancel
                         </Button>
 
-                        <Button type="submit" className=" rounded-md bg-black text-white text-center"
+                        <Button type="submit" className="rounded-md bg-black text-white text-center"
                                 variant="outline">
                             Register
                         </Button>

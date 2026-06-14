@@ -8,13 +8,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog.tsx";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog.tsx";
 import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input";
 import {Eye, Pencil, Trash} from "lucide-react";
 import {format} from "date-fns";
-
 
 
 export default function UsersListTable() {
@@ -223,6 +222,7 @@ export default function UsersListTable() {
         return (
 
             <>
+                {/* view user details */}
                 <div>
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogContent className="sm:max-w-[425px]">
@@ -308,6 +308,7 @@ export default function UsersListTable() {
                     </Dialog>
                 </div>
 
+                {/* edit user details */}
                 <div>
                     <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                         <DialogContent className="sm:max-w-[425px]">
@@ -484,7 +485,7 @@ export default function UsersListTable() {
                                     )}
 
                                     <DialogFooter>
-                                        <Button type="button" variant="ghost">Cancel</Button>
+                                        <Button type="button" variant="outline">Cancel</Button>
                                         <Button type="submit" className="rounded-md bg-black text-white text-center">
                                             Save Changes
                                         </Button>

@@ -164,24 +164,44 @@
 //        ])->find();
 
             if (!$current_user_id) {
-                http_response_code(404);
+                http_response_code(401);
                 echo json_encode(["error" => "User not found"]);
                 exit();
             }
 
-            $leaveRequests = $db->query(' 
-            SELECT 
-            lr.*, 
-            m.first_name AS manager_name,
-            lt.name AS leave_type_name 
-            FROM leave_requests lr 
-            LEFT JOIN users m ON lr.assigned_to = m.id
-            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
-            WHERE lr.user_id = :user_id AND lr.deleted_at IS NULL
-            ', [
-                'user_id' => $current_user_id,
-            ])->all();
+            $current_user = $db->query("SELECT role FROM users WHERE id = :id", [
+                'id' => $current_user_id,
+            ])->find();
 
+            $params = [];
+
+            $role = $current_user['role'] ?? null;
+
+            $sql = ' 
+                SELECT 
+                    lr.*, 
+                    m.first_name AS manager_name,
+                    lt.name AS leave_type_name 
+                FROM leave_requests lr 
+                LEFT JOIN users m ON lr.assigned_to = m.id
+                LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+                WHERE lr.deleted_at IS NULL
+            ';
+
+            if($role === 'admin') {
+
+            }else if ($role === 'manager') {
+                $sql .= 'AND lr.assigned_to = :manager_id OR lr.user_id = :user_id';
+                $params['manager_id'] = $current_user_id;
+                $params['user_id'] = $current_user_id;
+            }else {
+                $sql .= 'AND lr.user_id = :user_id';
+                $params['user_id'] = $current_user_id;
+            }
+
+            // Add sorting so the newest requests are always at the top
+            $sql .= ' ORDER BY lr.created_at DESC';
+            $leaveRequests = $db->query($sql, $params)->all();
 
             echo json_encode([
                 'success' => true,
