@@ -141,22 +141,6 @@ export default function EmployeeLeaveTable() {
         setIsEditMode(false);
         form.reset(data)
         fetchLeaveRequests();
-
-
-        // try {
-        //     // Send data to the API function
-        //     const response = await fetchLeaveRequestEdit(leaveRequestDetails.id, data);
-        //
-        //     setIsEditMode(false);
-        //
-        //     // Update React Hook Form directly with the new data
-        //     if (response?.data?.leave_request) {
-        //         form.reset(data);
-        //     }
-        // } catch (e) {
-        //     console.error("Submission failed");
-        //     throw e;
-        // }
     }
 
 
