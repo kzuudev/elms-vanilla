@@ -15,6 +15,7 @@ import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
 import ManagerLeaveDashboard from "@/pages/manager/ManagerLeaveDashboard.tsx";
 import EmployeeListDashboard from "@/pages/manager/EmployeeListDashboard.tsx";
 import UsersDashboard from "@/pages/admin/UsersDashboard.tsx";
+import AdminLeavesDashboard from "@/pages/admin/AdminLeavesDashboard.tsx";
 
 function App() {
 
@@ -85,7 +86,7 @@ function App() {
                 />
 
                 <Route
-                    path="/"
+                    path="/register"
                     element={
                         <ProtectedRoute allowedRoles={['admin']}>
                             <Register closeDialog={() => setIsOpenForm(false)} />
@@ -107,6 +108,15 @@ function App() {
                     element={
                         <ProtectedRoute allowedRoles={['admin']}>
                             <UsersDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/admin/leaves"
+                    element={
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminLeavesDashboard />
                         </ProtectedRoute>
                     }
                 />

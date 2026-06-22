@@ -9,12 +9,12 @@ export default function UserProfile() {
 
     const {user} = useContext(UserContext);
 
+    if (!user) return null;
+
     return (
         <>
             <div>
-                <p className="text-sm text-black">
-                    {user?.name || "Manager"}
-                </p>
+                <p className="text-sm text-black">{user?.name || "Manager"}</p>
                 <p className="text-sm text-gray-500">{user?.email} </p>
             </div>
         </>

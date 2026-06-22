@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Leave;
 
 use App\Http\Forms\LeaveRequestForm;
+use App\Http\Middleware\Auth;
 use Core\App;
 use Core\Database;
 use DateTime;
@@ -19,25 +20,22 @@ class LeaveReviewController {
     public function index() {
 
         $db = App::resolve(Database::class);
+        $current_user_id = Auth::authenticate();
 
-        $headers = getallheaders();
-        $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-        $token = trim(str_replace('Bearer ', '', $authHeader));
-
-
-        $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
-            'token' => $token
-        ])->find();
-
-        $current_manager_id = $tokenRow['user_id'] ?? null;
-
-        if (!$current_manager_id) {
+        if (!$current_user_id) {
             http_response_code(404);
             echo json_encode(["error" => "User not found"]);
             exit;
         }
 
-        $managerLeavesList = $db->query("
+        $currentUser = $db->query("SELECT role FROM users WHERE id = :id", [
+            'id' => $current_user_id
+        ])->find();
+
+        $role = $currentUser['role'];
+        $params = [];
+
+        $sql = "
             SELECT 
             lr.*, 
             e.first_name as employee_name, 
@@ -48,25 +46,33 @@ class LeaveReviewController {
             FROM leave_requests lr 
             LEFT JOIN users e ON lr.user_id = e.id 
             LEFT JOIN users m ON lr.assigned_to = m.id
-            LEFT JOIN users r ON lr.user_id = r.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id 
-            WHERE lr.assigned_to = :manager_id
-        ", [
-            'manager_id' => $current_manager_id
-        ])->all();
+            WHERE lr.deleted_at IS NULL
+        ";
 
-        if(!$managerLeavesList) {
-            http_response_code(404);
-            echo json_encode(["error" => "No employee leaves found"]);
+        if ($role === 'admin') {
+            // Admins see all requests, except their own requests
+            $sql .= " AND lr.user_id != :reviewer_id";
+            $params['reviewer_id'] = $current_user_id;
+        } elseif ($role === 'manager') {
+            // Managers only see requests assigned to them
+            $sql .= " AND lr.assigned_to = :reviewer_id";
+            $params['reviewer_id'] = $current_user_id;
+        } else {
+            // Stop regular employees from seeing the review list!
+            http_response_code(403);
+            echo json_encode(["error" => "Forbidden: You do not have review permissions"]);
+            exit;
         }
 
+        $leavesList = $db->query($sql, $params)->all();
 
         echo json_encode([
             'success' => true,
             'message' => 'Employee leaves list fetched successfully',
-            'id' => $current_manager_id,
-            'employee_leaves' => [
-                'data' => $managerLeavesList,
+            'id' => $current_user_id,
+            'leaves' => [
+                'data' => $leavesList,
             ],
         ]);
     }
@@ -74,38 +80,47 @@ class LeaveReviewController {
     public function patch($id) {
 
         $db = App::resolve(Database::class);
+        $current_user_id = Auth::authenticate();
 
-        $headers = getallheaders();
-        $authHeader = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-        $token = trim(str_replace('Bearer ', '', $authHeader));
-
-        $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
-            'token' => $token
-        ])->find();
-
-        $current_manager_id = $tokenRow['user_id'] ?? null;
-
-        if (!$current_manager_id) {
+        if (!$current_user_id) {
             http_response_code(404);
             echo json_encode(["error" => "User not found"]);
+            exit;
         }
 
-        $authorizedManager = $db->query("
-            SELECT lr.*,
-            m.first_name as manager_name
-            FROM leave_requests lr 
-            LEFT JOIN users m ON lr.assigned_to = m.id
-            WHERE lr.id = :id AND lr.assigned_to = :manager_id
-        ", [
-            'id' => $id,
-            'manager_id' => $current_manager_id
+        $currentUser = $db->query("SELECT role FROM users WHERE id = :id", [
+            'id' => $current_user_id
         ])->find();
 
-        if(!$authorizedManager) {
-            http_response_code(401);
+        $role = $currentUser['role'] ?? 'employee';
+        $params = ['id' => $id];
+
+
+        $sql = "
+            SELECT 
+                lr.*, 
+                e.first_name as employee_name,
+                m.first_name as reviewer_name 
+            FROM leave_requests lr 
+            LEFT JOIN users e ON lr.user_id = e.id
+            LEFT JOIN users m ON lr.assigned_to = m.id 
+            WHERE lr.id = :id AND lr.deleted_at IS NULL
+        ";
+
+        if($role === "admin") {
+
+        }else if ($role === "manager") {
+            // Managers can see it if they are assigned to it OR if managers created it
+            $sql .= "AND (lr.assigned_to = :current_user_id OR lr.user_id = :current_user_id";
+            $params['current_user_id'] = $current_user_id;;
+        }else {
+            http_response_code(403);
             echo json_encode(['error' => 'Unauthorized User']);
             exit;
         }
+
+        $authorizedUser = $db->query($sql, $params)->find();
+
 
         // capture the new value
         $input = json_decode(file_get_contents('php://input'), true);
@@ -121,6 +136,12 @@ class LeaveReviewController {
         if($status == 'rejected' && empty($rejectionReason)) {
             http_response_code(422);
             echo json_encode(['error' => 'Rejection reason is required when status is rejected.']);
+        }
+
+        if($current_user_id === $authorizedUser['user_id']) {
+            http_response_code(403);
+            echo json_encode(["error" => "Self-approval is strictly prohibited."]);
+            exit;
         }
 
         $rejected = $db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
@@ -140,6 +161,7 @@ class LeaveReviewController {
             'success' => true,
             'message' => 'Leave request status updated successfully',
             'id' => $id,
+            'authorized_user' => $authorizedUser,
             'approved' => $approved,
             'rejected' => $rejected,
         ]);

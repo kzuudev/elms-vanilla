@@ -1,11 +1,12 @@
 "use client";
 
 import * as z from "zod";
+import {useContext} from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/lib/api.ts";
 import {Controller, useForm} from "react-hook-form";
 import {useNavigate} from "react-router-dom";
-
+import {UserContext} from "@/features/context/UserContext.tsx";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,12 +25,16 @@ import {
 import { Input } from "@/components/ui/input"
 
 
+
+
 export default function Login() {
 
     const { setError, formState: { errors } } = useForm<LoginFormData>();
-    const navigate = useNavigate();
 
-    // Schema for login form
+    const navigate = useNavigate();
+    const { setUser } = useContext(UserContext);
+
+    // Schema for a login form
     const schema = z.object({
         email: z.string().email("Please enter a valid email address"),
         password: z.string().min(1, { message: "Password is required" }),
@@ -57,7 +62,7 @@ export default function Login() {
             localStorage.setItem("role", response.data.user.role);
             localStorage.setItem("user", JSON.stringify(response.data.user));
             const userRole = localStorage.getItem("role");
-
+            setUser(response.data.user);
             setError("root", {
                 type: "server",
                 message: "",

@@ -405,7 +405,7 @@ export default function EmployeeLeaveTable() {
                                 ) : (
                                     <TableCell><span className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-md">{leave.status}</span></TableCell>
                                 )}
-                                <TableCell>{leave.manager_name}</TableCell>
+                                <TableCell>{leave.assigned_name}</TableCell>
                                 <TableCell>
                                     <Button onClick={() => handleViewLeaveRequest(leave.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>
                                     <Button onClick={() => handleOpenEditForm(leave.id)} variant="outline" className="p-2 mr-1"><Pencil /></Button>

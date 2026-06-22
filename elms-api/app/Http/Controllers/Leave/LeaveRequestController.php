@@ -7,6 +7,8 @@
     use Core\App;
     use Core\Database;
     use DateTime;
+    use DatePeriod;
+    use DateInterval;
 
     class LeaveRequestController
     {
@@ -16,15 +18,20 @@
          * @throws \Exception
          */
 
-        public function submit()
+        public function store()
         {
 
             $db = App::resolve(Database::class);
             $leaveRequestForm = new LeaveRequestForm();
             $current_user_id = Auth::authenticate();
 
-            $assignedManager = $db->query("SELECT m.id AS manager_id, m.first_name AS manager_name FROM users e LEFT JOIN users m ON e.manager_id = m.id WHERE e.id = :id", [
-                'id' => $current_user_id,
+            $approver = $db->query("
+                SELECT assigned_to AS approver_id, 
+                       CONCAT(first_name, ' ', last_name) AS approver_name, 
+                       role AS approver_role
+                FROM users WHERE id = :id
+            ", [
+            'id' => $current_user_id,
             ])->find();
 
 
@@ -33,6 +40,10 @@
                 echo json_encode(["error" => "User not found"]);
                 exit();
             }
+
+            $current_user = $db->query("SELECT role FROM users WHERE id = :id", [
+                'id' => $current_user_id,
+            ])->find();
 
 
             $input = json_decode(file_get_contents('php://input'), true);
@@ -52,11 +63,18 @@
                 return;
             }
 
-            // validate the interval of start and end date
-            $interval = $start_date_obj->diff($end_date_obj);
 
-            // date should always start with 1 (because if start and end are the same day, it should count as 1 day)
-            $days_requested = $interval->days + 1;
+            // count for days requested (weekdays)
+            $days_requested = 0;
+
+            // calculate the start and end date (only weekdays), and ensures include the end date in the loop
+            $period = new DatePeriod($start_date_obj, new DateInterval('P1D'), clone $end_date_obj->modify('+1 day'));
+
+            foreach ($period as $date) {
+                if ($date->format('N') < 6) { // format('N') returns 1-5 for Mon-Fri
+                    $days_requested++;
+                }
+            }
 
             // get the name of the leave type based on the leave_type_id
             $leaveTypeRecord = $db->query("SELECT id FROM leave_types WHERE name = :name", [
@@ -117,14 +135,42 @@
                 exit();
             }
 
-            // insert it then
-            $db->query("INSERT INTO leave_requests(user_id, leave_type_id, start_date, end_date, reason, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date,  :reason, :assigned_to)", [
+            $role = $current_user['role'] ?? null;
+            $params = [];
+
+            $sql = '
+               INSERT INTO leave_requests(user_id, leave_type_id, start_date, end_date, total_days, reason, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date, :total_days, :reason, :assigned_to)
+            ';
+
+            if($role) {
+                $params['user_id'] = $current_user_id;
+                $params['leave_type_id'] = $leaveTypeRecord['id'];
+                $params['start_date'] = $start_date;
+                $params['end_date'] = $end_date;
+                $params['reason'] = $reason;
+                $params['assigned_to'] = $approver['approver_id'] ?? null;
+                $params['total_days'] = $days_requested;
+            }else {
+                http_response_code(403);
+                echo json_encode([
+                    'message' => 'You are not authorized to submit a leave request.',
+                ]);
+                exit;
+            }
+
+
+            $db->query($sql, $params);
+
+            $updateRemainingBalance = $db->query("
+                UPDATE leave_balance 
+                SET
+                used_days = used_days + :days_requested,    
+                remaining_balance = remaining_balance - :days_requested
+                WHERE user_id = :user_id AND leave_type_id = :leave_type_id
+            ", [
                 'user_id' => $current_user_id,
                 'leave_type_id' => $leaveTypeRecord['id'],
-                'start_date' => $start_date,
-                'end_date' => $end_date,
-                'reason' => $reason,
-                'assigned_to' => $assignedManager['manager_id'] ?? null,
+                'days_requested' => $days_requested,
             ]);
 
             http_response_code(200);
@@ -141,12 +187,13 @@
                     'reason' => $reason,
                     'status' => 'pending',
                     'assigned_to' => [
-                        'manager_id' => $assignedManager['manager_id'] ?? null,
-                        'manager_name' => $assignedManager['manager_name'] ?? null,
+                        'approver_id' => $approver['approver_id'] ?? null,
+                        'approver_name' => $approver['approver_name'] ?? null,
                     ]
-                ]
+                ],
+                'remaining_balance' => $updateRemainingBalance
             ]);
-            exit();
+            exit;
 
 
         }
@@ -159,48 +206,29 @@
             $db = App::resolve(Database::class);
             $current_user_id = Auth::authenticate() ?? null;
 
-//        $assignedManager = $db->query("SELECT m.id AS manager_id, m.name AS manager_name FROM users e LEFT JOIN users m ON e.manager_id = m.id WHERE e.id = :id", [
-//            'id' => $current_user_id,
-//        ])->find();
-
             if (!$current_user_id) {
                 http_response_code(401);
                 echo json_encode(["error" => "User not found"]);
                 exit();
             }
 
-            $current_user = $db->query("SELECT role FROM users WHERE id = :id", [
-                'id' => $current_user_id,
-            ])->find();
-
-            $params = [];
-
-            $role = $current_user['role'] ?? null;
+            $params = [
+                'user_id' => $current_user_id,
+            ];
 
             $sql = ' 
                 SELECT 
                     lr.*, 
-                    m.first_name AS manager_name,
+                    m.first_name AS assigned_name,
                     lt.name AS leave_type_name 
                 FROM leave_requests lr 
                 LEFT JOIN users m ON lr.assigned_to = m.id
                 LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
                 WHERE lr.deleted_at IS NULL
+                AND lr.user_id = :user_id 
+                ORDER BY lr.created_at DESC
             ';
 
-            if($role === 'admin') {
-
-            }else if ($role === 'manager') {
-                $sql .= 'AND lr.assigned_to = :manager_id OR lr.user_id = :user_id';
-                $params['manager_id'] = $current_user_id;
-                $params['user_id'] = $current_user_id;
-            }else {
-                $sql .= 'AND lr.user_id = :user_id';
-                $params['user_id'] = $current_user_id;
-            }
-
-            // Add sorting so the newest requests are always at the top
-            $sql .= ' ORDER BY lr.created_at DESC';
             $leaveRequests = $db->query($sql, $params)->all();
 
             echo json_encode([
@@ -230,22 +258,22 @@
             }
 
             $leaveRequestDetails = $db->query("
-            SELECT 
-                lr.id,
-                lr.reason,
-                lr.start_date,
-                lr.end_date,
-                lr.status,
-                lr.created_at,
-                lr.updated_at,
-                CONCAT(m.first_name, ' ', m.last_name) AS manager_name, 
-                lt.name AS leave_type,
-                DATEDIFF(lr.end_date, lr.start_date) + 1 AS total_days
-            FROM leave_requests lr 
-            LEFT JOIN users m ON lr.assigned_to = m.id
-            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
-            WHERE lr.id = :id
-        ", [
+                SELECT 
+                    lr.id,
+                    lr.reason,
+                    lr.start_date,
+                    lr.end_date,
+                    lr.status,
+                    lr.created_at,
+                    lr.updated_at,
+                    CONCAT(m.first_name, ' ', m.last_name) AS manager_name, 
+                    lt.name AS leave_type,
+                    DATEDIFF(lr.end_date, lr.start_date) + 1 AS total_days
+                FROM leave_requests lr 
+                LEFT JOIN users m ON lr.assigned_to = m.id
+                LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+                WHERE lr.id = :id
+            ", [
                 'id' => $id,
             ])->find();
 

@@ -14,28 +14,36 @@ $router = new Router();
 
 
 $router->post('/', [LoginController::class, 'login'])->only('guest');
+$router->post('/leave-request', [LeaveRequestController::class, 'store'])->only('auth');
+
 
 // employee
 $router->get('/leave-request', [LeaveRequestController::class, 'index'])->only('auth');
-$router->post('/leave-request', [LeaveRequestController::class, 'submit'])->only('auth');
 $router->get('/leave-request/{id}', [LeaveRequestController::class, 'show'])->only('auth');
 $router->patch('/leave-request/{id}', [LeaveRequestController::class, 'patch'])->only('auth');
-$router->destroy('/leave-request/{id}', [LeaveRequestController::class, 'destroy'])->only('auth');
+$router->delete('/leave-request/{id}', [LeaveRequestController::class, 'destroy'])->only('auth');
 
 // manager
-$router->get('/leaves', [LeaveReviewController::class, 'index'])->only('auth');
-$router->patch('/leaves/{id}', [LeaveReviewController::class, 'patch'])->only('auth');
 $router->get('/employees-list', [EmployeeController::class, 'index'])->only('auth');
 $router->get('/employees-list/{id}', [EmployeeController::class, 'show'])->only('auth');
 
-// admin
-$router->get('/admin/users', [UsersController::class, 'index'])->only('auth');
-$router->post('/register', [RegisteredUserController::class, 'store'])->only('auth');
-$router->get('/admin/users/{id}/profile', [UsersController::class, 'profile'])->only('auth');
-$router->get('/admin/users/{id}', [UsersController::class, 'show'])->only('auth');
-$router->patch('/admin/users/{id}', [UsersController::class, 'patch'])->only('auth');
-$router->destroy('/admin/users/{id}', [UsersController::class, 'destroy'])->only('auth');
+$router->get('/leave-requests/me', [LeaveRequestController::class, 'index'])->only('auth');
+$router->get('/leave-requests', [LeaveReviewController::class, 'index'])->only('auth');
+$router->get('/leave-requests/{id}', [LeaveRequestController::class, 'show'])->only('auth');
+$router->patch('/leave-requests/{id}', [LeaveReviewController::class, 'patch'])->only('auth');
 
+// admin
+$router->get('/users', [UsersController::class, 'index'])->only('auth');
+$router->post('/register', [RegisteredUserController::class, 'store'])->only('auth');
+$router->get('/users/{id}/profile', [UsersController::class, 'profile'])->only('auth');
+$router->get('/users/{id}', [UsersController::class, 'show'])->only('auth');
+$router->patch('/users/{id}', [UsersController::class, 'patch'])->only('auth');
+$router->delete('/users/{id}', [UsersController::class, 'destroy'])->only('auth');
+
+$router->get('/leave-requests/me', [LeaveRequestController::class, 'index'])->only('auth');
+$router->get('/leave-requests', [LeaveReviewController::class, 'index'])->only('auth');
+$router->get('/leave-requests/{id}', [LeaveRequestController::class, 'show'])->only('auth');
+$router->patch('/leave-requests/{id}/review', [LeaveReviewController::class, 'patch'])->only('auth');
 
 // return the router with existing routes inside it
 return $router;

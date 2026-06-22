@@ -131,7 +131,7 @@ export default function EmployeeListTable() {
                                 <TableCell>{employee.employee_first_name}</TableCell>
                                 <TableCell>{employee.employee_last_name}</TableCell>
                                 <TableCell>{employee.employee_email}</TableCell>
-                                <TableCell></TableCell>
+                                <TableCell>{employee.employee_phone}</TableCell>
                                 <TableCell>{employee.employee_role}</TableCell>
                                 <TableCell>
                                     <Button onClick={() => handleViewEmployeeDetails(employee.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>

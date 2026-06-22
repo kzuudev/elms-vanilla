@@ -2,6 +2,8 @@
 import { useState } from "react";
 import {Link, useNavigate} from "react-router-dom";
 
+import {useContext} from "react";
+import {UserContext} from "@/features/context/UserContext.tsx";
 
 import {
     Sidebar,
@@ -21,7 +23,6 @@ import {
     LogOut,
     Search,
     Settings,
-    User,
     Users,
     CircleUserRound
 } from "lucide-react";
@@ -35,14 +36,13 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
 
-    const role = localStorage.getItem("role");
+    const { user, setUser } = useContext(UserContext);
+
+    const role = user?.role;
 
     const handleLogout = () => {
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-        localStorage.removeItem("user_id");
         localStorage.clear();
+        setUser(null);
         navigate("/");
     }
 

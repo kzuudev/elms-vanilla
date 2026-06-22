@@ -64,9 +64,9 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
 
     const onSubmit = async (data: LeaveRequestFormData) => {
 
-        const holder = localStorage.getItem("token");
-
         try {
+            const holder = localStorage.getItem("token");
+            const role = localStorage.getItem("role");
             const response = await api.post("/leave-request", data, {
                 // this is a verification for the bearer (holder) of the token has permission to access this account and do action
                 headers: {
@@ -80,11 +80,23 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
                 });
                 fetchLeaveRequests();
                 closeDialog();
-                navigate("/employee/leave-request", {
-                    state: {
-                        successfullySubmitted: true,
-                    }
-                });
+                if(role === "admin") {
+                    navigate("/admin/leaves", {
+                        state: {
+                            successfullySubmitted: true,
+                        }
+                    });
+                }else if (role === "manager") {
+                    navigate("/manager/leaves", {
+                        state: {}
+                    })
+                }else {
+                    navigate("/employee/leave-request", {
+                        state: {
+                            successfullySubmitted: true,
+                        }
+                    });
+                }
             }
         } catch (e) {
             setError("root", {

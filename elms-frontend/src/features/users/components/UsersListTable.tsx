@@ -73,7 +73,7 @@ export default function UsersListTable() {
         const holder = localStorage.getItem("token");
 
         try {
-            const response = await api.get("/admin/users", {
+            const response = await api.get("/users", {
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 }
@@ -121,7 +121,7 @@ export default function UsersListTable() {
     const fetchUserProfile = async (id: number) => {
         try {
             const holder = localStorage.getItem("token");
-            const response = await api.get(`/admin/users/${id}/profile`, {
+            const response = await api.get(`/users/${id}/profile`, {
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 }
@@ -138,7 +138,7 @@ export default function UsersListTable() {
 
             try {
                 const holder = localStorage.getItem("token");
-                const response = await api.get(`/admin/users/${id}`, {
+                const response = await api.get(`/users/${id}`, {
                     headers: {
                         Authorization: `Bearer ${holder}`,
                     }
@@ -162,7 +162,7 @@ export default function UsersListTable() {
 
         try {
             const holder = localStorage.getItem("token");
-            const response = await api.patch(`/admin/users/${id}`, data, {
+            const response = await api.patch(`/users/${id}`, data, {
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 }
@@ -182,7 +182,7 @@ export default function UsersListTable() {
         const fetchDeleteUser = async (id: number) => {
             const holder = localStorage.getItem("token");
             try {
-                const response = await api.delete(`/admin/users/${id}`, {
+                const response = await api.delete(`/users/${id}`, {
                     headers: {
                         Authorization: `Bearer ${holder}`,
                     }

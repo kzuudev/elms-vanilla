@@ -1,5 +1,6 @@
 
 
+// @ts-ignore
 export enum LeaveType {
     Sick = "Sick Leave",
     Annual = "Annual Leave",
@@ -14,12 +15,6 @@ export enum LeaveType {
 
 }
 
-export enum LeaveStatus {
-    Pending = "pending",
-    Approved = "approved",
-    Rejected = "rejected"
-}
-
 export type LeaveBalance = {
     type: string,
     icon: React.ReactNode
@@ -27,6 +22,7 @@ export type LeaveBalance = {
     used: number,
     total: number
 }
+
 export type TableData = {
     leave_type_name: string;
     id: number;
@@ -36,7 +32,7 @@ export type TableData = {
     end_date: string;
     reason: string;
     status: string;
-    manager_name: string;
+    assigned_name: string;
 };
 
 export type EmployeeDataTable = {
@@ -81,7 +77,7 @@ export type LeaveRequest = {
     updated_at: string;
 }
 
-export type ManagerTableData = {
+export type ReviewerLeaveData = {
     employee_name: string;
     employee_role: string;
     leave_type_name: string;
@@ -93,8 +89,22 @@ export type ManagerTableData = {
     end_date: string;
     total_days: number;
     status: string;
-    manager_name: string;
+    assigned_to: string;
 };
+
+
+export type PersonalLeaveRequest = {
+    id: number;
+    user_id: number;
+    leave_type_name: string;
+    reason: string;
+    start_date: string;
+    end_date: string;
+    total_days: number;
+    status: string;
+    assigned_name: string;
+};
+
 
 export type Profile = {
     id: number;

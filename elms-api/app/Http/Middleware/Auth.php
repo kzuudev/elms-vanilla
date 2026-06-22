@@ -12,7 +12,6 @@ class Auth {
         // grab Authorization header if it exists
         $authHeader = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : null;
 
-
         // Check if the header exists and contains bearer token
         if(!$authHeader && str_starts_with($authHeader, 'Bearer ')) {
 
@@ -45,6 +44,7 @@ class Auth {
 
         if (!$tokenRow) {
             $db->abort(401, 'Invalid token');
+            exit;
         }
 
         // Return just the ID so it's super easy to use in your controllers!
