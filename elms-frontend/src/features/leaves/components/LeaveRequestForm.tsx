@@ -8,6 +8,7 @@ import {useNavigate} from "react-router-dom";
 import {useContext} from "react";
 import {LeaveType} from "@/types/leave.ts";
 import {LeaveContext} from "@/features/context/LeaveContext.tsx";
+import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
 
 import {Button} from "@/components/ui/button.tsx";
 import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field.tsx";
@@ -23,6 +24,11 @@ interface LeaveRequestFormProps {
 export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) {
 
     const leaveContext = useContext(LeaveContext);
+    const leaveBalanceContext = useContext(LeaveBalanceContext);
+
+    const { fetchLeaveRequests } = leaveContext;
+    const { fetchLeaveBalance } = leaveBalanceContext;
+
     const navigate = useNavigate();
 
 
@@ -60,7 +66,7 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
         {label: "Extended Medical Leave", value: LeaveType.Extended},
     ];
 
-    const { fetchLeaveRequests } = leaveContext;
+
 
     const onSubmit = async (data: LeaveRequestFormData) => {
 
@@ -79,6 +85,7 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
                     message: "",
                 });
                 fetchLeaveRequests();
+                fetchLeaveBalance();
                 closeDialog();
                 if(role === "admin") {
                     navigate("/admin/leaves", {

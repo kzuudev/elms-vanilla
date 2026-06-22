@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Leave;
 
-use App\Http\Forms\LeaveRequestForm;
+
 use App\Http\Middleware\Auth;
 use Core\App;
 use Core\Database;
-use DateTime;
+
 
 class LeaveReviewController {
 
@@ -20,7 +20,9 @@ class LeaveReviewController {
     public function index() {
 
         $db = App::resolve(Database::class);
-        $current_user_id = Auth::authenticate();
+        $currentUser = Auth::authenticate();
+
+        $current_user_id = $currentUser['id'] ?? null;
 
         if (!$current_user_id) {
             http_response_code(404);
@@ -80,7 +82,9 @@ class LeaveReviewController {
     public function patch($id) {
 
         $db = App::resolve(Database::class);
-        $current_user_id = Auth::authenticate();
+        $currentUser = Auth::authenticate();
+
+        $current_user_id = $currentUser['id'] ?? null;
 
         if (!$current_user_id) {
             http_response_code(404);
@@ -104,15 +108,15 @@ class LeaveReviewController {
             FROM leave_requests lr 
             LEFT JOIN users e ON lr.user_id = e.id
             LEFT JOIN users m ON lr.assigned_to = m.id 
-            WHERE lr.id = :id AND lr.deleted_at IS NULL
+            WHERE lr.id = :id AND lr.deleted_at IS NULL 
         ";
 
         if($role === "admin") {
 
         }else if ($role === "manager") {
             // Managers can see it if they are assigned to it OR if managers created it
-            $sql .= "AND (lr.assigned_to = :current_user_id OR lr.user_id = :current_user_id";
-            $params['current_user_id'] = $current_user_id;;
+            $sql .= " AND (lr.assigned_to = :current_user_id OR lr.user_id = :current_user_id)";
+            $params['current_user_id'] = $current_user_id;
         }else {
             http_response_code(403);
             echo json_encode(['error' => 'Unauthorized User']);
@@ -120,7 +124,6 @@ class LeaveReviewController {
         }
 
         $authorizedUser = $db->query($sql, $params)->find();
-
 
         // capture the new value
         $input = json_decode(file_get_contents('php://input'), true);

@@ -15,9 +15,11 @@ class UsersController {
 
         $db = App::resolve(Database::class);
 
-        $current_admin_id = Auth::authenticate();
+        $currentUser = Auth::authenticate();
 
-        if(!$current_admin_id) {
+        $current_user_id = $currentUser['id'] ?? null;
+
+        if(!$current_user_id) {
             http_response_code(404);
             echo json_encode(["error" => "Admin not found"]);
             exit;
@@ -40,7 +42,7 @@ class UsersController {
         echo json_encode([
              'success' => true,
              'message' => 'Employee List fetched successfully',
-             'id' => $current_admin_id,
+             'id' => $current_user_id,
              'users' => $users
          ]);
     }
@@ -48,9 +50,11 @@ class UsersController {
 
     public function show($id) {
         $db = App::resolve(Database::class);
-        $current_admin_id = Auth::authenticate();
+        $currentUser = Auth::authenticate();
 
-        if(!$current_admin_id) {
+        $current_user_id = $currentUser['id'] ?? null;
+
+        if(!$current_user_id) {
             http_response_code(404);
             echo json_encode(["error" => "Admin not found"]);
             exit;
@@ -123,9 +127,11 @@ class UsersController {
     public function patch($id) {
 
         $db = App::resolve(Database::class);
-        $current_admin_id = Auth::authenticate();
+        $currentUser = Auth::authenticate();
 
-        if(!$current_admin_id) {
+        $current_user_id = $currentUser['id'] ?? null;
+
+        if(!$current_user_id) {
             http_response_code(404);
             echo json_encode(["error" => "Admin not found"]);
             exit;
@@ -195,9 +201,11 @@ class UsersController {
     public function destroy($id) {
 
         $db = App::resolve(Database::class);
-        $current_admin_id = Auth::authenticate();
+        $currentUser = Auth::authenticate();
 
-        if(!$current_admin_id) {
+        $current_user_id = $currentUser['id'] ?? null;
+
+        if(!$current_user_id) {
             http_response_code(404);
             echo json_encode(["error" => "Admin not found"]);
             exit;
@@ -221,9 +229,11 @@ class UsersController {
     public function profile($id) {
 
         $db = App::resolve(Database::class);
-        $current_admin_id = Auth::authenticate();
+        $currentUser = Auth::authenticate();
 
-        if(!$current_admin_id) {
+        $current_user_id = $currentUser['id'] ?? null;
+
+        if(!$current_user_id) {
             http_response_code(404);
             echo json_encode(["error" => "Admin not found"]);
             exit;
@@ -236,7 +246,7 @@ class UsersController {
                  u.email,  
                  u.phone,
                  u.role, 
-                 u.manager_id,
+                 u.assigned_to,
                  u.department,
                  u.salary,
                  u.hired_date,

@@ -7,6 +7,7 @@ use App\Http\Controllers\Leave\LeaveRequestController;
 use App\Http\Controllers\Leave\LeaveReviewController;
 use App\Http\Controllers\Manager\EmployeeController;
 use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\Leave\UserLeaveBalanceController;
 use Core\Router;
 
 $router = new Router();
@@ -16,6 +17,8 @@ $router = new Router();
 $router->post('/', [LoginController::class, 'login'])->only('guest');
 $router->post('/leave-request', [LeaveRequestController::class, 'store'])->only('auth');
 
+// view leave balance
+$router->get('/leave-balance/me', [UserLeaveBalanceController::class, 'index'])->only('auth');
 
 // employee
 $router->get('/leave-request', [LeaveRequestController::class, 'index'])->only('auth');
@@ -44,6 +47,7 @@ $router->get('/leave-requests/me', [LeaveRequestController::class, 'index'])->on
 $router->get('/leave-requests', [LeaveReviewController::class, 'index'])->only('auth');
 $router->get('/leave-requests/{id}', [LeaveRequestController::class, 'show'])->only('auth');
 $router->patch('/leave-requests/{id}/review', [LeaveReviewController::class, 'patch'])->only('auth');
+
 
 // return the router with existing routes inside it
 return $router;

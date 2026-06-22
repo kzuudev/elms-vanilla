@@ -13,7 +13,7 @@ class Auth {
         $authHeader = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : null;
 
         // Check if the header exists and contains bearer token
-        if(!$authHeader && str_starts_with($authHeader, 'Bearer ')) {
+        if(!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
 
             http_response_code(403);
             echo json_encode([
@@ -38,16 +38,19 @@ class Auth {
         }
 
         // Find the user
-        $tokenRow = $db->query("SELECT user_id FROM personal_access_tokens WHERE token = :token", [
-            'token' => $token
-        ])->find();
+        $user = $db->query("
+            SELECT u.id, u.first_name, u.email, u.role 
+            FROM personal_access_tokens pat
+            JOIN users u ON pat.user_id = u.id
+            WHERE pat.token = :token
+        ", ['token' => $token])->find();
 
-        if (!$tokenRow) {
+        if (!$user) {
             $db->abort(401, 'Invalid token');
             exit;
         }
 
         // Return just the ID so it's super easy to use in your controllers!
-        return $tokenRow['user_id'] ;
+        return $user;
     }
 }

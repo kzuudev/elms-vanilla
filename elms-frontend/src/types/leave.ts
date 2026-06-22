@@ -15,13 +15,6 @@ export enum LeaveType {
 
 }
 
-export type LeaveBalance = {
-    type: string,
-    icon: React.ReactNode
-    balance: number,
-    used: number,
-    total: number
-}
 
 export type TableData = {
     leave_type_name: string;

@@ -23,7 +23,9 @@
 
             $db = App::resolve(Database::class);
             $leaveRequestForm = new LeaveRequestForm();
-            $current_user_id = Auth::authenticate();
+            $currentUser = Auth::authenticate();
+
+            $current_user_id = $currentUser['id'] ?? null;
 
             $approver = $db->query("
                 SELECT assigned_to AS approver_id, 
@@ -204,13 +206,15 @@
         {
 
             $db = App::resolve(Database::class);
-            $current_user_id = Auth::authenticate() ?? null;
+            $currentUser = Auth::authenticate() ?? null;
 
-            if (!$current_user_id) {
+            if (!$currentUser) {
                 http_response_code(401);
                 echo json_encode(["error" => "User not found"]);
                 exit();
             }
+
+            $current_user_id = $currentUser['id'] ?? null;
 
             $params = [
                 'user_id' => $current_user_id,
@@ -234,7 +238,6 @@
             echo json_encode([
                 'success' => true,
                 'message' => 'Leave requests fetched successfully',
-                'id' => $current_user_id,
                 'user_id' => $current_user_id,
                 'leave_requests' => [
                     'data' => $leaveRequests,
@@ -248,8 +251,9 @@
         {
 
             $db = App::resolve(Database::class);
+            $currentUser = Auth::authenticate() ?? null;
 
-            $current_user_id = Auth::authenticate() ?? null;
+            $current_user_id = $currentUser['id'] ?? null;
 
             if (!$current_user_id) {
                 http_response_code(404);
@@ -291,7 +295,9 @@
         {
 
             $db = App::resolve(Database::class);
-            $current_user_id = Auth::authenticate() ?? null;
+            $currentUser = Auth::authenticate() ?? null;
+
+            $current_user_id = $currentUser['id'] ?? null;
 
             $input = json_decode(file_get_contents('php://input'), true);
 
@@ -404,7 +410,9 @@
         public function destroy($id) {
 
             $db = App::resolve(Database::class);
-            $current_user_id = Auth::authenticate() ?? null;
+            $currentUser = Auth::authenticate() ?? null;
+
+            $current_user_id = $currentUser['id'] ?? null;
 
             if (!$current_user_id) {
                 http_response_code(401);

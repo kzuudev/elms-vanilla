@@ -32,7 +32,7 @@ export default function Login() {
     const { setError, formState: { errors } } = useForm<LoginFormData>();
 
     const navigate = useNavigate();
-    const { setUser } = useContext(UserContext);
+    const { user, setUser } = useContext(UserContext);
 
     // Schema for a login form
     const schema = z.object({
@@ -62,6 +62,7 @@ export default function Login() {
             localStorage.setItem("role", response.data.user.role);
             localStorage.setItem("user", JSON.stringify(response.data.user));
             const userRole = localStorage.getItem("role");
+            // const userRole = user?.role;
             setUser(response.data.user);
             setError("root", {
                 type: "server",
