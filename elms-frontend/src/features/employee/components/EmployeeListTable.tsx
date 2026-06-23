@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { UsersContext } from "@/features/context/UsersContext.tsx";
 import { useContext } from "react";
+import {formatE164} from "@/lib/utils.ts";
 
 import {
     Table,
@@ -29,6 +30,8 @@ export default function EmployeeListTable() {
         await fetchEmployeeDetails(id);
         setIsDialogOpen(true);
     }
+
+
 
     return (
         <>
@@ -131,7 +134,7 @@ export default function EmployeeListTable() {
                                 <TableCell>{employee.employee_first_name}</TableCell>
                                 <TableCell>{employee.employee_last_name}</TableCell>
                                 <TableCell>{employee.employee_email}</TableCell>
-                                <TableCell>{employee.employee_phone}</TableCell>
+                                <TableCell>{formatE164(employee.employee_phone)}</TableCell>
                                 <TableCell>{employee.employee_role}</TableCell>
                                 <TableCell>
                                     <Button onClick={() => handleViewEmployeeDetails(employee.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>

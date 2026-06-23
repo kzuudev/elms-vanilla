@@ -6,6 +6,7 @@ import {api} from "@/lib/api.ts";
 import {type UserData, type UserProfile, type UserDetails} from "@/types/users.ts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
+import {formatE164} from "@/lib/utils.ts";
 
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog.tsx";
@@ -514,7 +515,7 @@ export default function UsersListTable() {
                                     <TableCell>{user.first_name}</TableCell>
                                     <TableCell>{user.last_name}</TableCell>
                                     <TableCell>{user.email}</TableCell>
-                                    <TableCell>{user.phone}</TableCell>
+                                    <TableCell>{formatE164(user.phone)}</TableCell>
                                     <TableCell>{user.role}</TableCell>
                                     <TableCell>{user.department}</TableCell>
                                     <TableCell> {user.is_active === 1 ? (

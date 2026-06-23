@@ -12,8 +12,9 @@ class EmployeeController {
      public function index() {
 
          $db = App::resolve(Database::class);
+         $currentUser = Auth::authenticate();
 
-         $current_manager_id = Auth::authenticate();
+         $current_manager_id = $currentUser['id'] ?? null;
 
          if (!$current_manager_id) {
              http_response_code(404);

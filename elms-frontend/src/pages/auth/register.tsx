@@ -1,11 +1,12 @@
 "use client";
 
 import * as z from 'zod';
+import axios from 'axios';
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
-
-
+import "react-phone-number-input/style.css";
+import PhoneInput from "react-phone-number-input";
 
 import {Button} from "@/components/ui/button";
 import {
@@ -45,7 +46,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
             first_name: "",
             last_name: "",
             email: "",
-            phone: "",
+            phone: undefined,
             password: "",
             password_confirmation: "",
         }
@@ -67,9 +68,15 @@ export default function Register({closeDialog}: RegisterFormProps) {
             window.dispatchEvent(new Event('user-mutated'));
             closeDialog();
         } catch (e) {
+            let errorMessage = "An error occurred during registration";
+
+            if (axios.isAxiosError(e)) {
+                errorMessage = e.response?.data?.message || errorMessage;
+            }
+
             setError("root", {
                 type: "server",
-                message: e.response.data.message || "An error occurred during registration",
+                message: errorMessage,
             });
         }
     }
@@ -163,14 +170,24 @@ export default function Register({closeDialog}: RegisterFormProps) {
                                             Contact No.
                                         </FieldLabel>
 
-                                        <Input
-                                            {...field}
+                                        {/*<Input*/}
+                                        {/*    {...field}*/}
+                                        {/*    id="phone"*/}
+                                        {/*    type="tel"*/}
+                                        {/*    placeholder="e.g., +63 917 123 4567"*/}
+                                        {/*    aria-invalid={fieldState.invalid}*/}
+                                        {/*    autoComplete="tel"*/}
+                                        {/*/>*/}
+
+                                        <PhoneInput
                                             id="phone"
-                                            type="tel"
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            onBlur={field.onBlur}
                                             placeholder="e.g., +63 917 123 4567"
-                                            aria-invalid={fieldState.invalid}
-                                            autoComplete="tel"
+                                            defaultCountry="PH"
                                         />
+
                                         {fieldState.invalid && (
                                             <FieldError errors={[fieldState.error]} />
                                         )}

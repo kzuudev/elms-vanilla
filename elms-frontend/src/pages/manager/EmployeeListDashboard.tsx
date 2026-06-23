@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import {api} from "@/lib/api.ts";
 import { UsersContext } from "@/features/context/UsersContext.tsx";
 
+
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import EmployeeListTable from "@/features/employee/components/EmployeeListTable.tsx";
 import UserProfile from "@/components/layout/UserProfile.tsx";
@@ -79,6 +80,8 @@ export default function EmployeeListDashboard() {
                           <EmployeeListTable />
                       </div>
                   </div>
+
+                    {error && <div className="text-red-600">{error}</div>}
                 </UsersContext.Provider>
             </AppSidebar>
         </>
