@@ -39,7 +39,7 @@ class UserLeaveBalanceController {
            LEFT JOIN leave_types lt ON lb.leave_type_id = lt.id
            WHERE lb.user_id = :user_id
         ", [
-        'user_id' => $currentUser['id'],
+            'user_id' => $currentUser['id'],
         ])->all();
 
         $structuredBalances = [];

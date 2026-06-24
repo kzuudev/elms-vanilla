@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import {  Navigate } from "react-router-dom";
 import Unauthorized from "@/pages/unauthorized/Unauthorized.tsx";
 
 export const ProtectedRoute = ({ children, allowedRoles}) => {
@@ -6,11 +6,11 @@ export const ProtectedRoute = ({ children, allowedRoles}) => {
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('role')
 
-    const navigate = useNavigate();
+
 
     // if they're not logged in at all
     if(!token) {
-        return navigate('/');
+        return <Navigate to="/" replace />;
     }
 
     // if user logged in but don't have the right role

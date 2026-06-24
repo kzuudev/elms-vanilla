@@ -49,17 +49,17 @@ export default function  LeavesDashboard() {
 
     const { formState: {errors}} = form;
 
-    const fetchLeaveRequests = async () => {
+    const fetchLeaveRequests = async (signal?: AbortSignal) => {
 
         try {
             const holder = localStorage.getItem("token");
             const response = await api.get("/leave-requests", {
                 headers: {
                     Authorization: `Bearer ${holder}`,
-                }
+                },
+                signal: signal
             });
             setReviewerLeaveRequests(response.data.leaves.data);
-            console.log(response.data.leave_requests.data);
         }catch (e) {
             setError(e.response.data.message);
         }
@@ -85,8 +85,15 @@ export default function  LeavesDashboard() {
     }
 
     useEffect(() => {
+
+        const controller = new AbortController();
+
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchLeaveRequests();
+        fetchLeaveRequests(controller.signal);
+
+        return () => {
+            controller.abort();
+        }
     }, []);
 
     return (

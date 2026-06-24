@@ -21,6 +21,7 @@ import EmployeeListDashboard from "@/pages/manager/EmployeeListDashboard.tsx";
 import UsersDashboard from "@/pages/admin/UsersDashboard.tsx";
 import AdminLeavesDashboard from "@/pages/admin/AdminLeavesDashboard.tsx";
 
+
 function App() {
 
     // get the current user logged-in and parse it into object (Profile).
@@ -31,20 +32,27 @@ function App() {
 
     const [leaveBalance, setLeaveBalance] = useState<LeaveBalance[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [isFormOpen, setIsOpenForm] = useState(false);
 
-
-    const fetchLeaveBalance = async () => {
+    const fetchLeaveBalance = async (signal?: AbortSignal) => {
 
         try {
             const holder = localStorage.getItem("token");
             const response = await api.get("/leave-balance/me", {
                     headers: {
                         Authorization: `Bearer ${holder}`,
-                    }
-            })
+                    },
+                signal: signal
+            });
             setLeaveBalance(response.data.balances);
             console.log(response.data.balances);
         }catch (e) {
+
+            if(axios.isCancel(e)) {
+                console.log("First duplicate request was cancelled successfully.");
+                return;
+            }
+
             if (axios.isAxiosError(e)) {
                 setError(e.response?.data?.message || "Failed to fetch balances");
             } else {
@@ -53,111 +61,117 @@ function App() {
         }
     }
 
-    const [isFormOpen, setIsOpenForm] = useState(false);
-
     useEffect(() => {
-        fetchLeaveBalance();
+
+        const controller = new AbortController();
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchLeaveBalance(controller.signal);
+
+        return () => {
+            controller.abort();
+        }
     }, []);
 
   return (
     <>
-    <BrowserRouter>
-        <UserContext.Provider value={{user, setUser}}>
-            <LeaveBalanceContext.Provider value={{leaveBalance, setLeaveBalance, fetchLeaveBalance}}>
-                <Routes>
-                    <Route path="/" element={<Login />}/>
+            <BrowserRouter>
+                <UserContext.Provider value={{user, setUser}}>
+                    <LeaveBalanceContext.Provider value={{leaveBalance, setLeaveBalance, fetchLeaveBalance}}>
+                        <Routes>
+                            <Route path="/" element={<Login />}/>
 
-                    <Route
-                        path="/employee/dashboard"
-                        element={
-                            // allowed 3 roles here because Managers and Admins are also employees!
-                            <ProtectedRoute allowedRoles={['employee', 'manager', 'admin']}>
-                                <EmployeeDashboard />
-                            </ProtectedRoute>
-                        }
-                    />
+                            <Route
+                                path="/employee/dashboard"
+                                element={
+                                    // allowed 3 roles here because Managers and Admins are also employees!
+                                    <ProtectedRoute allowedRoles={['employee', 'manager', 'admin']}>
+                                        <EmployeeDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
 
-                    <Route
-                        path="/employee/leave-request"
-                        element={
-                            <ProtectedRoute allowedRoles={['admin', 'manager', 'employee']}>
-                                <LeaveRequestDashboard />
-                            </ProtectedRoute>
-                        }
-                    />
-
-
-                    <Route
-                        path="/manager/dashboard"
-                        element={
-                            // allowed 2 roles here because Managers and Admins are also employees!
-                            <ProtectedRoute allowedRoles={['manager', 'admin']}>
-                                <ManagerDashboard />
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/manager/leaves"
-                        element={
-                            // allowed 2 roles here because Managers and Admins are also employees!
-                            <ProtectedRoute allowedRoles={['manager', 'admin']}>
-                                <ManagerLeaveDashboard />
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/manager/employees-list"
-                        element={
-                            // allowed 2 roles here because Managers and Admins are also employees!
-                            <ProtectedRoute allowedRoles={['manager', 'admin']}>
-                                <EmployeeListDashboard />
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/register"
-                        element={
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <Register closeDialog={() => setIsOpenForm(false)} />
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/admin/dashboard"
-                        element={
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <AdminDashboard />
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/admin/users"
-                        element={
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <UsersDashboard />
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/admin/leaves"
-                        element={
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <AdminLeavesDashboard />
-                            </ProtectedRoute>
-                        }
-                    />
+                            <Route
+                                path="/employee/leave-request"
+                                element={
+                                    <ProtectedRoute allowedRoles={['admin', 'manager', 'employee']}>
+                                        <LeaveRequestDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
 
 
-                </Routes>
-            </LeaveBalanceContext.Provider>
-        </UserContext.Provider>
-    </BrowserRouter>
+                            <Route
+                                path="/manager/dashboard"
+                                element={
+                                    // allowed 2 roles here because Managers and Admins are also employees!
+                                    <ProtectedRoute allowedRoles={['manager', 'admin']}>
+                                        <ManagerDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path="/manager/leaves"
+                                element={
+                                    // allowed 2 roles here because Managers and Admins are also employees!
+                                    <ProtectedRoute allowedRoles={['manager', 'admin']}>
+                                        <ManagerLeaveDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path="/manager/employees-list"
+                                element={
+                                    // allowed 2 roles here because Managers and Admins are also employees!
+                                    <ProtectedRoute allowedRoles={['manager', 'admin']}>
+                                        <EmployeeListDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path="/register"
+                                element={
+                                    <ProtectedRoute allowedRoles={['admin']}>
+                                        <Register closeDialog={() => setIsOpenForm(false)} />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path="/admin/dashboard"
+                                element={
+                                    <ProtectedRoute allowedRoles={['admin']}>
+                                        <AdminDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path="/admin/users"
+                                element={
+                                    <ProtectedRoute allowedRoles={['admin']}>
+                                        <UsersDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path="/admin/leaves"
+                                element={
+                                    <ProtectedRoute allowedRoles={['admin']}>
+                                        <AdminLeavesDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+
+                        </Routes>
+                    </LeaveBalanceContext.Provider>
+                </UserContext.Provider>
+            </BrowserRouter>
     </>
   )
 }

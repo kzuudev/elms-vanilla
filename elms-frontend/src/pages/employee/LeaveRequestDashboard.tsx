@@ -89,7 +89,7 @@ export default function LeaveRequestDashboard() {
     return (
         <>
             <AppSidebar>
-                    <LeaveContext.Provider value={{ fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequests, managerLeaveList: [], leaveRequestDetails }}>
+                    <LeaveContext.Provider value={{ fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequests, leaveRequestDetails }}>
                     <div className="flex flex-col justify-between items-center">
 
                         <div>

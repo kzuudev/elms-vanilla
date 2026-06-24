@@ -1,5 +1,6 @@
 "use client"
 
+import axios from "axios";
 
 import AdminLeaveTable from "@/features/leaves/components/AdminLeaveTable.tsx";
 import {useEffect, useState} from "react";
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/dialog.tsx";
 import {Button} from "@/components/ui/button.tsx";
 
+
 export default function LeavesDashboard() {
 
     const [reviewerLeaveRequests, setReviewerLeaveRequests] = useState<ReviewerLeaveData[] | null>(null);
@@ -25,20 +27,47 @@ export default function LeavesDashboard() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchLeaveRequests = async () => {
-        try {
-            const holder = localStorage.getItem("token");
-            const  response = await api.get("/leave-requests", {
-                headers: {
-                    Authorization: `Bearer ${holder}`,
+        const fetchLeaveRequests = async (signal?: AbortSignal) => {
+
+            try {
+                const holder = localStorage.getItem("token");
+                const  response = await api.get("/leave-requests", {
+                    headers: {
+                        Authorization: `Bearer ${holder}`,
+                    },
+                    signal: signal
+                });
+                setReviewerLeaveRequests(response.data.leaves.data);
+            }catch (e) {
+
+                // Ignore the error if it was intentionally canceled by React
+                if (axios.isCancel(e)) {
+                    console.log("First duplicate request was cancelled successfully.");
+                    return;
                 }
-            });
-            setReviewerLeaveRequests(response.data.leaves.data);
-            console.log(response.data.leaves.data);
-        }catch (e) {
-            setError(e.response.data.message);
+
+
+                if (axios.isAxiosError(e)) {
+                    setError(e.response?.data?.message || "Failed to fetch data");
+                } else {
+                    setError("An unexpected error occurred");
+                }
+            }
         }
-    }
+
+
+    useEffect(() => {
+
+        const controller = new AbortController();
+
+        fetchLeaveRequests(controller.signal);
+
+        return () => {
+            controller.abort();
+        }
+    }, []);
+
+
     const fetchLeaveRequestDetails = async (id: number) => {
 
         try {
@@ -55,11 +84,6 @@ export default function LeavesDashboard() {
         }
 
     }
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchLeaveRequests();
-    }, []);
 
 
     return (

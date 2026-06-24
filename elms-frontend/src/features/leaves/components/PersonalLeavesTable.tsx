@@ -5,6 +5,7 @@ import {useContext, useEffect, useState} from "react";
 import {LeaveContext} from "@/features/context/LeaveContext.tsx";
 
 import LeaveRequestDetailsModal from "@/features/leaves/components/LeaveRequestDetailsModal.tsx";
+import LeaveBalanceSection from "@/features/leaves/components/LeaveBalanceSection.tsx";
 
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {format} from "date-fns";
@@ -23,14 +24,15 @@ export default function PersonalLeavesTable() {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchPersonalLeaveRequests = async () => {
+    const fetchPersonalLeaveRequests = async (signal?: AbortSignal) => {
 
         try {
             const holder = localStorage.getItem("token");
             const response = await api.get(`/leave-requests/me`, {
                 headers: {
                     Authorization: `Bearer ${holder}`,
-                }
+                },
+                signal: signal
             });
 
             if(response.data.success) {
@@ -49,14 +51,24 @@ export default function PersonalLeavesTable() {
 
 
     useEffect(() => {
+
+        const controller = new AbortController();
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchPersonalLeaveRequests()
+        fetchPersonalLeaveRequests(controller.signal);
         fetchLeaveRequests()
+
+        return () => {
+            controller.abort();
+        }
     }, []);
 
     return (
         <>
             <LeaveRequestDetailsModal isViewMode={isViewModalOpen} setIsViewMode={setIsViewModalOpen} />
+
+            <div className="my-7">
+                <LeaveBalanceSection />
+            </div>
 
             <div className="border border-border rounded-lg bg-white overflow-hidden">
                 <Table>
