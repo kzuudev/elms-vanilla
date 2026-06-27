@@ -75,7 +75,7 @@ class EmployeeLeaveService {
             LEFT JOIN users m ON lr.assigned_to = m.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
             WHERE lr.user_id = :user_id
-            ORDER BY lr.created_at DESC
+            ORDER BY lr.created_at ASC
         ", [
             'user_id' => $user_id,
         ])->all();

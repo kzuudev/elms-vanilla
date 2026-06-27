@@ -5,7 +5,7 @@ import {useContext} from "react";
 import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
 
 
-import { Card } from '@/components/ui/card.tsx'
+import { Card } from '@/components/ui/card.tsx';
 import {
     Activity,
     Leaf,
@@ -56,7 +56,7 @@ export default function LeaveBalanceSection() {
             <div className="flex items-center justify-between mb-5">
                 <span className="text-sm text-gray-500">
                     <Button onClick={() => setShownLeaveTypes(!shownLeaveTypes)} variant="outline" className="p-2">
-                                    {shownLeaveTypes ? 'Show Less' : 'Show All'}
+                        {shownLeaveTypes ? 'Show Less' : 'Show All'}
                     </Button>
                 </span>
             </div>

@@ -2,19 +2,23 @@
 
 import {useEffect, useState} from "react";
 import {api} from "@/lib/api.ts";
-import type {TotalRemainingBalance} from "@/types/dashboard.ts";
+import type {TotalRemainingBalance, TotalPendingRequest, TotalUsedDays} from "@/types/dashboard.ts";
 
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
+import {LeaveSummaryContext} from "@/features/context/LeaveSummaryContext.tsx";
 
+import LeaveSummaryGrid from "@/features/dashboard/components/LeaveSummaryGrid.tsx";
 
 
 
 export default function EmployeeDashboard() {
 
     const [error, setError] = useState<string | null>(null);
-    const [remainingLeaves, setRemainingLeaves] = useState<TotalRemainingBalance>();
-
+    const [totalRemainingBalance, setTotalRemainingBalance] = useState<TotalRemainingBalance[]>();
+    const [totalPendingRequest, setTotalPendingRequest] = useState<TotalPendingRequest[]>();
+    const [totalUsedDays, setTotalUsedDays] = useState<TotalUsedDays[]>();
+    const [recentActivity, setRecentActivity] = useState<RecentActivity[]>();
     const fetchEmployeeDashboard = async () => {
 
         try {
@@ -24,7 +28,10 @@ export default function EmployeeDashboard() {
                     Authorization: `Bearer ${holder}`,
                 }
             });
-            setRemainingLeaves(response.data.total_remaining_leaves);
+            setTotalRemainingBalance(response.data.total_remaining_balance);
+            setTotalPendingRequest(response.data.total_pending_request);
+            setTotalUsedDays(response.data.total_used_days);
+            setRecentActivity(response.data.recent_activity);
         }catch (e) {
             setError(e.response.data.message);
 
@@ -41,7 +48,10 @@ export default function EmployeeDashboard() {
     return (
         <>
             <AppSidebar>
-                <h1>Employee Dashboard</h1>
+                <LeaveSummaryContext.Provider value={{totalRemainingBalance, totalPendingRequest, totalUsedDays}}>
+                    <h1>Employee Dashboard</h1>
+                    <LeaveSummaryGrid/>
+                </LeaveSummaryContext.Provider>
             </AppSidebar>
         </>
     )
