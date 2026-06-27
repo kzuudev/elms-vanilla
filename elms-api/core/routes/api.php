@@ -8,6 +8,7 @@ use App\Http\Controllers\Leave\LeaveReviewController;
 use App\Http\Controllers\Manager\EmployeeController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Leave\UserLeaveBalanceController;
+use App\Http\Controllers\Dashboard\EmployeeDashboardController;
 use Core\Router;
 
 $router = new Router();
@@ -25,6 +26,9 @@ $router->get('/leave-request', [LeaveRequestController::class, 'index'])->only('
 $router->get('/leave-request/{id}', [LeaveRequestController::class, 'show'])->only('auth');
 $router->patch('/leave-request/{id}', [LeaveRequestController::class, 'patch'])->only('auth');
 $router->delete('/leave-request/{id}', [LeaveRequestController::class, 'destroy'])->only('auth');
+
+// employee dashboard
+$router->get('/employee-dashboard', [EmployeeDashboardController::class, 'index'])->only('auth');
 
 // manager
 $router->get('/employees-list', [EmployeeController::class, 'index'])->only('auth');

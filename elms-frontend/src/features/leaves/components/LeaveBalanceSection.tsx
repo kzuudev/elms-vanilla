@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import {useState} from "react";
 import {useContext} from "react";
 import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
 
@@ -19,6 +19,7 @@ import {
     CalendarDays
 } from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
+
 
 
 // helper function for look up the icon for each leave type
@@ -42,11 +43,13 @@ const getLeaveIcon = (leaveType: string) => {
 
 export default function LeaveBalanceSection() {
 
-    const {leaveBalance} = useContext(LeaveBalanceContext);
+    const {leaveBalance } = useContext(LeaveBalanceContext);
 
     const [shownLeaveTypes, setShownLeaveTypes] = useState<boolean>(false)
 
     const filteredLeaveTypes = shownLeaveTypes ? leaveBalance : leaveBalance.slice(0, 4);
+
+
 
     return (
         <>

@@ -27,7 +27,7 @@ export default function LeavesDashboard() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-        const fetchLeaveRequests = async (signal?: AbortSignal) => {
+    const fetchLeaveRequests = async (signal?: AbortSignal) => {
 
             try {
                 const holder = localStorage.getItem("token");
@@ -56,18 +56,6 @@ export default function LeavesDashboard() {
         }
 
 
-    useEffect(() => {
-
-        const controller = new AbortController();
-
-        fetchLeaveRequests(controller.signal);
-
-        return () => {
-            controller.abort();
-        }
-    }, []);
-
-
     const fetchLeaveRequestDetails = async (id: number) => {
 
         try {
@@ -78,12 +66,24 @@ export default function LeavesDashboard() {
                 }
             });
             setLeaveRequestDetails(response.data.leave_request);
-            console.log(response.data.leave_request);
         }catch (e) {
             setError(e.response.data.message);
         }
 
     }
+
+
+    useEffect(() => {
+
+        const controller = new AbortController();
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchLeaveRequests(controller.signal);
+
+        return () => {
+            controller.abort();
+        }
+    }, []);
 
 
     return (

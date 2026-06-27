@@ -28,21 +28,28 @@ export default function LeaveRequestDashboard() {
     const [error, setError] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
-    const holder = localStorage.getItem("token");
+
     const fetchLeaveRequests = async () => {
 
-        const response = await api.get("/leave-request", {
-            // this is a verification for the bearer (holder) of the token has permission to access this account and do action
-            headers: {
-                Authorization: `Bearer ${holder}`,
+        try {
+            const holder = localStorage.getItem("token");
+            const response = await api.get("/leave-request", {
+                // this is a verification for the bearer (holder) of the token has permission to access this account and do action
+                headers: {
+                    Authorization: `Bearer ${holder}`,
                 },
             });
             setLeaveRequests(response.data.leave_requests.data);
+        }catch (e) {
+
+            setError(e.response.data.message);
         }
+    }
 
     const fetchLeaveRequestDetails = async (id: number) => {
 
         try{
+            const holder = localStorage.getItem("token");
             const response = await api.get(`/leave-request/${id}`, {
                 headers: {
                     Authorization: `Bearer ${holder}`,
@@ -89,7 +96,7 @@ export default function LeaveRequestDashboard() {
     return (
         <>
             <AppSidebar>
-                    <LeaveContext.Provider value={{ fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequests, leaveRequestDetails }}>
+                    <LeaveContext.Provider value={{ fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequests, leaveRequestDetails, reviewerLeaveRequests: [] }}>
                     <div className="flex flex-col justify-between items-center">
 
                         <div>

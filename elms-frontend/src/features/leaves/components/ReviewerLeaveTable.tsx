@@ -1,12 +1,13 @@
 "use client";
 
-import {useContext, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import * as z from 'zod';
 import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 
 import {api} from "@/lib/api.ts";
 import {LeaveContext} from "@/features/context/LeaveContext.tsx";
+import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
 import LeaveRequestDetailsModal from "@/features/leaves/components/LeaveRequestDetailsModal.tsx";
 
 import {
@@ -29,6 +30,8 @@ import {Textarea} from "@/components/ui/textarea.tsx";
 export default function ReviewerLeaveTable() {
 
     const { reviewerLeaveRequests, fetchLeaveRequestDetails, fetchLeaveRequests} = useContext(LeaveContext);
+    const { fetchLeaveBalance } = useContext(LeaveBalanceContext);
+
 
     const tableHeaders = ['Name', 'Role', 'Leave Type', 'Reason', 'Start Date', 'End Date', 'Days', 'Status','Actions']
 
@@ -108,7 +111,7 @@ export default function ReviewerLeaveTable() {
         const id = activeLeaveId;
 
         // check if there's a specific selected id and a rejection reason is not null
-        if(activeLeaveId !== id  || rejection_reason.trim() === "") {
+        if(!id  || rejection_reason.trim() === "") {
             console.error(form.formState.errors);
             return;
         }
@@ -124,6 +127,10 @@ export default function ReviewerLeaveTable() {
         await fetchLeaveRequestDetails(id);
         setIsViewModalOpen(true);
     }
+
+    useEffect(() => {
+        fetchLeaveRequests();
+    }, [fetchLeaveRequests]);
 
     return (
         <>

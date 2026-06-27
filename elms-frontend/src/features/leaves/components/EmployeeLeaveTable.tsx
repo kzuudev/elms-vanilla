@@ -2,11 +2,12 @@
 
 import {useState, useContext, useEffect} from "react";
 import * as z from 'zod';
-import {format} from 'date-fns';
+import { format } from 'date-fns';
 import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
 
 import { LeaveContext } from "@/features/context/LeaveContext.tsx";
+import { LeaveBalanceContext } from "@/features/context/LeaveBalanceContext.tsx";
 import {leaveOptions} from "@/types/leave.ts";
 
 import {
@@ -38,9 +39,7 @@ export default function EmployeeLeaveTable() {
 
     // get the leave request list directly from the Leave Context
     const { leaveRequests, fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequestDetails } = useContext(LeaveContext);
-
-
-    const holder = localStorage.getItem("token");
+    const { fetchLeaveBalance } = useContext(LeaveBalanceContext);
 
     const schema = z.object({
         leave_type: z.string().min(1, {message: "Leave Type is required"}),
@@ -63,28 +62,11 @@ export default function EmployeeLeaveTable() {
 
     const { formState: {errors}} = form;
 
-    // const fetchLeaveRequestDetails = async (id: number) => {
-    //
-    //     try{
-    //         const response = await api.get(`/leave-request/${id}`, {
-    //             headers: {
-    //                 Authorization: `Bearer ${holder}`,
-    //             }
-    //         });
-    //         setLeaveRequestDetails(response.data.leave_request);
-    //         console.log(response.data.leave_request);
-    //     }catch (e) {
-    //         form.setError("root", {
-    //             type: "server",
-    //             message: e.response.data.message
-    //         })
-    //     }
-    // }
-
     const fetchLeaveRequestEdit = async (id: number, data: LeaveRequestFormData) => {
 
         form.setError("root", null);
         try {
+            const holder = localStorage.getItem("token");
             const response = await api.patch(`/leave-request/${id}`, data, {
                 headers: {
                     Authorization: `Bearer ${holder}`,
@@ -107,6 +89,7 @@ export default function EmployeeLeaveTable() {
     const fetchLeaveRequestDelete = async (id: number) => {
 
         try {
+            const holder = localStorage.getItem("token");
             const response = await api.delete(`/leave-request/${id}`, {
                 headers: {
                     Authorization: `Bearer ${holder}`,
@@ -175,6 +158,14 @@ export default function EmployeeLeaveTable() {
 
     }, [leaveRequestDetails, form]);
 
+
+    // useEffect(() => {
+    //     fetchLeaveRequests();
+    //     fetchLeaveBalance();
+    // }, [fetchLeaveBalance, fetchLeaveRequests]);
+
+
+
     return (
         <>
             <div>
@@ -192,12 +183,20 @@ export default function EmployeeLeaveTable() {
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Start Date:</span>
-                                    <span>{leaveRequestDetails.start_date}</span>
+                                    <span>
+                                        {leaveRequestDetails?.start_date ?
+                                            format(new Date(leaveRequestDetails.start_date), 'MMMM dd, yyyy')
+                                            : 'Fetching data'
+                                    }</span>
                                 </div>
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">End Date:</span>
-                                    <span>{leaveRequestDetails.end_date}</span>
+                                    <span>
+                                        {leaveRequestDetails?.end_date ?
+                                            format(new Date(leaveRequestDetails.end_date), 'MMMM dd, yyyy')
+                                            : 'Fetching data'
+                                        }</span>
                                 </div>
 
                                 <div className="flex justify-between">

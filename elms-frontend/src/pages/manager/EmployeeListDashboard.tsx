@@ -30,7 +30,6 @@ export default function EmployeeListDashboard() {
                 Authorization: `Bearer ${holder}`,
             }
         });
-        console.log(response.data.employee_list);
         setEmployees(response.data.employee_list);
     }
 

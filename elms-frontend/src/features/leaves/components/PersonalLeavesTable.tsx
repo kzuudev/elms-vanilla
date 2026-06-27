@@ -55,12 +55,12 @@ export default function PersonalLeavesTable() {
         const controller = new AbortController();
         // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchPersonalLeaveRequests(controller.signal);
-        fetchLeaveRequests()
+        fetchLeaveRequests();
 
         return () => {
             controller.abort();
         }
-    }, []);
+    }, [fetchLeaveRequests]);
 
     return (
         <>

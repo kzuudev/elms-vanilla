@@ -153,6 +153,18 @@ class LeaveReviewController {
             'rejection_reason' => $rejectionReason
         ]);
 
+        $leaveRequest = $db->query("SELECT * FROM leave_requests WHERE id = :id", [
+            'id' => $id,
+        ])->find();
+
+        if($status == 'rejected') {
+            $db->query("UPDATE leave_balance SET remaining_balance = remaining_balance + :used_days, used_days = used_days - :used_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
+                'employee_id' => $leaveRequest['user_id'],
+                'used_days' => $leaveRequest['total_days'],
+                'leave_type_id' => $leaveRequest['leave_type_id'],
+            ]);
+        }
+
         $approved = $db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
             'id' => $id,
             'status' => $status,
