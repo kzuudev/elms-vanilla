@@ -14,7 +14,7 @@ export type TotalPendingRequest = {
 
 export type TotalUsedDays = {
     total_used_days: string,
-    total_allowed_days: number,
+    total_allocated_days: string,
 }
 
 export type RecentActivity = {
@@ -23,6 +23,7 @@ export type RecentActivity = {
     manager_name: string | null;
     request_date: string;
     return_date: string;
+    total_days: number;
     request_status: 'pending' | 'approved' | 'rejected';
     created_at: string;
 }
