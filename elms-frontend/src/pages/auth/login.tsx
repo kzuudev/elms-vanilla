@@ -64,12 +64,13 @@ export default function Login() {
             const userRole = localStorage.getItem("role");
             // const userRole = user?.role;
             setUser(response.data.user);
+            console.log(userRole);
             setError("root", {
                 type: "server",
                 message: "",
             });
 
-            if(userRole === 'employee') {
+            if(userRole !== 'admin' && userRole !== 'manager') {
                 navigate("/employee/dashboard");
                 return;
             }

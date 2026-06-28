@@ -61,6 +61,7 @@ class EmployeeLeaveService {
 
         return $usedDays;
     }
+    
 
     public function getRecentActivity($user_id) {
 

@@ -7,7 +7,6 @@ export const ProtectedRoute = ({ children, allowedRoles}) => {
     const userRole = localStorage.getItem('role')
 
 
-
     // if they're not logged in at all
     if(!token) {
         return <Navigate to="/" replace />;

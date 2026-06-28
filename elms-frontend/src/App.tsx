@@ -30,6 +30,8 @@ function App() {
         return storedUser ? JSON.parse(storedUser) as Profile: null;
     });
 
+    const role = user?.role;
+
     const [leaveBalance, setLeaveBalance] = useState<LeaveBalance[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isFormOpen, setIsOpenForm] = useState(false);
@@ -85,7 +87,7 @@ function App() {
                                 path="/employee/dashboard"
                                 element={
                                     // allowed 3 roles here because Managers and Admins are also employees!
-                                    <ProtectedRoute allowedRoles={['employee', 'manager', 'admin']}>
+                                    <ProtectedRoute allowedRoles={[role]}>
                                         <EmployeeDashboard />
                                     </ProtectedRoute>
                                 }
@@ -94,7 +96,7 @@ function App() {
                             <Route
                                 path="/employee/leave-request"
                                 element={
-                                    <ProtectedRoute allowedRoles={['admin', 'manager', 'employee']}>
+                                    <ProtectedRoute allowedRoles={[role]}>
                                         <LeaveRequestDashboard />
                                     </ProtectedRoute>
                                 }
