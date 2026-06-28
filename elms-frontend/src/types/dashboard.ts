@@ -17,6 +17,15 @@ export type TotalUsedDays = {
     total_allocated_days: string,
 }
 
+export type TeamStatus = {
+    first_name: string,
+    last_name: string,
+    role: string,
+    is_active: boolean,
+    leave_request_status: string,
+    queued_leave_count: number,
+}
+
 export type RecentActivity = {
     id: number;
     leave_type_name: string;

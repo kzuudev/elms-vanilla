@@ -2,7 +2,7 @@
 
 import {useEffect, useState} from "react";
 import {api} from "@/lib/api.ts";
-import type {TotalRemainingBalance, TotalPendingRequest, TotalUsedDays, RecentActivity} from "@/types/dashboard.ts";
+import type {TotalRemainingBalance, TotalPendingRequest, TotalUsedDays, RecentActivity, TeamStatus} from "@/types/dashboard.ts";
 
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
@@ -23,6 +23,7 @@ export default function EmployeeDashboard() {
     const [totalPendingRequest, setTotalPendingRequest] = useState<TotalPendingRequest[]>();
     const [totalUsedDays, setTotalUsedDays] = useState<TotalUsedDays[]>();
     const [recentActivity, setRecentActivity] = useState<RecentActivity[]>();
+    const [teamStatus, setTeamStatus] = useState<TeamStatus[]>([]);
     const fetchEmployeeDashboard = async () => {
 
         try {
@@ -36,6 +37,7 @@ export default function EmployeeDashboard() {
             setTotalPendingRequest(response.data.total_pending_request);
             setTotalUsedDays(response.data.total_used_days);
             setRecentActivity(response.data.recent_activity);
+            setTeamStatus(response.data.team_status);
         }catch (e) {
             setError(e.response.data.message);
 
@@ -52,7 +54,7 @@ export default function EmployeeDashboard() {
     return (
         <>
             <AppSidebar>
-                <LeaveSummaryContext.Provider value={{totalRemainingBalance, totalPendingRequest, totalUsedDays, recentActivity}}>
+                <LeaveSummaryContext.Provider value={{totalRemainingBalance, totalPendingRequest, totalUsedDays, recentActivity, teamStatus}}>
                    <div className="flex flex-col gap-4">
                        <div className="flex justify-between items-center">
                            <h1 className="text-lg text-black">Dashboard</h1>

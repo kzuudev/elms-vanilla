@@ -61,7 +61,24 @@ class EmployeeLeaveService {
 
         return $usedDays;
     }
-    
+
+    public function getTeamStatus($user_id, $role) {
+
+        $teamStatus = $this->db->query("
+            SELECT u.*,
+                lr.status AS leave_request_status,
+                COUNT(lr.id) as queued_leave_count
+            FROM users u
+            LEFT JOIN leave_requests lr ON u.id = lr.user_id AND lr.status = 'pending'
+            WHERE u.role = :role AND u.id != :user_id
+            GROUP BY u.id
+        ", [
+            'user_id' => $user_id,
+            'role' => $role
+        ])->all();
+
+        return $teamStatus;
+    }
 
     public function getRecentActivity($user_id) {
 
