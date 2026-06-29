@@ -1,79 +1,87 @@
 "use client";
 
-import {useContext} from "react";
-
-import {LeaveSummaryContext} from "@/features/context/LeaveSummaryContext.tsx";
-
+import { useContext } from "react";
+import { LeaveSummaryContext } from "@/features/context/LeaveSummaryContext.tsx";
 import { Card } from '@/components/ui/card.tsx';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+// Swapped PieChart out for BarChart components for a professional time-series trend
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
 export default function AnalyticsGrid() {
+    // Expecting array objects like: { month_name: "Jun", total_used_days: 3 }
+    const { monthlyLeaveConsumption } = useContext(LeaveSummaryContext);
 
-    const {totalRemainingBalance, totalPendingRequest, totalUsedDays} = useContext(LeaveSummaryContext);
+    // 1. Array blueprint to ensure all 12 months render beautifully even with sparse DB data
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    const remaining = parseFloat(totalRemainingBalance?.[0].grand_total);
-    const pending = parseFloat(totalPendingRequest?.[0].total_days);
-    const used = parseFloat(totalUsedDays?.[0].total_used_days);
-
-    const data = [
-        { name: 'Remaining', value: remaining, color: '#1E3A8A' }, // Dark Blue
-        { name: 'Pending', value: pending, color: '#DBEAFE' },     // Light Blue
-        { name: 'Used', value: used, color: '#6B7280' },           // Gray
-    ]
-
-    // calculate the data
-    const total = remaining + pending + used;
-
-    // @ts-expect-error
-    const percentage = total > 0 ? Math.round((remaining / total) * 100) : 0;
+    // 2. Map and pad our database results against the full calendar year
+    const chartData = months.map(month => {
+        const foundMonth = monthlyLeaveConsumption?.find(
+            (item: any) => item.month_name?.substring(0, 3).toLowerCase() === month.toLowerCase()
+        );
+        return {
+            month: month,
+            "Days Used": foundMonth ? Number(foundMonth.total_used_days) : 0
+        };
+    });
 
     return (
-        <>
-            <Card className="max-w-sm p-4">
-                <div className="">
-                    <h3 className="text-lg font-semibold text-gray-900 w-full text-left mb-4">Balance Breakdown</h3>
+        <Card className="w-full p-5 border-gray-200 shadow-sm rounded-xl bg-white flex flex-col gap-4">
+            {/* Header matches your dashboard mockup pattern */}
+            <div className="flex flex-col gap-1">
+                <h3 className="text-base font-bold text-gray-900">Utilization Trend</h3>
+                <p className="text-xs text-gray-400">Monthly breakdown of leave days consumed</p>
+            </div>
 
-                    {/* Chart Container - Relative positioning allows us to center the text inside the donut */}
-                    <div className="relative w-full h-48">
+            {/* Chart Container */}
+            <div className="w-full h-64 mt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                        data={chartData}
+                        margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
+                        barSize={16} // Keeps bars elegantly slim like high-end dashboards
+                    >
+                        {/* Soft, light horizontal grid lines only */}
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
 
-                        {/* The absolutely positioned center text */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-3xl font-bold text-gray-900">{percentage}%</span>
-                            <span className="text-xs text-gray-500 font-medium mt-1">Remaining</span>
-                        </div>
+                        {/* X-Axis styling matches enterprise guidelines */}
+                        <XAxis
+                            dataKey="month"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 500 }}
+                        />
 
-                        {/* The Recharts Donut */}
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={data}
-                                    dataKey="value"
-                                    innerRadius={65} // makes it a donut instead of a solid pie!
-                                    outerRadius={85}
-                                    paddingAngle={5} // Adds the little white gaps between segments
-                                    stroke="none"
-                                >
-                                    {data.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Pie>
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
+                        {/* Y-Axis hiding structural lines for floating look */}
+                        <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#9ca3af', fontSize: 12 }}
+                            allowDecimals={false}
+                        />
 
-                    {/* Custom Legend matching your design */}
-                    <div className="flex justify-evenly  w-full mt-6 text-sm">
-                        {data.map((item) => (
-                            <div key={item.name} className="flex items-center gap-2">
-                                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></span>
-                                <div className="flex flex-col">
-                                    <span className="text-gray-500 text-xs">{item.name}</span>
-                                    <span className="font-semibold text-gray-900">({item.value})</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </Card>
-        </>
-    )
+                        {/* Custom modern tooltip wrapper */}
+                        <Tooltip
+                            cursor={{ fill: '#f8fafc', radius: 4 }}
+                            contentStyle={{
+                                backgroundColor: '#1e293b',
+                                borderRadius: '8px',
+                                border: 'none',
+                                color: '#fff',
+                                fontSize: '12px'
+                            }}
+                            itemStyle={{ color: '#fff' }}
+                            labelStyle={{ color: '#94a3b8', fontWeight: 600, marginBottom: '2px' }}
+                        />
+
+                        {/* The actual Bar matched to your primary dark blue palette theme */}
+                        <Bar
+                            dataKey="Days Used"
+                            fill="#0a3977"
+                            radius={[4, 4, 0, 0]} // Distinctly rounds only the top corners
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+        </Card>
+    );
 }

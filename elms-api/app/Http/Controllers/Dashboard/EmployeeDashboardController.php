@@ -16,6 +16,7 @@ class EmployeeDashboardController {
     private EmployeeLeaveService $recentLeaveService;
 
     private EmployeeLeaveService $teamStatusLeaveService;
+    private EmployeeLeaveService $monthlyLeaveConsumptionService;
 
     public function __construct() {
 
@@ -24,6 +25,7 @@ class EmployeeDashboardController {
         $this->usedLeaveService = App::resolve(EmployeeLeaveService::class);
         $this->recentLeaveService = App::resolve(EmployeeLeaveService::class);
         $this->teamStatusLeaveService = App::resolve(EmployeeLeaveService::class);
+        $this->monthlyLeaveConsumptionService = App::resolve(EmployeeLeaveService::class);
 
     }
 
@@ -40,7 +42,7 @@ class EmployeeDashboardController {
         $totalUsedDays = $this->usedLeaveService->getUsedDays($current_user_id);
         $recentActivity = $this->recentLeaveService->getRecentActivity($current_user_id);
         $teamStatus = $this->teamStatusLeaveService->getTeamStatus($current_user_id, $current_user_role);
-
+        $monthlyLeaveConsumption = $this->monthlyLeaveConsumptionService->getMonthlyLeaveConsumption($current_user_id);
 
         http_response_code(200);
         echo json_encode([
@@ -50,7 +52,8 @@ class EmployeeDashboardController {
             'total_pending_request' => $totalPendingRequest,
             'total_used_days' => $totalUsedDays,
             'recent_activity' => $recentActivity,
-            'team_status' => $teamStatus
+            'team_status' => $teamStatus,
+            'monthly_leave_consumption' => $monthlyLeaveConsumption
         ]);
         exit;
     }

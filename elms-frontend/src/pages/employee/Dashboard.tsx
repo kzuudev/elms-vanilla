@@ -2,7 +2,7 @@
 
 import {useEffect, useState} from "react";
 import {api} from "@/lib/api.ts";
-import type {TotalRemainingBalance, TotalPendingRequest, TotalUsedDays, RecentActivity, TeamStatus} from "@/types/dashboard.ts";
+import type {TotalRemainingBalance, TotalPendingRequest, TotalUsedDays, RecentActivity, TeamStatus, MonthlyLeaveConsumption} from "@/types/dashboard.ts";
 
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
@@ -22,6 +22,7 @@ export default function EmployeeDashboard() {
     const [totalRemainingBalance, setTotalRemainingBalance] = useState<TotalRemainingBalance[]>();
     const [totalPendingRequest, setTotalPendingRequest] = useState<TotalPendingRequest[]>();
     const [totalUsedDays, setTotalUsedDays] = useState<TotalUsedDays[]>();
+    const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyLeaveConsumption[]>();
     const [recentActivity, setRecentActivity] = useState<RecentActivity[]>();
     const [teamStatus, setTeamStatus] = useState<TeamStatus[]>([]);
     const fetchEmployeeDashboard = async () => {
@@ -36,6 +37,7 @@ export default function EmployeeDashboard() {
             setTotalRemainingBalance(response.data.total_remaining_balance);
             setTotalPendingRequest(response.data.total_pending_request);
             setTotalUsedDays(response.data.total_used_days);
+            setMonthlyLeaveConsumption(response.data.monthly_leave_consumption);
             setRecentActivity(response.data.recent_activity);
             setTeamStatus(response.data.team_status);
         }catch (e) {
@@ -54,7 +56,7 @@ export default function EmployeeDashboard() {
     return (
         <>
             <AppSidebar>
-                <LeaveSummaryContext.Provider value={{totalRemainingBalance, totalPendingRequest, totalUsedDays, recentActivity, teamStatus}}>
+                <LeaveSummaryContext.Provider value={{totalRemainingBalance, totalPendingRequest, totalUsedDays, recentActivity, teamStatus, monthlyLeaveConsumption}}>
                    <div className="flex flex-col gap-4">
                        <div className="flex justify-between items-center">
                            <h1 className="text-lg text-black">Dashboard</h1>
@@ -63,8 +65,8 @@ export default function EmployeeDashboard() {
                        <LeaveSummaryGrid/>
 
                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                           <AnalyticsGrid />
                            <BalanceBreakDownChart />
+                           <AnalyticsGrid />
                            <TeamCoverageWidget />
                        </div>
 

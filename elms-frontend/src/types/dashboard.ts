@@ -17,6 +17,12 @@ export type TotalUsedDays = {
     total_allocated_days: string,
 }
 
+export type MonthlyLeaveConsumption = {
+    month_name: string,
+    month_num: number,
+    total_used_days: number,
+}
+
 export type TeamStatus = {
     first_name: string,
     last_name: string,
@@ -29,10 +35,11 @@ export type TeamStatus = {
 export type RecentActivity = {
     id: number;
     leave_type_name: string;
-    manager_name: string | null;
+    manager_name: string | null;ß
     request_date: string;
     return_date: string;
     total_days: number;
     request_status: 'pending' | 'approved' | 'rejected';
     created_at: string;
 }
+

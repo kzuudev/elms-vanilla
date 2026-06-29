@@ -62,6 +62,24 @@ class EmployeeLeaveService {
         return $usedDays;
     }
 
+    public function getMonthlyLeaveConsumption($user_id) {
+
+        $monthlyLeaveConsumption = $this->db->query("
+            SELECT
+                DATE_FORMAT(lr.start_date, '%b') AS month_name,
+                MONTH(lr.start_date) AS month_num,
+                SUM(lr.total_days) AS total_used_days
+            FROM leave_requests lr    
+            WHERE lr.user_id = :user_id AND lr.status = 'approved'
+            GROUP BY MONTH(lr.start_date), DATE_FORMAT(lr.start_date, '%b')
+            ORDER BY month_num ASC
+        ", [
+            'user_id' => $user_id,
+        ])->all();
+
+        return $monthlyLeaveConsumption;
+    }
+
     public function getTeamStatus($user_id, $role) {
 
         $teamStatus = $this->db->query("
