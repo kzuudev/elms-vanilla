@@ -18,7 +18,6 @@ export type TotalUsedDays = {
 }
 
 export type MonthlyLeaveConsumption = {
-    month_name: string,
     month_num: number,
     total_used_days: number,
 }
@@ -43,3 +42,11 @@ export type RecentActivity = {
     created_at: string;
 }
 
+
+// Manager Dashboard Types
+
+export type PendingLeaveRequest = {
+    pending_count: number,
+    average_days_in_queue: number,
+    oldest_request_days: number,
+}

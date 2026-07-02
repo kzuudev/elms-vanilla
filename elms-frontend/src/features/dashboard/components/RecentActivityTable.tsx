@@ -5,7 +5,7 @@
 
 import { useContext } from "react";
 import { format } from "date-fns";
-import { LeaveSummaryContext } from "@/features/context/LeaveSummaryContext.tsx";
+import { LeaveSummaryContext } from "@/features/context/analytics/LeaveSummaryContext.tsx";
 import { Card } from "@/components/ui/card.tsx";
 import {
     Table,

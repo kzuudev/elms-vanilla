@@ -1,7 +1,7 @@
 "use client"
 
 import { useContext } from "react";
-import { LeaveSummaryContext } from "@/features/context/LeaveSummaryContext.tsx";
+import { LeaveSummaryContext } from "@/features/context/analytics/LeaveSummaryContext.tsx";
 import { MoreHorizontal } from 'lucide-react'; // Swapped to the 3-dots icon from your design
 import { Card } from '@/components/ui/card.tsx';
 

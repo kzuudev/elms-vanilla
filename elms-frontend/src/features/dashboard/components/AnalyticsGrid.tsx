@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext } from "react";
-import { LeaveSummaryContext } from "@/features/context/LeaveSummaryContext.tsx";
+import { LeaveSummaryContext } from "@/features/context/analytics/LeaveSummaryContext.tsx";
 import { Card } from '@/components/ui/card.tsx';
 // Swapped PieChart out for BarChart components for a professional time-series trend
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';

@@ -2,7 +2,7 @@
 
 import {useContext} from "react";
 
-import {LeaveSummaryContext} from "@/features/context/LeaveSummaryContext.tsx";
+import {LeaveSummaryContext} from "@/features/context/analytics/LeaveSummaryContext.tsx";
 
 import { Card } from '@/components/ui/card.tsx';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';

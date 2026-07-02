@@ -39,7 +39,10 @@ class Database {
         return $this->statement->fetchAll();
     }
 
-    public function lastInsertId() {
+
+
+    public function lastInsertId(): bool|string
+    {
         return $this->connection->lastInsertId();
     }
 

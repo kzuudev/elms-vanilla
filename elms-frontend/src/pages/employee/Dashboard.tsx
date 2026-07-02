@@ -6,7 +6,7 @@ import type {TotalRemainingBalance, TotalPendingRequest, TotalUsedDays, RecentAc
 
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
-import {LeaveSummaryContext} from "@/features/context/LeaveSummaryContext.tsx";
+import {LeaveSummaryContext} from "@/features/context/analytics/LeaveSummaryContext.tsx";
 
 import LeaveSummaryGrid from "@/features/dashboard/components/LeaveSummaryGrid.tsx";
 import AnalyticsGrid from "@/features/dashboard/components/AnalyticsGrid.tsx";
