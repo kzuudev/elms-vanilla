@@ -8,7 +8,7 @@ import Register from './pages/auth/register'
 import Login from './pages/auth/login'
 import ManagerDashboard from './pages/manager/Dashboard'
 import EmployeeDashboard from './pages/employee/Dashboard'
-import AdminDashboard from './pages/admin/Admin'
+import AdminDashboard from './pages/admin/Dashboard.tsx'
 import {UserContext} from "@/features/context/UserContext.tsx";
 import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
 import { type Profile} from "@/types/leave.ts";

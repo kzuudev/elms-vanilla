@@ -17,7 +17,7 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
     private $db;
     private int $adminId;
 
-    private int $userRole;
+    private string $userRole;
 
     public function __construct() {
 
@@ -30,18 +30,18 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
     public function getTeamAvailability(): array
     {
 
-        return $this->executeTeamAvailabilityQuery($this->adminId, $this->userRole);
+        return $this->executeTeamAvailabilityQuery($this->userRole, $this->adminId);
 
     }
 
     public function getMonthlyConsumption(): array {
 
-        return $this->executeMonthlyConsumptionQuery($this->adminId, $this->userRole);
+        return $this->executeMonthlyConsumptionQuery($this->userRole, $this->adminId);
     }
 
     public function getBacklogRequests(): array {
 
-        return $this->executeBacklogQuery($this->adminId, $this->userRole);
+        return $this->executeBacklogQuery($this->userRole, $this->adminId);
 
     }
 
@@ -50,8 +50,8 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
         $pendingRequest = $this->db->query("
             SELECT lr.*, 
                    lr.user_id AS user_id,
-                   u.first_name AS user_first_name, 
-                   u.last_name AS user_last_name,
+                   u.first_name AS first_name, 
+                   u.last_name AS last_name,
                    lt.name AS leave_type_name,   
                    u.role AS user_role,
                    u.department AS department,
@@ -62,16 +62,40 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
             WHERE lr.status = 'pending' AND lr.assigned_to != :admin_id
         ", [
-            'manager_id' => $this->adminId,
+            'admin_id' => $this->adminId,
         ])->all();
 
-        return $this->executeTeamOverlapQuery(
-            $pendingRequest['department'],
-            $pendingRequest['start_date'],
-            $pendingRequest['end_date'],
-            $pendingRequest['user_id'] // the applicant user id
-        );
+        $data = [];
 
+        foreach ($pendingRequest as $request) {
+            $overlap = $this->executeTeamOverlapQuery(
+                $request['department'],
+                $request['user_id'],
+                $request['start_date'],
+                $request['end_date']
+            );
+
+            $data[] = [
+                'user_id' => $request['user_id'],
+                'user_first_name' => $request['first_name'],
+                'user_last_name' => $request['last_name'],
+                'leave_type_name' => $request['leave_type_name'],
+                'department' => $request['department'],
+                'start_date' => $request['start_date'],
+                'end_date' => $request['end_date'],
+                'overlap' => $overlap
+            ];
+        }
+
+        return $data;
+
+    }
+
+    public function getTotalUsers(): array {
+
+        return $this->db->query("
+            SELECT COUNT(*) AS total_users FROM users
+        ")->all();
     }
 
 }

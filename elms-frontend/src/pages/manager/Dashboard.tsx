@@ -1,11 +1,37 @@
 "use client"
 
+import {useEffect, useState} from "react";
+import {api} from "@/lib/api.ts";
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import UserProfile from "@/components/layout/UserProfile.tsx";
 
 export default function ManagerDashboard() {
 
+
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchManagerDashboard = async () => {
+
+        try {
+            const holder = localStorage.getItem("token");
+            const response = await api.get("/manager-dashboard", {
+                headers: {
+                    Authorization: `Bearer ${holder}`,
+                }
+            });
+            console.log(response.data);
+
+        }catch (e) {
+            setError(e.response.data.message);
+        }
+    }
+
+
+    useEffect(() => {
+
+        fetchManagerDashboard();
+    }, []);
 
    return (
       <>

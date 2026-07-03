@@ -39,10 +39,10 @@ class ManagerDashboardController {
                 'message' => 'Dashboard data fetched successfully',
                 'team_availability' => $teamAvailability,
                 'leave_overlap' => $leaveOverlap,
-                'leave_balance' => $monthlyLeaveConsumption,
+                'monthly_leave_consumption' => $monthlyLeaveConsumption,
                 'approval_backlogs' => $backlogRequests
             ]);
-
+            exit;
         }
 
         http_response_code(403);

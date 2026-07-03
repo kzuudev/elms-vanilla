@@ -25,20 +25,20 @@ trait HasSharedAnalytics {
 
         $query = "
             SELECT
-                COUNT(DISTINCT lr.used_id) as total_users,
                 u.id as user_id,
-                u.name as employee_name,
+                u.first_name as employee_first_name,
+                u.last_name as employee_last_name,
                 u.role as user_position,
                 u.department as department,
                 lr.leave_type_id as leave_type_id,
                 lt.name as leave_type_name,
+                lr.status as leave_request_status,
                 lr.start_date as start_date,
                 lr.end_date as end_date
             FROM leave_requests lr
             LEFT JOIN users u ON lr.user_id = u.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
             WHERE lr.user_id != :current_user_id AND lr.status != 'rejected'
-            GROUP BY u.id, u.name, u.role, u.department, lr.leave_type_id, lt.name, lr.start_date, lr.end_date
         ";
 
 
@@ -58,17 +58,31 @@ trait HasSharedAnalytics {
     /**
      * Shared SQL query for the monthly consumption metrics
      */
-    protected function executeMonthlyConsumptionQuery(int $currentUserId, string $userRole, ): array {
+    protected function executeMonthlyConsumptionQuery(string $userRole, int $currentUserId): array {
 
+
+//        $query = "
+//            SELECT
+//                DATE_FORMAT(lr.start_date, '%b') AS month_name,
+//                MONTH(lr.start_date) AS month_num,
+//                SUM(lr.total_days) AS total_used_day
+//            FROM leave_requests lr
+//            WHERE lr.user_id != :current_user_id AND lr.status = 'approved'
+//        ";
 
         $query = "
-            SELECT
+            SELECT 
+                lr.user_id,
+                u.first_name AS first_name,
+                u.last_name AS last_name,
+                u.role AS user_role,
+                u.department AS department,
                 DATE_FORMAT(lr.start_date, '%b') AS month_name,
                 MONTH(lr.start_date) AS month_num,
-               s SUM(lr.total_days) AS total_used_day
+                SUM(lr.total_days) AS total_used_day
             FROM leave_requests lr
+            LEFT JOIN users u ON lr.user_id = u.id
             WHERE lr.user_id != :current_user_id AND lr.status = 'approved'
-            GROUP BY MONTH(lr.start_date), DATE_FORMAT(lr.start_date, '%b')
         ";
 
         $params = [
@@ -81,6 +95,11 @@ trait HasSharedAnalytics {
 
         }
 
+        $query .= " 
+        GROUP BY lr.user_id, u.first_name, u.last_name, month_num, month_name
+        ORDER BY u.last_name ASC, month_num ASC
+        ";
+
         return $this->db->query($query, $params)->all();
     }
 
@@ -88,7 +107,7 @@ trait HasSharedAnalytics {
     /**
      * Shared SQL query for the approval backlog counter
      */
-    protected function executeBacklogQuery(int $currentUserId, string $userRole ): array {
+    protected function executeBacklogQuery(string $userRole, int $currentUserId): array {
 
 
 
@@ -124,15 +143,17 @@ trait HasSharedAnalytics {
      * within the same department.
      */
 
-    protected function executeTeamOverlapQuery(string $department, string $startDate, string $endDate, int $applicantUserId): array {
+    protected function executeTeamOverlapQuery(string $department, int $applicantUserId, string $startDate, string $endDate): array {
 
         $query = "
             SELECT
                lr.id,
-               u.name as employee_name,
+               u.first_name as employee_first_name,
+               u.last_name as employee_last_name,
                lr.start_date as start_date,
                lr.end_date as end_date,
                lr.leave_type_id as leave_type_id,
+               lr.status as leave_request_status,
                lt.name as leave_type_name,
                lr.start_date as start_date,
                lr.end_date as end_date
@@ -140,7 +161,7 @@ trait HasSharedAnalytics {
             LEFT JOIN users u ON lr.user_id = u.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
             WHERE u.department = :department 
-              AND lr.user_id != :current_user_id 
+              AND lr.user_id != :applicant_user_id 
               AND lr.status = 'approved'
               AND (lr.start_date <= :end_date AND lr.end_date >= :start_date)
         ";
