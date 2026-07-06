@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/table';
 import {format} from "date-fns";
 import {Button} from "@/components/ui/button.tsx";
-import {CircleCheck, Eye, Pencil, Trash, X} from "lucide-react";
+import {CircleCheck, Eye, X} from "lucide-react";
 
 
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog.tsx";
@@ -30,7 +30,6 @@ import {Textarea} from "@/components/ui/textarea.tsx";
 export default function ReviewerLeaveTable() {
 
     const { reviewerLeaveRequests, fetchLeaveRequestDetails, fetchLeaveRequests} = useContext(LeaveContext);
-    const { fetchLeaveBalance } = useContext(LeaveBalanceContext);
 
 
     const tableHeaders = ['Name', 'Role', 'Leave Type', 'Reason', 'Start Date', 'End Date', 'Days', 'Status','Actions']
@@ -39,6 +38,8 @@ export default function ReviewerLeaveTable() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const [overlaps, setOverlaps] = useState<string[]>([]);
 
     const schema = z.object({
         rejection_reason: z.string().min(1, {message: "Rejection Reason is required"}),
@@ -50,6 +51,7 @@ export default function ReviewerLeaveTable() {
         resolver: zodResolver(schema),
         defaultValues: {
             rejection_reason: '',
+
         }
     });
 
@@ -73,7 +75,6 @@ export default function ReviewerLeaveTable() {
             })
 
             if(response.data.success) {
-                console.log(response.data.message);
                 fetchLeaveRequests();
             }
         }catch (e) {
@@ -81,6 +82,25 @@ export default function ReviewerLeaveTable() {
             setError(e.response.data.message);
         }
 
+    }
+
+    const validateOverlaps = async (id: number) => {
+        setError(null);
+
+
+        try {
+            const holder = localStorage.getItem("token");
+            const response = await api.get(`/leave-requests/${id}/overlaps  `, {
+                headers: {
+                    Authorization: `Bearer ${holder}`,
+                }
+            });
+            if(response.data.success) {
+                setOverlaps(response.data.overlaps);
+            }
+        }catch (e) {
+            setError(e.response.data.message);
+        }
     }
 
     /**
@@ -95,6 +115,14 @@ export default function ReviewerLeaveTable() {
 
     const handleApproveSubmit = async (id: number) => {
         setError(null);
+
+
+        if(overlaps.length > 0) {
+            setError("This leave overlaps with another leave. Please adjust the dates accordingly.");
+            await validateOverlaps(id);
+            return;
+        }
+
 
         if(window.confirm("Are you sure you want to approve this leave?")) {
             await handleUpdateStatus(id, "approved", "");
@@ -118,7 +146,7 @@ export default function ReviewerLeaveTable() {
 
         await handleUpdateStatus(id, "rejected", rejection_reason);
         setActiveLeaveId(null);
-        setIsDialogOpen(false);
+        setIsDialogOpen(    false);
         form.reset();
 
     }
@@ -130,7 +158,7 @@ export default function ReviewerLeaveTable() {
 
     useEffect(() => {
         fetchLeaveRequests();
-    }, [fetchLeaveRequests]);
+    }, []);
 
     return (
         <>

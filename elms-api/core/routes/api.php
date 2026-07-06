@@ -42,6 +42,7 @@ $router->get('/leave-requests/{id}', [LeaveRequestController::class, 'show'])->o
 $router->patch('/leave-requests/{id}', [LeaveReviewController::class, 'patch'])->only('auth');
 
 $router->get('/manager-dashboard', [ManagerDashboardController::class, 'index'])->only('auth');
+$router->get('/leave-requests/${id}/overlaps', [LeaveReviewController::class, 'checkOverlap'])->only('auth');
 
 // admin
 $router->get('/users', [UsersController::class, 'index'])->only('auth');

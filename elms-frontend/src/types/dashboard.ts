@@ -50,3 +50,54 @@ export type PendingLeaveRequest = {
     average_days_in_queue: number,
     oldest_request_days: number,
 }
+
+
+export type TeamOverview = {
+    total_employees: number,
+    available_today: number,
+    on_leave_today: number,
+    upcoming_leave_days: number,
+}
+
+export type MonthlyConsumption = MonthlyLeaveConsumption[]
+
+export type BacklogRequest = {
+    total_request: number,
+    total_days: number,
+    average_days: number,
+}
+
+
+// Represents request that already approve
+export type ConflictingLeave = {
+    id: number,
+    employee_first_name: string;
+    employee_last_name: string;
+    employee_role: string,
+    leave_type_name: string,
+    leave_request_status: string,
+    start_date: string,
+    end_date: string,
+}
+
+// Represents the pending request
+export type RecentLeaveRequest = {
+    id: number,
+    employee_first_name: string;
+    employee_last_name: string;
+    employee_role: string,
+    leave_type_name: string,
+    leave_request_status: string,
+    start_date: string,
+    end_date: string,
+    has_overlap: boolean,
+    conflict_requests: ConflictingLeave[],
+
+}
+
+export type TotalEmployee = {
+    total_employees: number,
+    total_active_employees: number,
+    total_inactive_employees: number,
+    total_departs_employees: number,
+}

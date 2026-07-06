@@ -60,16 +60,6 @@ trait HasSharedAnalytics {
      */
     protected function executeMonthlyConsumptionQuery(string $userRole, int $currentUserId): array {
 
-
-//        $query = "
-//            SELECT
-//                DATE_FORMAT(lr.start_date, '%b') AS month_name,
-//                MONTH(lr.start_date) AS month_num,
-//                SUM(lr.total_days) AS total_used_day
-//            FROM leave_requests lr
-//            WHERE lr.user_id != :current_user_id AND lr.status = 'approved'
-//        ";
-
         $query = "
             SELECT 
                 lr.user_id,
@@ -178,6 +168,39 @@ trait HasSharedAnalytics {
     }
 
 
+
+    protected function executeTotalUsers(string $department, string $role, int $currentUserId): array {
+
+        $query = "
+            SELECT
+                u.id,
+                u.first_name AS first_name,
+                u.last_name AS last_name,
+                u.role AS user_role,
+                u.department AS department,
+                u.is_active AS is_active,
+                COUNT(u.id) AS total_users
+            FROM users u
+            WHERE u.department = :department AND u.id != :current_user_id
+           
+            ";
+
+        $params = [
+            'current_user_id' => $currentUserId,
+            'department' => $department,
+        ];
+
+        if($role === 'manager') {
+            $query .= " AND u.assigned_to = :current_user_id";
+            $params['current_user_id'] = $currentUserId;
+        }
+
+        $query .= " GROUP BY u.id, u.first_name, u.last_name, u.role, u.department, u.is_active";
+
+        return $this->db->query($query, $params)->all();
+
+
+    }
 
 
 }

@@ -11,36 +11,39 @@ use Core\App;
 
 class AdminDashboardController {
 
-    private AdminLeaveService $teamAvailabilityService;
+    private AdminLeaveService $usersAvailabilityService;
     private AdminLeaveService $monthlyLeaveConsumptionService;
     private AdminLeaveService $leaveOverlapService;
     private AdminLeaveService $backlogRequestsService;
 
+    private AdminLeaveService $totalUsersService;
+
     public function __construct() {
 
-        $this->teamAvailabilityService = App::resolve(AdminLeaveService::class);
+        $this->usersAvailabilityService = App::resolve(AdminLeaveService::class);
         $this->leaveOverlapService = App::resolve(AdminLeaveService::class);
         $this->monthlyLeaveConsumptionService = App::resolve(AdminLeaveService::class);
         $this->backlogRequestsService = App::resolve(AdminLeaveService::class);
+        $this->totalUsersService = App::resolve(AdminLeaveService::class);
     }
 
     public function index(): void {
 
         $currentUser = Auth::authenticate();
 
-        if($currentUser) {
+        if($currentUser && $currentUser['role'] === 'admin') {
 
-            $teamAvailability = $this->teamAvailabilityService->getTeamAvailability();
+            $usersAvailability = $this->usersAvailabilityService->getTeamAvailability();
             $leaveOverlap = $this->leaveOverlapService->getTeamOverlap();
             $monthlyLeaveConsumption = $this->monthlyLeaveConsumptionService->getMonthlyConsumption();
             $backlogRequests = $this->backlogRequestsService->getBacklogRequests();
-            $totalUsers = $this->teamAvailabilityService->getTotalUsers();
+            $totalUsers = $this->totalUsersService->getTotalUsers();
 
             http_response_code(200);
             echo json_encode([
                 'success' => true,
                 'message' => 'Dashboard data fetched successfully',
-                'team_availability' => $teamAvailability,
+                'team_availability' => $usersAvailability,
                 'leave_overlap' => $leaveOverlap,
                 'monthly_leave_consumption' => $monthlyLeaveConsumption,
                 'approval_backlogs' => $backlogRequests,

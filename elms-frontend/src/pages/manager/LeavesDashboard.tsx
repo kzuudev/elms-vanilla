@@ -91,8 +91,16 @@ export default function  LeavesDashboard() {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchLeaveRequests(controller.signal);
 
+        const handleFocus = () => {
+            fetchLeaveRequests();
+        }
+
+        window.addEventListener("focus", handleFocus);
+
+
         return () => {
             controller.abort();
+            window.removeEventListener("focus", handleFocus);
         }
     }, []);
 
@@ -122,6 +130,18 @@ export default function  LeavesDashboard() {
                     <ManagerLeaveTable />
                 </div>
             </LeaveContext.Provider>
+
+            {errors.root && (
+                <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg">
+                    {errors.root.message}
+                </div>
+            )}
+
+            {error && (
+                <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg">
+                    {error}
+                </div>
+            )}
         </>
     )
 }

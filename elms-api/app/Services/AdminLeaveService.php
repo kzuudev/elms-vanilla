@@ -93,9 +93,44 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
 
     public function getTotalUsers(): array {
 
-        return $this->db->query("
-            SELECT COUNT(*) AS total_users FROM users
-        ")->all();
+        $authenticatedUser = $this->db->query("
+            SELECT 
+                u.id,
+                u.first_name AS first_name,
+                u.last_name AS last_name,
+                u.role AS user_role,
+                u.department AS department,
+                u.is_active AS is_active
+                FROM users u
+            WHERE u.id = :admin_id AND u.role = :role
+        ", [
+         'admin_id' => $this->adminId,
+         'role' => $this->userRole,
+        ])->all();
+
+        $users = [];
+
+        foreach ($authenticatedUser as $user) {
+//            $data[] = [
+//                'user_id' => $user['id'],
+//                'first_name' => $user['first_name'],
+//                'last_name' => $user['last_name'],
+//                'user_role' => $user['user_role'],
+//                'department' => $user['department'],
+//                'is_active' => $user['is_active'],
+//                'total_users' => $user['total_users'],
+//            ];
+
+            $users[] = $this->executeTotalUsers(
+                $user['department'],
+                $user['user_role'],
+                $this->adminId,
+            );
+
+
+        }
+
+        return $users;
     }
 
 }

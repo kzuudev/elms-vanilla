@@ -13,4 +13,7 @@ interface LeaveAnalyticsInterface {
     public function getBacklogRequests(): array;
 
     public function getTeamOverlap(): array;
+
+
+    public function getTotalUsers(): array;
 }

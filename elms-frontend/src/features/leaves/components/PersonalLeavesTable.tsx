@@ -60,7 +60,7 @@ export default function PersonalLeavesTable() {
         return () => {
             controller.abort();
         }
-    }, [fetchLeaveRequests]);
+    }, []);
 
     return (
         <>

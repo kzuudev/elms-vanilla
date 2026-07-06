@@ -106,6 +106,7 @@ export type Profile = {
     role: string;
 }
 
+
 export const leaveOptions: { label: string; value: LeaveType }[] = [
     {label: "Annual Leave", value: LeaveType.Annual},
     {label: "Maternity Leave", value: LeaveType.Maternity},

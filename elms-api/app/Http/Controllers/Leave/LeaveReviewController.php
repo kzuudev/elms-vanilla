@@ -10,13 +10,15 @@ use Core\Database;
 
 class LeaveReviewController {
 
+    private Database $db;
+
+    public function __construct() {
+        $this->db = App::resolve(Database::class);
+    }
+
     /**
      * @throws \Exception
      */
-    public function submit() {
-        $db = App::resolve(Database::class);
-    }
-
     public function index() {
 
         $db = App::resolve(Database::class);
@@ -168,7 +170,8 @@ class LeaveReviewController {
         $approved = $db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
             'id' => $id,
             'status' => $status,
-            'rejection_reason' => $rejectionReason
+            'rejection_reason' => $rejectionReason,
+            'is_active' => $status === 'approved' ? 0 : 1,
         ]);
 
         http_response_code(200);
@@ -180,6 +183,94 @@ class LeaveReviewController {
             'approved' => $approved,
             'rejected' => $rejected,
         ]);
+
+
+
+
+
+
+    }
+
+    public function checkOverlap(int $id): void {
+
+        $query = "
+            SELECT
+                lr.id AS leave_request_id,
+                lr.user_id AS employee_id,
+                lr.start_date AS start_date,
+                lr.end_date AS end_date,
+                lt.name AS leave_type,
+                lt.id AS leave_type_id,
+                u.first_name AS first_name,
+                u.last_name AS last_name,
+                u.department AS department,
+            FROM leave_requests lr
+            WHERE lr.id = :id AND lr.deleted_at IS NULL
+            LEFT JOIN users u ON lr.user_id = u.id
+            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+        ";
+
+        $pendingRequest = $this->db->query($query, ['id' => $id])->lastInsertId();
+
+        if(!$pendingRequest) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Leave request not found']);
+            exit;
+        }
+
+        // Count total ACTIVE EMPLOYEES in the exact department
+        $activeStaff = $this->db->query("
+            SELECT COUNT(*) AS total_active_staff
+            FROM users u
+            WHERE u.department = :department AND u.is_active = 1
+        ", ['department' => $pendingRequest['department']]);
+
+        $totalActiveStaff = (int) $activeStaff->find()['total_active_staff'] ?? 0;
+
+        // Fetch already approved leaves in the department (exclude the requester id)
+        $approvedLeaves = $this->db->query("
+            SELECT 
+                lr.id, 
+                lr.user_id, 
+                lr.start_date, 
+                lr.end_date, 
+                lt.name AS leave_type, 
+                lt.id AS leave_type_id,
+                u.department AS department
+            FROM leave_requests lr
+            INNER JOIN leave_types lt ON lr.leave_type_id = lt.id
+            INNER JOIN users u ON lr.user_id = u.id
+            WHERE lr.status = 'approved' 
+              AND u.department = :department AND lr.user_id != :requester_id 
+              AND lr.start_date >= :start_date AND lr.end_date <= :end_date AND lr.deleted_at IS NULL
+        ", [
+            'start_date' => $pendingRequest['start_date'],
+            'end_date' => $pendingRequest['end_date'],
+            'department' => $pendingRequest['department'],
+            'requester_id' => $pendingRequest['employee_id'],
+        ])->all();
+
+
+        // Count total currently OFF EMPLOYEES
+        $totalOffStaff = count($approvedLeaves);
+
+        // Calculate Remaining Staff
+        $remainingStaff = $totalActiveStaff - $totalOffStaff;
+
+
+        $criticalOverlap = $remainingStaff <= 0;
+
+        echo json_encode([
+            'success'               => true,
+            'department'            => $pendingRequest['department'],
+            'total_active_staff'    => $totalActiveStaff,
+            'remaining_staff'       => $remainingStaff,
+            'has_critical_overlap'  => $criticalOverlap,
+            'overlapping_employees' => $approvedLeaves,
+        ]);
+
+
+
 
 
 
