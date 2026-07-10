@@ -98,7 +98,7 @@ class LeaveReviewController {
             'id' => $current_user_id
         ])->find();
 
-        $role = $currentUser['role'] ?? 'employee';
+        $role = $currentUser['role'] ?? null;
         $params = ['id' => $id];
 
 
@@ -136,11 +136,13 @@ class LeaveReviewController {
         if(!in_array($status, ['approved', 'rejected'])) {
             http_response_code(400);
             echo json_encode(['error' => 'Invalid status. Must be approved or rejected.']);
+            exit;
         }
 
         if($status == 'rejected' && empty($rejectionReason)) {
             http_response_code(422);
             echo json_encode(['error' => 'Rejection reason is required when status is rejected.']);
+            exit;
         }
 
         if($current_user_id === $authorizedUser['user_id']) {
@@ -148,6 +150,12 @@ class LeaveReviewController {
             echo json_encode(["error" => "Self-approval is strictly prohibited."]);
             exit;
         }
+
+        $db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
+            'id'               => $id,
+            'status'           => $status,
+            'rejection_reason' => $rejectionReason
+        ]);
 
         $rejected = $db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
             'id' => $id,
@@ -167,12 +175,6 @@ class LeaveReviewController {
             ]);
         }
 
-        $approved = $db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
-            'id' => $id,
-            'status' => $status,
-            'rejection_reason' => $rejectionReason,
-            'is_active' => $status === 'approved' ? 0 : 1,
-        ]);
 
         http_response_code(200);
         echo json_encode([
@@ -180,7 +182,6 @@ class LeaveReviewController {
             'message' => 'Leave request status updated successfully',
             'id' => $id,
             'authorized_user' => $authorizedUser,
-            'approved' => $approved,
             'rejected' => $rejected,
         ]);
 
@@ -203,14 +204,16 @@ class LeaveReviewController {
                 lt.id AS leave_type_id,
                 u.first_name AS first_name,
                 u.last_name AS last_name,
-                u.department AS department,
+                u.department AS department
             FROM leave_requests lr
-            WHERE lr.id = :id AND lr.deleted_at IS NULL
             LEFT JOIN users u ON lr.user_id = u.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+            WHERE lr.id = :id AND lr.deleted_at IS NULL
         ";
 
-        $pendingRequest = $this->db->query($query, ['id' => $id])->lastInsertId();
+
+        // Capture the pending request
+        $pendingRequest = $this->db->query($query, ['id' => $id])->find();
 
         if(!$pendingRequest) {
             http_response_code(404);
@@ -241,8 +244,10 @@ class LeaveReviewController {
             INNER JOIN leave_types lt ON lr.leave_type_id = lt.id
             INNER JOIN users u ON lr.user_id = u.id
             WHERE lr.status = 'approved' 
-              AND u.department = :department AND lr.user_id != :requester_id 
-              AND lr.start_date >= :start_date AND lr.end_date <= :end_date AND lr.deleted_at IS NULL
+              AND u.department = :department 
+              AND lr.user_id != :requester_id 
+              AND lr.deleted_at IS NULL
+              AND (lr.start_date <= :end_date AND lr.end_date >= :start_date)
         ", [
             'start_date' => $pendingRequest['start_date'],
             'end_date' => $pendingRequest['end_date'],
@@ -257,9 +262,9 @@ class LeaveReviewController {
         // Calculate Remaining Staff
         $remainingStaff = $totalActiveStaff - $totalOffStaff;
 
-
         $criticalOverlap = $remainingStaff <= 0;
 
+        http_response_code(200);
         echo json_encode([
             'success'               => true,
             'department'            => $pendingRequest['department'],

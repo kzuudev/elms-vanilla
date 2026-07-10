@@ -156,18 +156,24 @@ export default function EmployeeLeaveTable() {
             });
         }
 
-    }, [leaveRequestDetails, form]);
+        const handleFocus = () => {
+            fetchLeaveRequests();
+            fetchLeaveBalance();
+        }
 
+        window.addEventListener('focus', handleFocus);
 
-    // useEffect(() => {
-    //     fetchLeaveRequests();
-    //     fetchLeaveBalance();
-    // }, [fetchLeaveBalance, fetchLeaveRequests]);
+        return () => {
+            window.removeEventListener('focus', handleFocus);
+        }
+
+    }, [leaveRequestDetails, form, fetchLeaveRequests, fetchLeaveBalance]);
 
 
 
     return (
         <>
+            {/** view request details modal **/}
             <div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen} >
                     <DialogContent className="sm:max-w-[425px]">
@@ -247,6 +253,7 @@ export default function EmployeeLeaveTable() {
                 </Dialog>
             </div>
 
+            {/** edit modal **/}
             <div>
                 <Dialog open={isEditMode} onOpenChange={setIsEditMode} >
                     <DialogContent className="sm:max-w-[425px]">

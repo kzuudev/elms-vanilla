@@ -90,17 +90,21 @@ export default function ReviewerLeaveTable() {
 
         try {
             const holder = localStorage.getItem("token");
-            const response = await api.get(`/leave-requests/${id}/overlaps  `, {
+            const response = await api.get(`/leave-requests/${id}/overlaps`, {
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 }
             });
             if(response.data.success) {
-                setOverlaps(response.data.overlaps);
+                setOverlaps(response.data.overlapping_employees || []);
+                console.log(overlaps);
+                return response.data
             }
         }catch (e) {
             setError(e.response.data.message);
         }
+
+        return null;
     }
 
     /**
@@ -116,16 +120,23 @@ export default function ReviewerLeaveTable() {
     const handleApproveSubmit = async (id: number) => {
         setError(null);
 
+        const data = await validateOverlaps(id);
 
-        if(overlaps.length > 0) {
-            setError("This leave overlaps with another leave. Please adjust the dates accordingly.");
-            await validateOverlaps(id);
-            return;
+        if(!data) return;
+
+        let confirmationMessage = "Are you sure you want to approve this leave?";
+
+        if(data.has_critical_overlap) {
+            confirmationMessage = `This leaves ${data.department} with ${data.remaining_staff} active staff member(s).\n\nAre you absolutely sure you want to approve this?`;
+        }else if (data.overlapping_employees.length > 0 && data.overlapping_employees.length < data.total_active_staff) {
+            confirmationMessage = `Notice: ${data.overlapping_employees.length} coworker(s) are already off during this window. Proceed with approval?`;
         }
 
 
-        if(window.confirm("Are you sure you want to approve this leave?")) {
+        if(window.confirm(confirmationMessage)) {
             await handleUpdateStatus(id, "approved", "");
+            setActiveLeaveId(null);
+            setIsDialogOpen(false);
         }
 
     }
