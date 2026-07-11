@@ -47,7 +47,6 @@ function App() {
                 signal: signal
             });
             setLeaveBalance(response.data.balances);
-            console.log(response.data.balances);
         }catch (e) {
 
             if(axios.isCancel(e)) {
@@ -65,6 +64,13 @@ function App() {
 
     useEffect(() => {
 
+        if(!user) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setLeaveBalance([]);
+            setError(null);
+            return;
+        }
+
         const controller = new AbortController();
 
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -73,7 +79,7 @@ function App() {
         return () => {
             controller.abort();
         }
-    }, []);
+    }, [user]);
 
   return (
     <>
@@ -174,6 +180,10 @@ function App() {
                     </LeaveBalanceContext.Provider>
                 </UserContext.Provider>
             </BrowserRouter>
+
+        {error && (
+            <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg">{error}</div>
+        )}
     </>
   )
 }

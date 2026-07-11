@@ -43,6 +43,7 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
     const handleLogout = () => {
         localStorage.clear();
         setUser(null);
+
         navigate("/");
     }
 

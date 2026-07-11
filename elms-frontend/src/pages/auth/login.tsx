@@ -62,9 +62,7 @@ export default function Login() {
             localStorage.setItem("role", response.data.user.role);
             localStorage.setItem("user", JSON.stringify(response.data.user));
             const userRole = localStorage.getItem("role");
-            // const userRole = user?.role;
             setUser(response.data.user);
-            console.log(userRole);
             setError("root", {
                 type: "server",
                 message: "",
