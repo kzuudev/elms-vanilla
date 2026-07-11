@@ -11,6 +11,7 @@ import EmployeeDashboard from './pages/employee/Dashboard'
 import AdminDashboard from './pages/admin/Dashboard.tsx'
 import {UserContext} from "@/features/context/UserContext.tsx";
 import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
+
 import { type Profile} from "@/types/leave.ts";
 import { type LeaveBalance} from "@/types/leave-balance.ts";
 
@@ -64,6 +65,7 @@ function App() {
 
     useEffect(() => {
 
+        // if there's no user currently logged-in, reset the state
         if(!user) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setLeaveBalance([]);

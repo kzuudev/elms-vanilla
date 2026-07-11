@@ -6,7 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/lib/api.ts";
 import {Controller, useForm} from "react-hook-form";
 import {useNavigate} from "react-router-dom";
+
 import {UserContext} from "@/features/context/UserContext.tsx";
+import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +35,7 @@ export default function Login() {
 
     const navigate = useNavigate();
     const { user, setUser } = useContext(UserContext);
+    const { fetchLeaveBalance } = useContext(LeaveBalanceContext);
 
     // Schema for a login form
     const schema = z.object({
@@ -67,6 +70,7 @@ export default function Login() {
                 type: "server",
                 message: "",
             });
+            fetchLeaveBalance();
 
             if(userRole !== 'admin' && userRole !== 'manager') {
                 navigate("/employee/dashboard");

@@ -35,7 +35,7 @@ class EmployeeLeaveService {
 
         $pendingLeaveType = $this->db->query("
             SELECT 
-                SUM(total_days) as total_days,
+                COALESCE(SUM(total_days), 0) as total_days,
                 COUNT(*) as queued_leave_count
             FROM leave_requests lr
             WHERE lr.user_id = :user_id AND lr.status = 'pending'

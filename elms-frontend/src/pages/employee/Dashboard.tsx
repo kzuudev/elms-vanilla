@@ -1,13 +1,13 @@
 "use client"
 
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {api} from "@/lib/api.ts";
 import type {TotalRemainingBalance, TotalPendingRequest, TotalUsedDays, RecentActivity, TeamStatus, MonthlyLeaveConsumption} from "@/types/dashboard.ts";
 
+import {LeaveSummaryContext} from "@/features/context/analytics/LeaveSummaryContext.tsx";
+import {UserContext} from "@/features/context/UserContext.tsx";
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
-import {LeaveSummaryContext} from "@/features/context/analytics/LeaveSummaryContext.tsx";
-
 import LeaveSummaryGrid from "@/features/dashboard/components/LeaveSummaryGrid.tsx";
 import AnalyticsGrid from "@/features/dashboard/components/AnalyticsGrid.tsx";
 import BalanceBreakDownChart from "@/features/dashboard/components/BalanceBreakDownChart.tsx";
@@ -15,9 +15,11 @@ import TeamCoverageWidget from "@/features/dashboard/components/TeamCoverageWidg
 import RecentActivityTable from "@/features/dashboard/components/RecentActivityTable.tsx";
 import Search from "@/components/ui/search.tsx";
 
+
 export default function EmployeeDashboard() {
 
     const [error, setError] = useState<string | null>(null);
+    const { user } = useContext(UserContext)
 
     const [totalRemainingBalance, setTotalRemainingBalance] = useState<TotalRemainingBalance[]>();
     const [totalPendingRequest, setTotalPendingRequest] = useState<TotalPendingRequest[]>();
@@ -50,7 +52,7 @@ export default function EmployeeDashboard() {
     useEffect(() => {
 
         fetchEmployeeDashboard();
-    }, []);
+    }, [user]);
 
 
     return (

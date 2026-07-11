@@ -47,9 +47,9 @@ export default function BalanceBreakDownChart() {
                                 <Pie
                                     data={data}
                                     dataKey="value"
-                                    innerRadius={65} // makes it a donut instead of a solid pie!
+                                    innerRadius={65}
                                     outerRadius={85}
-                                    paddingAngle={5} // Adds the little white gaps between segments
+                                    paddingAngle={5}
                                     stroke="none"
                                 >
                                     {data.map((entry, index) => (
