@@ -30,6 +30,22 @@ class ManagerLeaveService implements LeaveAnalyticsInterface {
 
     }
 
+
+    public function getRemainingTotalBalance(): array
+    {
+        return $this->executeRemainingTotalBalance($this->managerId);
+    }
+
+    public function getPendingApprovalMetrics(): array
+    {
+        return $this->executePendingApprovalMetrics($this->managerId);
+    }
+
+    public function getUsedDays(): array
+    {
+        return $this->executeUsedDays($this->managerId);
+    }
+
     public function getTeamAvailability(): array
     {
 

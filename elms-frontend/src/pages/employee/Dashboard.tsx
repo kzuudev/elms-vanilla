@@ -64,6 +64,7 @@ export default function EmployeeDashboard() {
                            <h1 className="text-lg text-black">Dashboard</h1>
                            <Search />
                        </div>
+
                        <LeaveSummaryGrid/>
 
                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

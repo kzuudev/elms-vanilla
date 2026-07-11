@@ -32,6 +32,10 @@ $router->delete('/leave-request/{id}', [LeaveRequestController::class, 'destroy'
 // employee dashboard
 $router->get('/employee-dashboard', [EmployeeDashboardController::class, 'index'])->only('auth');
 
+
+// manager dashboard
+$router->get('/manager-dashboard', [ManagerDashboardController::class, 'index'])->only('auth');
+
 // manager
 $router->get('/employees-list', [EmployeeController::class, 'index'])->only('auth');
 $router->get('/employees-list/{id}', [EmployeeController::class, 'show'])->only('auth');

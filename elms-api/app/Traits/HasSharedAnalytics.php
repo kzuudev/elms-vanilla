@@ -16,6 +16,49 @@ trait HasSharedAnalytics {
         return App::resolve(Database::class);
     }
 
+    public function executeRemainingTotalBalance(int $userId): array {
+
+        $totalBalance = $this->db->query("
+            SELECT 
+                SUM(remaining_balance) AS grand_total
+            FROM leave_balance lb
+            WHERE user_id = :user_id
+        ", [
+            'user_id' => $userId,
+        ])->all();
+
+        return $totalBalance;
+    }
+
+    public function executePendingApprovalMetrics(int $userId): array {
+
+        $pendingLeaveType = $this->db->query("
+            SELECT 
+                COALESCE(SUM(total_days), 0) as total_days,
+                COUNT(*) as queued_leave_count
+            FROM leave_requests lr
+            WHERE lr.user_id = :user_id AND lr.status = 'pending'
+        ", [
+            'user_id' => $userId,
+        ])->all();
+
+
+        return $pendingLeaveType;
+    }
+
+    public function executeUsedDays(int $userId): array {
+        $usedDays = $this->db->query("
+            SELECT
+                SUM(used_days) as total_used_days,
+                SUM(allocated_days) as total_allocated_days
+            FROM leave_balance lb
+            WHERE lb.user_id = :user_id
+        ", [
+            'user_id' => $userId,
+        ])->all();
+
+        return $usedDays;
+    }
 
     /**
      * Shared SQL query for the team coverage roster stream

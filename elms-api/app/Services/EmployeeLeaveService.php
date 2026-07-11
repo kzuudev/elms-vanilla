@@ -2,64 +2,42 @@
 
 namespace App\Services;
 
+use App\Http\Middleware\Auth;
+use App\Traits\HasSharedAnalytics;
 use Core\App;
 use Core\Database;
 
 
 class EmployeeLeaveService {
 
-
+    use HasSharedAnalytics;
     private $db;
+
+    private int $userId;
+
+
 
     public function __construct() {
         $this->db = App::resolve(Database::class);
+        $this->userId = Auth::authenticate()['id'];
     }
 
-    public function getRemainingTotalBalance($user_id) {
+    public function getRemainingTotalBalance() {
 
-        $totalBalance = $this->db->query("
-            SELECT 
-                SUM(remaining_balance) AS grand_total
-            FROM leave_balance lb
-            WHERE user_id = :user_id
-        ", [
-            'user_id' => $user_id,
-        ])->all();
-
-        return $totalBalance;
+        return $this->executeRemainingTotalBalance($this->userId);
 
     }
 
 
-    public function getPendingApprovalMetrics($user_id) {
+    public function getPendingApprovalMetrics() {
 
-        $pendingLeaveType = $this->db->query("
-            SELECT 
-                COALESCE(SUM(total_days), 0) as total_days,
-                COUNT(*) as queued_leave_count
-            FROM leave_requests lr
-            WHERE lr.user_id = :user_id AND lr.status = 'pending'
-        ", [
-            'user_id' => $user_id,
-        ])->all();
-
-
-        return $pendingLeaveType;
+        return $this->executePendingApprovalMetrics($this->userId);
     }
 
-    public function getUsedDays($user_id) {
+    public function getUsedDays() {
 
-        $usedDays = $this->db->query("
-            SELECT
-                SUM(used_days) as total_used_days,
-                SUM(allocated_days) as total_allocated_days
-            FROM leave_balance lb
-            WHERE lb.user_id = :user_id
-        ", [
-            'user_id' => $user_id,
-        ])->all();
+        return $this->executeUsedDays($this->userId);
 
-        return $usedDays;
     }
 
     public function getMonthlyLeaveConsumption($user_id) {

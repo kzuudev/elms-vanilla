@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Middleware\Auth;
+
 use App\Services\ManagerLeaveService;
 use Core\App;
 
 class ManagerDashboardController {
 
 
+    private ManagerLeaveService $remainingLeaveService;
+    private ManagerLeaveService $pendingLeaveService;
+
+    private ManagerLeaveService $usedLeaveService;
     private ManagerLeaveService $teamAvailabilityService;
     private ManagerLeaveService $monthlyLeaveConsumptionService;
     private ManagerLeaveService $leaveOverlapService;
@@ -18,6 +23,9 @@ class ManagerDashboardController {
 
     public function __construct() {
 
+        $this->remainingLeaveService = App::resolve(ManagerLeaveService::class);
+        $this->pendingLeaveService = App::resolve(ManagerLeaveService::class);
+        $this->usedLeaveService = App::resolve(ManagerLeaveService::class);
         $this->teamAvailabilityService = App::resolve(ManagerLeaveService::class);
         $this->leaveOverlapService = App::resolve(ManagerLeaveService::class);
         $this->monthlyLeaveConsumptionService = App::resolve(ManagerLeaveService::class);
@@ -31,6 +39,9 @@ class ManagerDashboardController {
 
         if($currentUser && $currentUser['role'] === 'manager') {
 
+            $remainingBalance = $this->remainingLeaveService->getRemainingTotalBalance();
+            $pendingRequest = $this->pendingLeaveService->getPendingApprovalMetrics();
+            $usedDays = $this->usedLeaveService->getUsedDays();
             $teamAvailability = $this->teamAvailabilityService->getTeamAvailability();
             $leaveOverlap = $this->leaveOverlapService->getTeamOverlap();
             $monthlyLeaveConsumption = $this->monthlyLeaveConsumptionService->getMonthlyConsumption();
@@ -41,6 +52,9 @@ class ManagerDashboardController {
             echo json_encode([
                 'success' => true,
                 'message' => 'Dashboard data fetched successfully',
+                'remaining_balance' => $remainingBalance,
+                'pending_request' => $pendingRequest,
+                'used_days' => $usedDays,
                 'team_availability' => $teamAvailability,
                 'leave_overlap' => $leaveOverlap,
                 'monthly_leave_consumption' => $monthlyLeaveConsumption,
