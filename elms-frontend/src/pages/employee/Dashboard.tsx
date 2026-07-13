@@ -9,7 +9,7 @@ import {UserContext} from "@/features/context/UserContext.tsx";
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import LeaveSummaryGrid from "@/features/dashboard/components/LeaveSummaryGrid.tsx";
-import AnalyticsGrid from "@/features/dashboard/components/AnalyticsGrid.tsx";
+import MonthlyLeavesConsumption from "@/features/dashboard/components/MonthlyLeavesConsumption.tsx";
 import BalanceBreakDownChart from "@/features/dashboard/components/BalanceBreakDownChart.tsx";
 import TeamCoverageWidget from "@/features/dashboard/components/TeamCoverageWidget.tsx";
 import RecentActivityTable from "@/features/dashboard/components/RecentActivityTable.tsx";
@@ -24,7 +24,7 @@ export default function EmployeeDashboard() {
     const [totalRemainingBalance, setTotalRemainingBalance] = useState<TotalRemainingBalance[]>();
     const [totalPendingRequest, setTotalPendingRequest] = useState<TotalPendingRequest[]>();
     const [totalUsedDays, setTotalUsedDays] = useState<TotalUsedDays[]>();
-    const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyLeaveConsumption[]>();
+    const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyLeaveConsumption  []>();
     const [recentActivity, setRecentActivity] = useState<RecentActivity[]>();
     const [teamStatus, setTeamStatus] = useState<TeamStatus[]>([]);
     const fetchEmployeeDashboard = async () => {
@@ -69,7 +69,7 @@ export default function EmployeeDashboard() {
 
                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                            <BalanceBreakDownChart />
-                           <AnalyticsGrid />
+                           <MonthlyLeavesConsumption />
                            <TeamCoverageWidget />
                        </div>
 

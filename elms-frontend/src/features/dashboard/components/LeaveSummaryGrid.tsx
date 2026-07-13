@@ -3,14 +3,17 @@
 import { useContext } from "react";
 import { LeaveSummaryContext } from "@/features/context/analytics/LeaveSummaryContext.tsx";
 import { DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
+import {UserContext} from "@/features/context/UserContext.tsx";
+
 import { Card } from '@/components/ui/card.tsx';
 import { Wallet, Hourglass, ClockCheck, Plane } from 'lucide-react';
 
 export default function LeaveSummaryGrid() {
 
+    const { user } = useContext(UserContext);
 
 
-    const role = localStorage.getItem('role') || null;
+    const role = user.role || null;
     const isManagement = role === 'manager' || role === 'admin';
 
     const leaveSummary = useContext(LeaveSummaryContext);

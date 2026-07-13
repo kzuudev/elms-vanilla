@@ -54,7 +54,7 @@ class ManagerDashboardController {
                 'message' => 'Dashboard data fetched successfully',
                 'remaining_balance' => $remainingBalance,
                 'pending_request' => $pendingRequest,
-                'used_days' => $usedDays,
+                'total_used_days' => $usedDays,
                 'team_availability' => $teamAvailability,
                 'leave_overlap' => $leaveOverlap,
                 'monthly_leave_consumption' => $monthlyLeaveConsumption,

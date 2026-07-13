@@ -2,27 +2,53 @@
 
 import { useContext } from "react";
 import { LeaveSummaryContext } from "@/features/context/analytics/LeaveSummaryContext.tsx";
+import { DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
+import {UserContext} from "@/features/context/UserContext.tsx";
+
 import { Card } from '@/components/ui/card.tsx';
 // Swapped PieChart out for BarChart components for a professional time-series trend
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-export default function AnalyticsGrid() {
+export default function MonthlyLeavesConsumption() {
+
     // Expecting array objects like: { month_name: "Jun", total_used_days: 3 }
-    const { monthlyLeaveConsumption } = useContext(LeaveSummaryContext);
+
+    const { user } = useContext(UserContext);
+
+    const managementAnalytics = useContext(DashboardAnalyticsContext);
+    const employeeAnalytics = useContext(LeaveSummaryContext);
+
+    const role = user.role || null;
+    const isManagement = role === 'manager' || role === 'admin';
+
 
     // 1. Array blueprint to ensure all 12 months render beautifully even with sparse DB data
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     // 2. Map and pad our database results against the full calendar year
     const chartData = months.map(month => {
-        const foundMonth = monthlyLeaveConsumption?.find(
+        if (isManagement) {
+            const foundMonth = managementAnalytics.monthlyLeaveConsumption?.find(
+                (item: any) => item.month_name?.substring(0, 3).toLowerCase() === month.toLowerCase()
+            );
+
+            return {
+                month: month,
+                "Days Used": foundMonth ? Number(foundMonth.total_used_day) : 0
+            };
+        }
+
+        const foundMonth = employeeAnalytics.monthlyLeaveConsumption?.find(
             (item: any) => item.month_name?.substring(0, 3).toLowerCase() === month.toLowerCase()
         );
+
         return {
             month: month,
             "Days Used": foundMonth ? Number(foundMonth.total_used_days) : 0
         };
     });
+
+
 
     return (
         <Card className="w-full p-5 border-gray-200 shadow-sm rounded-xl bg-white flex flex-col gap-4">
@@ -51,7 +77,7 @@ export default function AnalyticsGrid() {
                             tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 500 }}
                         />
 
-                        {/* Y-Axis hiding structural lines for floating look */}
+                        {/* Y-Axis hiding structural lines for a floating look */}
                         <YAxis
                             axisLine={false}
                             tickLine={false}

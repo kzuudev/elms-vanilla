@@ -6,6 +6,7 @@ import Chart from "react-apexcharts"; // <-- The correct React import!
 
 import { DashboardAnalyticsContext } from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
 import type { LeaveOverlap } from "@/types/dashboard.ts";
+import {Card} from "@/components/ui/card.tsx";
 
 export default function LeaveOverlapTimeline() {
 
@@ -82,45 +83,49 @@ export default function LeaveOverlapTimeline() {
     }), []);
 
     return (
-        <div className="w-full bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mt-6">
+        <>
+            <Card>
+                <div className="w-full bg-white px-3">
 
-            <div className="flex justify-between items-start mb-6">
-                <div>
-                    <h3 className="text-xl font-bold text-gray-900">Leave Overlap</h3>
-                    <p className="text-sm text-gray-500 mt-1">Upcoming critical periods</p>
-                </div>
-                <button className="text-sm font-semibold text-[#0a3977] hover:text-blue-800 transition-colors">
-                    Full Timeline
-                </button>
-            </div>
-
-            <div className="w-full min-h-[220px]">
-                {overlapData.length > 0 ? (
-                    <Chart
-                        options={options}
-                        series={series}
-                        type="rangeBar"
-                        height={260}
-                    />
-                ) : (
-                    <div className="flex h-[200px] items-center justify-center text-sm text-gray-400 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
-                        No upcoming overlapping leaves found.
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900">Leave Overlap</h3>
+                            <p className="text-sm text-gray-500 mt-1">Upcoming critical periods</p>
+                        </div>
+                        {/*<button className="text-sm font-semibold text-[#0a3977] hover:text-blue-800 transition-colors">*/}
+                        {/*    Full Timeline*/}
+                        {/*</button>*/}
                     </div>
-                )}
-            </div>
 
-            <div className="flex gap-6 items-center mt-6 text-sm font-medium text-gray-900 border-t border-gray-100 pt-4">
-                <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-[#C05655] block"></span> High Overlap
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-[#717E93] block"></span> Moderate
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-[#B8CBE0] block"></span> Low
-                </div>
-            </div>
+                    <div className="w-full min-h-[220px]">
+                        {overlapData.length > 0 ? (
+                            <Chart
+                                options={options}
+                                series={series}
+                                type="rangeBar"
+                                height={260}
+                            />
+                        ) : (
+                            <div className="flex h-[200px] items-center justify-center text-sm text-gray-400 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
+                                No upcoming overlapping leaves found.
+                            </div>
+                        )}
+                    </div>
 
-        </div>
+                    <div className="flex gap-6 items-center mt-6 text-sm font-medium text-gray-900 border-t border-gray-100 pt-4">
+                        <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded bg-[#C05655] block"></span> High Overlap
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded bg-[#717E93] block"></span> Moderate
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded bg-[#B8CBE0] block"></span> Low
+                        </div>
+                    </div>
+
+                </div>
+            </Card>
+        </>
     );
 }
