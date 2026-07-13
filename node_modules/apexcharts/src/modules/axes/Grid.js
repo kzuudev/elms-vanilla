@@ -1,0 +1,547 @@
+// @ts-check
+import Graphics from '../Graphics'
+import XAxis from './XAxis'
+import AxesUtils from './AxesUtils'
+import { BrowserAPIs } from '../../ssr/BrowserAPIs.js'
+import { SVGNS } from '../../svg/math'
+
+/**
+ * ApexCharts Grid Class for drawing Cartesian Grid.
+ *
+ * @module Grid
+ **/
+
+class Grid {
+  /**
+   * @param {import('../../types/internal').ChartStateW} w
+   * @param {import('../../types/internal').ChartContext} ctx
+   */
+  constructor(w, ctx) {
+    this.w = w
+    this.ctx = ctx // needed: XAxis instantiation, passes ctx to AxesUtils theme/timeScale
+
+    this.xaxisLabels = w.labelData.labels.slice()
+    this.axesUtils = new AxesUtils(ctx.w, {
+      theme: ctx.theme,
+      timeScale: ctx.timeScale,
+    })
+
+    this.isRangeBar =
+      w.rangeData.seriesRange.length && w.globals.isBarHorizontal
+
+    if (w.labelData.timescaleLabels.length > 0) {
+      //  timescaleLabels labels are there
+      this.xaxisLabels = w.labelData.timescaleLabels.slice()
+    }
+  }
+
+  /**
+   * @param {any} elGrid
+   */
+  drawGridArea(elGrid = null) {
+    const w = this.w
+    const graphics = new Graphics(this.w)
+
+    if (!elGrid) {
+      elGrid = graphics.group({ class: 'apexcharts-grid' })
+    }
+
+    const elVerticalLine = graphics.drawLine(
+      w.globals.padHorizontal,
+      1,
+      w.globals.padHorizontal,
+      w.layout.gridHeight,
+      'transparent',
+    )
+
+    const elHorzLine = graphics.drawLine(
+      w.globals.padHorizontal,
+      w.layout.gridHeight,
+      w.layout.gridWidth,
+      w.layout.gridHeight,
+      'transparent',
+    )
+
+    elGrid.add(elHorzLine)
+    elGrid.add(elVerticalLine)
+
+    return elGrid
+  }
+
+  drawGrid() {
+    const gl = this.w.globals
+
+    if (gl.axisCharts) {
+      const elgrid = this.renderGrid()
+      this.drawGridArea(elgrid.el)
+      return elgrid
+    }
+    return null
+  }
+
+  createGridMask() {
+    const w = this.w
+    const gl = w.globals
+    const graphics = new Graphics(this.w)
+
+    const strokeSize = Array.isArray(w.config.stroke.width)
+      ? Math.max(...w.config.stroke.width)
+      : w.config.stroke.width
+
+    /**
+     * @param {string} id
+     */
+    const createClipPath = (id) => {
+      const clipPath = BrowserAPIs.createElementNS(SVGNS, 'clipPath')
+      clipPath.setAttribute('id', id)
+      return clipPath
+    }
+
+    w.dom.elGridRectMask = createClipPath(`gridRectMask${gl.cuid}`)
+    w.dom.elGridRectBarMask = createClipPath(`gridRectBarMask${gl.cuid}`)
+    w.dom.elGridRectMarkerMask = createClipPath(`gridRectMarkerMask${gl.cuid}`)
+    w.dom.elForecastMask = createClipPath(`forecastMask${gl.cuid}`)
+    w.dom.elNonForecastMask = createClipPath(`nonForecastMask${gl.cuid}`)
+
+    const hasBar =
+      ['bar', 'rangeBar', 'candlestick', 'boxPlot', 'violin'].includes(
+        w.config.chart.type,
+      ) || w.globals.comboBarCount > 0
+
+    let barWidthLeft = 0
+    let barWidthRight = 0
+    if (hasBar && w.axisFlags.isXNumeric && !w.globals.isBarHorizontal) {
+      barWidthLeft = Math.max(
+        w.config.grid.padding.left,
+        gl.barPadForNumericAxis,
+      )
+      barWidthRight = Math.max(
+        w.config.grid.padding.right,
+        gl.barPadForNumericAxis,
+      )
+    }
+
+    w.dom.elGridRect = graphics.drawRect(
+      -strokeSize / 2 - 2,
+      -strokeSize / 2 - 2,
+      w.layout.gridWidth + strokeSize + 4,
+      w.layout.gridHeight + strokeSize + 4,
+      0,
+      '#fff',
+    )
+
+    w.dom.elGridRectBar = graphics.drawRect(
+      -strokeSize / 2 - barWidthLeft - 2,
+      -strokeSize / 2 - 2,
+      w.layout.gridWidth + strokeSize + barWidthRight + barWidthLeft + 4,
+      w.layout.gridHeight + strokeSize + 4,
+      0,
+      '#fff',
+    )
+
+    const markerSize = w.globals.markers.largestSize
+
+    w.dom.elGridRectMarker = graphics.drawRect(
+      Math.min(-strokeSize / 2 - barWidthLeft - 2, -markerSize),
+      -markerSize,
+      w.layout.gridWidth +
+        Math.max(strokeSize + barWidthRight + barWidthLeft + 4, markerSize * 2),
+      w.layout.gridHeight + markerSize * 2,
+      0,
+      '#fff',
+    )
+
+    w.dom.elGridRectMask.appendChild(w.dom.elGridRect.node)
+    w.dom.elGridRectBarMask.appendChild(w.dom.elGridRectBar.node)
+    w.dom.elGridRectMarkerMask.appendChild(w.dom.elGridRectMarker.node)
+
+    const defs = w.dom.elDefs.node
+    defs.appendChild(w.dom.elGridRectMask)
+    defs.appendChild(w.dom.elGridRectBarMask)
+    defs.appendChild(w.dom.elGridRectMarkerMask)
+    defs.appendChild(w.dom.elForecastMask)
+    defs.appendChild(w.dom.elNonForecastMask)
+  }
+
+  /** @param {{i: any, x1: any, y1: any, x2: any, y2: any, xCount: any, parent: any}} opts */
+  _drawGridLines({ i, x1, y1, x2, y2, xCount, parent }) {
+    const w = this.w
+
+    const shouldDraw = () => {
+      if (i === 0 && w.globals.skipFirstTimelinelabel) return false
+      if (
+        i === xCount - 1 &&
+        w.globals.skipLastTimelinelabel &&
+        !w.config.xaxis.labels.formatter
+      )
+        return false
+      if (w.config.chart.type === 'radar') return false
+      return true
+    }
+
+    if (shouldDraw()) {
+      if (w.config.grid.xaxis.lines.show) {
+        this._drawGridLine({ i, x1, y1, x2, y2, xCount, parent })
+      }
+
+      let y_2 = 0
+      if (
+        w.labelData.hasXaxisGroups &&
+        w.config.xaxis.tickPlacement === 'between'
+      ) {
+        const groups = w.labelData.groups
+        if (groups) {
+          let gacc = 0
+          for (let gi = 0; gacc < i && gi < groups.length; gi++) {
+            gacc += groups[gi].cols
+          }
+          if (gacc === i) {
+            y_2 = w.layout.xAxisLabelsHeight * 0.6
+          }
+        }
+      }
+
+      const xAxis = new XAxis(this.w, this.ctx)
+      xAxis.drawXaxisTicks(x1, y_2, w.dom.elGraphical)
+    }
+  }
+
+  /** @param {{i: any, x1: any, y1: any, x2: any, y2: any, xCount: any, parent: any}} opts */
+  _drawGridLine({ i, x1, y1, x2, y2, xCount, parent }) {
+    const w = this.w
+    const isHorzLine = parent.node.classList.contains(
+      'apexcharts-gridlines-horizontal',
+    )
+    const offX = w.globals.barPadForNumericAxis
+
+    const excludeBorders =
+      (y1 === 0 && y2 === 0) ||
+      (x1 === 0 && x2 === 0) ||
+      (y1 === w.layout.gridHeight && y2 === w.layout.gridHeight) ||
+      (w.globals.isBarHorizontal && (i === 0 || i === xCount - 1))
+
+    const graphics = new Graphics(this.w)
+    const line = graphics.drawLine(
+      x1 - (isHorzLine ? offX : 0),
+      y1,
+      x2 + (isHorzLine ? offX : 0),
+      y2,
+      w.config.grid.borderColor,
+      w.config.grid.strokeDashArray,
+    )
+    line.node.classList.add('apexcharts-gridline')
+
+    if (excludeBorders && w.config.grid.show) {
+      this.elGridBorders.add(line)
+    } else {
+      parent.add(line)
+    }
+  }
+
+  /** @param {{c: any, x1: any, y1: any, x2: any, y2: any, type: any}} opts */
+  _drawGridBandRect({ c, x1, y1, x2, y2, type }) {
+    const w = this.w
+    const graphics = new Graphics(this.w)
+    const offX = w.globals.barPadForNumericAxis
+
+    const color = w.config.grid[type].colors[c]
+
+    const rect = graphics.drawRect(
+      x1 - (type === 'row' ? offX : 0),
+      y1,
+      x2 + (type === 'row' ? offX * 2 : 0),
+      y2,
+      0,
+      color,
+      w.config.grid[type].opacity,
+    )
+    this.elg.add(rect)
+    rect.attr('clip-path', `url(#gridRectMask${w.globals.cuid})`)
+    rect.node.classList.add(`apexcharts-grid-${type}`)
+  }
+
+  /** @param {{xCount: any, tickAmount: any}} opts */
+  _drawXYLines({ xCount, tickAmount }) {
+    const w = this.w
+
+    const datetimeLines = (/** @type {any} */ { xC, x1, y1, x2, y2 }) => {
+      for (let i = 0; i < xC; i++) {
+        x1 = /** @type {any} */ (this.xaxisLabels[i]).position
+        x2 = /** @type {any} */ (this.xaxisLabels[i]).position
+
+        this._drawGridLines({
+          i,
+          x1,
+          y1,
+          x2,
+          y2,
+          xCount,
+          parent: this.elgridLinesV,
+        })
+      }
+    }
+
+    const categoryLines = (/** @type {any} */ { xC, x1, y1, x2, y2 }) => {
+      for (let i = 0; i < xC + (w.axisFlags.isXNumeric ? 0 : 1); i++) {
+        if (i === 0 && xC === 1 && w.globals.dataPoints === 1) {
+          x1 = w.layout.gridWidth / 2
+          x2 = x1
+        }
+        this._drawGridLines({
+          i,
+          x1,
+          y1,
+          x2,
+          y2,
+          xCount,
+          parent: this.elgridLinesV,
+        })
+
+        x1 += w.layout.gridWidth / (w.axisFlags.isXNumeric ? xC - 1 : xC)
+        x2 = x1
+      }
+    }
+
+    if (w.config.grid.xaxis.lines.show || w.config.xaxis.axisTicks.show) {
+      const x1 = w.globals.padHorizontal
+      const y1 = 0
+      let x2
+      const y2 = w.layout.gridHeight
+
+      if (w.labelData.timescaleLabels.length) {
+        datetimeLines({ xC: xCount, x1, y1, x2, y2 })
+      } else {
+        if (w.axisFlags.isXNumeric) {
+          xCount = w.globals.xAxisScale?.result.length
+        }
+        categoryLines({ xC: xCount, x1, y1, x2, y2 })
+      }
+    }
+
+    if (w.config.grid.yaxis.lines.show) {
+      const x1 = 0
+      let y1 = 0
+      let y2 = 0
+      const x2 = w.layout.gridWidth
+      let tA = tickAmount + 1
+
+      if (this.isRangeBar) {
+        tA = w.labelData.labels.length
+      }
+
+      for (let i = 0; i < tA + (this.isRangeBar ? 1 : 0); i++) {
+        this._drawGridLine({
+          i,
+          xCount: tA + (this.isRangeBar ? 1 : 0),
+          x1,
+          y1,
+          x2,
+          y2,
+          parent: this.elgridLinesH,
+        })
+
+        y1 += w.layout.gridHeight / (this.isRangeBar ? tA : tickAmount)
+        y2 = y1
+      }
+    }
+  }
+
+  /** @param {{ xCount?: any, tickAmount?: any }} opts */
+  _drawInvertedXYLines({ xCount }) {
+    const w = this.w
+
+    if (w.config.grid.xaxis.lines.show || w.config.xaxis.axisTicks.show) {
+      let x1 = w.globals.padHorizontal
+      const y1 = 0
+      let x2
+      const y2 = w.layout.gridHeight
+      for (let i = 0; i < xCount + 1; i++) {
+        if (w.config.grid.xaxis.lines.show) {
+          this._drawGridLine({
+            i,
+            xCount: xCount + 1,
+            x1,
+            y1,
+            x2,
+            y2,
+            parent: this.elgridLinesV,
+          })
+        }
+
+        const xAxis = new XAxis(this.w, this.ctx)
+        xAxis.drawXaxisTicks(x1, 0, w.dom.elGraphical)
+        x1 += w.layout.gridWidth / xCount
+        x2 = x1
+      }
+    }
+
+    if (w.config.grid.yaxis.lines.show) {
+      const x1 = 0
+      let y1 = 0
+      let y2 = 0
+      const x2 = w.layout.gridWidth
+
+      for (let i = 0; i < w.globals.dataPoints + 1; i++) {
+        this._drawGridLine({
+          i,
+          xCount: w.globals.dataPoints + 1,
+          x1,
+          y1,
+          x2,
+          y2,
+          parent: this.elgridLinesH,
+        })
+
+        y1 += w.layout.gridHeight / w.globals.dataPoints
+        y2 = y1
+      }
+    }
+  }
+
+  renderGrid() {
+    const w = this.w
+    const gl = w.globals
+    const graphics = new Graphics(this.w)
+
+    this.elg = graphics.group({ class: 'apexcharts-grid' })
+    this.elgridLinesH = graphics.group({
+      class: 'apexcharts-gridlines-horizontal',
+    })
+    this.elgridLinesV = graphics.group({
+      class: 'apexcharts-gridlines-vertical',
+    })
+    this.elGridBorders = graphics.group({ class: 'apexcharts-grid-borders' })
+
+    this.elg.add(this.elgridLinesH)
+    this.elg.add(this.elgridLinesV)
+
+    if (!w.config.grid.show) {
+      this.elgridLinesV.hide()
+      this.elgridLinesH.hide()
+      this.elGridBorders.hide()
+    }
+
+    let gridAxisIndex = 0
+    while (
+      gridAxisIndex < gl.seriesYAxisMap.length &&
+      gl.ignoreYAxisIndexes.includes(gridAxisIndex)
+    ) {
+      gridAxisIndex++
+    }
+    if (gridAxisIndex === gl.seriesYAxisMap.length) {
+      gridAxisIndex = 0
+    }
+
+    let yTickAmount = gl.yAxisScale[gridAxisIndex].result.length - 1
+
+    let xCount
+
+    if (!gl.isBarHorizontal || this.isRangeBar) {
+      xCount = this.xaxisLabels.length
+
+      if (this.isRangeBar) {
+        yTickAmount = w.labelData.labels.length
+
+        if (w.config.xaxis.tickAmount && w.config.xaxis.labels.formatter) {
+          xCount = w.config.xaxis.tickAmount
+        }
+        if (
+          gl.yAxisScale?.[gridAxisIndex]?.result?.length > 0 &&
+          w.config.xaxis.type !== 'datetime'
+        ) {
+          xCount = gl.yAxisScale[gridAxisIndex].result.length - 1
+        }
+      }
+
+      this._drawXYLines({ xCount, tickAmount: yTickAmount })
+    } else {
+      xCount = yTickAmount
+
+      // for horizontal bar chart, get the xaxis tickamount
+      yTickAmount = gl.xTickAmount
+      this._drawInvertedXYLines({ xCount, tickAmount: yTickAmount })
+    }
+
+    this.drawGridBands(xCount, yTickAmount)
+    return {
+      el: this.elg,
+      elGridBorders: this.elGridBorders,
+      xAxisTickWidth: w.layout.gridWidth / xCount,
+    }
+  }
+
+  /**
+   * @param {number} xCount
+   * @param {number} tickAmount
+   */
+  drawGridBands(xCount, tickAmount) {
+    const w = this.w
+
+    /**
+     * @param {string} type
+     * @param {number} count
+     * @param {number} x1
+     * @param {number} y1
+     * @param {number} x2
+     * @param {number} y2
+     */
+    const drawBands = (type, count, x1, y1, x2, y2) => {
+      for (let i = 0, c = 0; i < count; i++, c++) {
+        if (c >= w.config.grid[type].colors.length) {
+          c = 0
+        }
+        this._drawGridBandRect({ c, x1, y1, x2, y2, type })
+        y1 += w.layout.gridHeight / tickAmount
+      }
+    }
+
+    if (w.config.grid.row.colors?.length > 0) {
+      drawBands(
+        'row',
+        tickAmount,
+        0,
+        0,
+        w.layout.gridWidth,
+        w.layout.gridHeight / tickAmount,
+      )
+    }
+
+    if (w.config.grid.column.colors?.length > 0) {
+      let xc =
+        !w.globals.isBarHorizontal &&
+        w.config.xaxis.tickPlacement === 'on' &&
+        (w.config.xaxis.type === 'category' ||
+          w.config.xaxis.convertedCatToNumeric)
+          ? xCount - 1
+          : xCount
+
+      if (w.axisFlags.isXNumeric) {
+        xc = (w.globals.xAxisScale?.result.length ?? 1) - 1
+      }
+
+      let x1 = w.globals.padHorizontal
+      const y1 = 0
+      let x2 = w.globals.padHorizontal + w.layout.gridWidth / xc
+      const y2 = w.layout.gridHeight
+
+      for (let i = 0, c = 0; i < xCount; i++, c++) {
+        if (c >= w.config.grid.column.colors.length) {
+          c = 0
+        }
+
+        if (w.config.xaxis.type === 'datetime') {
+          x1 = /** @type {any} */ (this.xaxisLabels[i]).position
+          x2 =
+            (/** @type {any} */ (this.xaxisLabels[i + 1])?.position ||
+              w.layout.gridWidth) -
+            /** @type {any} */ (this.xaxisLabels[i]).position
+        }
+
+        this._drawGridBandRect({ c, x1, y1, x2, y2, type: 'column' })
+        x1 += w.layout.gridWidth / xc
+      }
+    }
+  }
+}
+
+export default Grid

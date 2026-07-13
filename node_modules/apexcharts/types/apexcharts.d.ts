@@ -1,0 +1,2131 @@
+// TypeScript declarations for ApexCharts.
+// The ApexCharts class and a namespace of the same name are merged here so
+// that consumers can access sub-types either as named imports
+// (`import type { ApexOptions } from 'apexcharts'`) or via the class
+// namespace (`ApexCharts.ApexOptions`).
+//
+// For the full set of supported options, see https://apexcharts.com/docs/options
+
+// ---------------------------------------------------------------------------
+// Shared formatter/event opts types
+// ---------------------------------------------------------------------------
+
+/**
+ * The chart state object passed as `w` to formatters, event opts, and
+ * snapshots. Common access patterns:
+ *   - `w.config.chart.type` — the merged user options
+ *   - `w.globals.seriesNames` — runtime state bag
+ *
+ * `globals` is intentionally `any` because it is a large, internal surface;
+ * prefer the typed `ApexCharts.ChartState` returned by `getState()` for
+ * stable access. Other internal slices (`dom`, `formatters`, `interact`,
+ * `layout`, etc.) exist on `w` but are not part of the documented API and
+ * may change between releases — the index signature documents their
+ * presence without committing to a stable shape.
+ */
+type ApexChartContext = {
+  config: ApexCharts.ApexOptions
+  globals: any
+  [key: string]: any
+}
+
+/**
+ * Opts object passed to most chart event callbacks (click, mouseMove,
+ * keyDown, etc.). For some events (mouseMove, click, keyDown, keyUp)
+ * `w` is also spread into the opts object as a convenience, so members
+ * of `w` (config, globals, etc.) may be accessed directly on opts. The
+ * index signature reflects that.
+ */
+type ApexChartEventOpts = {
+  seriesIndex: number
+  dataPointIndex: number
+  w: ApexChartContext
+  [key: string]: any
+}
+
+/**
+ * Opts object passed to most value formatters (dataLabels, tooltip y,
+ * etc.). `series` is included for tooltip formatters; ignore it elsewhere.
+ */
+type ApexFormatterOpts = {
+  seriesIndex: number
+  dataPointIndex: number
+  series?: any[][]
+  w: ApexChartContext
+}
+
+/**
+ * Opts object passed to legend.formatter and legend.tooltipHoverFormatter.
+ */
+type ApexLegendFormatterOpts = {
+  seriesIndex: number
+  w: ApexChartContext
+}
+
+/**
+ * Opts object passed to `colors[]` when a color is provided as a function.
+ */
+type ApexColorFormatterOpts = {
+  value: number
+  seriesIndex: number
+  dataPointIndex: number
+  w: ApexChartContext
+}
+
+/**
+ * Opts object passed to `tooltip.custom`. `series` is the parsed series
+ * matrix; `y1`/`y2` are populated for range-bar / range-area tooltips.
+ */
+type ApexTooltipCustomOpts = {
+  series: number[][]
+  seriesIndex: number
+  dataPointIndex: number
+  y1?: number
+  y2?: number
+  w: ApexChartContext
+}
+
+declare class ApexCharts {
+  constructor(el: HTMLElement, options: ApexCharts.ApexOptions)
+
+  /** Renders the chart. Must be called once after construction. */
+  render(): Promise<ApexCharts>
+
+  /**
+   * Merges new options into the existing config and re-renders the chart.
+   * @param redraw When true, redraws from scratch instead of animating from previous paths.
+   * @param animate Whether to animate the update.
+   * @param updateSyncedCharts Whether to propagate the update to charts in the same group.
+   * @param overwriteInitialConfig When true, replaces the stored initial config used by resetSeries().
+   */
+  updateOptions(
+    options: ApexCharts.ApexOptions,
+    redraw?: boolean,
+    animate?: boolean,
+    updateSyncedCharts?: boolean,
+    overwriteInitialConfig?: boolean
+  ): Promise<ApexCharts>
+
+  /**
+   * Replaces the chart's series data and re-renders.
+   * @param overwriteInitialSeries When true, replaces the stored initial series used by resetSeries().
+   */
+  updateSeries(
+    newSeries: ApexAxisChartSeries | ApexNonAxisChartSeries,
+    animate?: boolean,
+    overwriteInitialSeries?: boolean
+  ): Promise<ApexCharts>
+
+  /**
+   * Appends a new series to the existing series array and re-renders.
+   * @param overwriteInitialSeries When true, replaces the stored initial series used by resetSeries().
+   */
+  appendSeries(
+    newSerie: ApexAxisChartSeries[0] | number,
+    animate?: boolean,
+    overwriteInitialSeries?: boolean
+  ): Promise<ApexCharts>
+
+  /**
+   * Appends data points to existing series without replacing them.
+   * Each element corresponds to the series at the same index.
+   */
+  appendData(data: Array<{ data: any[] }>, overwriteInitialSeries?: boolean): Promise<ApexCharts>
+
+  /** Toggles (show/hide) the series by name. Mirrors a click on the legend item. */
+  toggleSeries(seriesName: string): object | undefined
+
+  /** Highlights or un-highlights a series when a legend marker is hovered. */
+  highlightSeriesOnLegendHover(e: MouseEvent, targetElement: HTMLElement): void
+
+  /** Makes a previously hidden series visible and re-renders. */
+  showSeries(seriesName: string): void
+
+  /** Hides a visible series and re-renders. */
+  hideSeries(seriesName: string): void
+
+  /** Highlights (dims all other series) the series identified by name. */
+  highlightSeries(seriesName: string): void
+
+  /** Returns whether the series identified by name is currently hidden. */
+  isSeriesHidden(seriesName: string): boolean
+
+  /**
+   * Resets the chart to its initial series and optionally its initial zoom level.
+   * @param shouldUpdateChart When true, triggers a re-render. Default true.
+   * @param shouldResetZoom When true, restores the initial zoom level. Default true.
+   */
+  resetSeries(shouldUpdateChart?: boolean, shouldResetZoom?: boolean): void
+
+  /** Programmatically zooms the x-axis to [min, max]. Requires zoom to be enabled. */
+  zoomX(min: number, max: number): void
+
+  /**
+   * Programmatically selects or deselects a data point.
+   * @returns Updated selectedDataPoints array, or null.
+   */
+  toggleDataPointSelection(seriesIndex: number, dataPointIndex?: number): number[][] | null
+
+  /** Destroys the chart instance, removing all DOM elements and event listeners. */
+  destroy(): void
+
+  /**
+   * Switches the active locale, updating all locale-dependent labels.
+   * @param localeName Must match a name defined in chart.locales.
+   */
+  setLocale(localeName: string): void
+
+  /**
+   * Subscribes to a chart event by name.
+   * Event names mirror the chart.events option keys (e.g. 'mounted', 'updated', 'dataPointMouseEnter').
+   */
+  addEventListener(name: string, handler: (...args: any[]) => void): void
+
+  /** Removes a previously registered event listener. */
+  removeEventListener(name: string, handler: (...args: any[]) => void): void
+
+  /** Adds an x-axis annotation dynamically after render. */
+  addXaxisAnnotation(options: XAxisAnnotations, pushToMemory?: boolean, context?: ApexCharts): void
+
+  /** Adds a y-axis annotation dynamically after render. */
+  addYaxisAnnotation(options: YAxisAnnotations, pushToMemory?: boolean, context?: ApexCharts): void
+
+  /** Adds a point annotation dynamically after render. */
+  addPointAnnotation(options: PointAnnotations, pushToMemory?: boolean, context?: ApexCharts): void
+
+  /** Removes a specific annotation by its id. */
+  removeAnnotation(id: string, context?: ApexCharts): void
+
+  /** Removes all annotations from the chart. */
+  clearAnnotations(context?: ApexCharts): void
+
+  /**
+   * Exports the chart to a data URI.
+   * Requires the Exports feature: import 'apexcharts/features/exports'.
+   */
+  dataURI(options?: { scale?: number; width?: number }): Promise<{ imgURI: string } | { blob: Blob }>
+
+  /**
+   * Returns the chart's SVG markup as a string.
+   * Requires the Exports feature: import 'apexcharts/features/exports'.
+   */
+  getSvgString(scale?: number): Promise<string>
+
+  /**
+   * Triggers a CSV download of the chart's data.
+   * Requires the Exports feature: import 'apexcharts/features/exports'.
+   */
+  exportToCSV(options?: { series?: ApexAxisChartSeries | ApexNonAxisChartSeries; fileName?: string; columnDelimiter?: string; lineDelimiter?: string }): void
+
+  /** Returns the SVG.js root element (SVG Paper) for the chart. */
+  paper(): any
+
+  /**
+   * Drills into the child level referenced by `id` (a `drilldown.series` entry).
+   * Requires the Drilldown feature: import 'apexcharts/features/drilldown'.
+   */
+  drillDown(id: string | number): Promise<ApexCharts>
+
+  /**
+   * Navigates back one drilldown level.
+   * Requires the Drilldown feature: import 'apexcharts/features/drilldown'.
+   */
+  drillUp(): Promise<ApexCharts>
+
+  /**
+   * Navigates back to the root drilldown level.
+   * Requires the Drilldown feature: import 'apexcharts/features/drilldown'.
+   */
+  drillToRoot(): Promise<ApexCharts>
+
+  /** Returns the inner SVG group element containing all chart graphics. */
+  getChartArea(): Element | null
+
+  /** Returns the sum of all data points whose x value falls within [minX, maxX]. */
+  getSeriesTotalXRange(minX: number, maxX: number): number[]
+
+  /** Returns the highest y value in the specified series. */
+  getHighestValueInSeries(seriesIndex?: number): number
+
+  /** Returns the lowest y value in the specified series. */
+  getLowestValueInSeries(seriesIndex?: number): number
+
+  /** Returns the sum of each series (totals used for percentage calculations). */
+  getSeriesTotal(): number[]
+
+  /** Returns all charts in the same chart.group, including this instance. */
+  getSyncedCharts(): ApexCharts[]
+
+  /** Returns all charts in the same chart.group, excluding this instance. */
+  getGroupedCharts(): ApexCharts[]
+
+  /**
+   * Returns a stable snapshot of chart state for use in formatters, events,
+   * and external integrations. Prefer this over accessing chart.w directly.
+   */
+  getState(): ApexCharts.ChartState
+
+  /**
+   * Calls a public method on a chart instance identified by chartID.
+   * Useful when you don't have a direct reference to the instance.
+   */
+  static exec(chartID: string, fn: string, ...args: any[]): any
+
+  /** Retrieves a rendered chart instance by its chart.id config value. */
+  static getChartByID(chartID: string): ApexCharts | undefined
+
+  /**
+   * Scans the document for elements with data-apexcharts and data-options
+   * attributes and renders a chart in each one automatically.
+   */
+  static initOnLoad(): void
+
+  /** Deep-merges source into target and returns the result. */
+  static merge(target: object, source: object): object
+
+  /**
+   * Registers chart type constructors for tree-shaking support.
+   * Used by sub-entry points (e.g. apexcharts/charts/bar).
+   */
+  static use(typeMap: Record<string, new (...args: any[]) => any>): void
+
+  /**
+   * Registers optional feature modules (Exports, Legend, Toolbar,
+   * ZoomPanSelection, KeyboardNavigation, Annotations).
+   * Call before rendering any chart.
+   */
+  static registerFeatures(featureMap: Record<string, new (...args: any[]) => any>): void
+
+  exports: {
+    cleanup(): string
+    svgUrl(): string
+    dataURI(options?: { scale?: number; width?: number }): Promise<{ imgURI: string } | { blob: Blob }>
+    exportToSVG(): void
+    exportToPng(): void
+    exportToCSV(options?: { series?: ApexAxisChartSeries | ApexNonAxisChartSeries; fileName?: string; columnDelimiter?: string; lineDelimiter?: string }): void
+    getSvgString(scale?: number): Promise<string>
+    triggerDownload(href: string, filename?: string, ext?: string): void
+  }
+}
+
+declare namespace ApexCharts {
+  export interface ChartState {
+    // Series data — computed/parsed form used for rendering
+    series: number[][] | any[]
+    seriesNames: string[]
+    colors: string[]
+    labels: string[]
+    seriesTotals: number[]
+    seriesPercent: number[][]
+    seriesXvalues: number[][]
+    seriesYvalues: number[][]
+
+    // Axis bounds — updated after each render
+    minX: number
+    maxX: number
+    minY: number
+    maxY: number
+    minYArr: number[]
+    maxYArr: number[]
+    minXDiff: number
+    dataPoints: number
+
+    // Axis scale objects — computed tick/scale results
+    xAxisScale: { result: number[]; niceMin: number; niceMax: number } | null
+    yAxisScale: { result: number[]; niceMin: number; niceMax: number }[]
+    xTickAmount: number
+
+    // Axis type flags
+    isXNumeric: boolean
+
+    // Multi-axis series mapping
+    seriesYAxisMap: number[][]
+    seriesYAxisReverseMap: number[]
+
+    // Chart dimensions — updated after each render/resize
+    svgWidth: number
+    svgHeight: number
+    gridWidth: number
+    gridHeight: number
+
+    // Interactive state
+    selectedDataPoints: number[][]
+    collapsedSeriesIndices: number[]
+    zoomed: boolean
+
+    // Chart-type-specific series data (empty arrays when not applicable)
+    seriesX: any[][]
+    seriesZ: number[][]
+    seriesCandleO: number[][]
+    seriesCandleH: number[][]
+    seriesCandleM: number[][]
+    seriesCandleL: number[][]
+    seriesCandleC: number[][]
+    seriesRangeStart: number[][]
+    seriesRangeEnd: number[][]
+    seriesGoals: any[][]
+  }
+
+  /** A single drilldown level, referenced by a data point's `drilldown` id. */
+  export interface ApexDrilldownSeries {
+    /** Unique id referenced by a data point's `drilldown` field. */
+    id: string | number
+    /** Display name used by the breadcrumb and as the (single-series) child series name. */
+    name?: string
+    /** Child data points for a single-series level. Use this OR `series`. */
+    data?: any[]
+    /** Full multi-series array for a grouped/stacked drilldown level. Use this OR `data`. */
+    series?: ApexAxisChartSeries
+    /** Optional chart-type override applied when this level is shown. */
+    chart?: Pick<ApexChart, 'type' | 'stacked' | 'stackType'>
+    plotOptions?: ApexPlotOptions
+    xaxis?: ApexXAxis
+    yaxis?: ApexYAxis | ApexYAxis[]
+    colors?: Array<string | ((opts: ApexColorFormatterOpts) => string)>
+    /** Optional fill override (e.g. a pattern fill to visually distinguish drilled levels). */
+    fill?: ApexFill
+    /** Optional legend override (e.g. show a legend when a level is a pie/donut). */
+    legend?: ApexLegend
+  }
+
+  /** Payload passed to drill events (`drillDownStart`, `drillDownEnd`, `drillUp`). */
+  export interface ApexDrilldownEvent {
+    /** The level id navigated away from. */
+    from: string | number
+    /** The level id navigated to (`'root'` at the top). */
+    to: string | number
+    /** The clicked data point (drill-down only). */
+    point?: any
+    seriesIndex?: number
+    dataPointIndex?: number
+  }
+
+  /** Context passed to the async `onDrillDown` resolver. */
+  export interface ApexDrilldownContext {
+    point: any
+    seriesIndex?: number
+    dataPointIndex?: number
+  }
+
+  export interface ApexDrilldown {
+    /** Master switch. When false the feature stays inert even if imported. */
+    enabled?: boolean
+    /** Inline child levels referenced by data-point `drilldown` ids. */
+    series?: ApexDrilldownSeries[]
+    breadcrumb?:
+      | false
+      | {
+          show?: boolean
+          position?: 'top-left' | 'top-right'
+          separator?: string
+          rootLabel?: string
+          offsetX?: number
+          offsetY?: number
+          formatter?(label: string, opts: { index: number; depth: number }): string
+        }
+    animation?: {
+      enabled?: boolean
+      /**
+       * Anchor the drill transition at the clicked point: the child unfolds
+       * outward from it (and settles back on drill-up) instead of the chart
+       * simply re-rendering. A gentle scale layered on the SVG. Opt-in.
+       * Defaults to false.
+       */
+      zoomFromPoint?: boolean
+      /** Base transition duration in ms when `zoomFromPoint` is true. Default 260. */
+      speed?: number
+    }
+    /** Async resolver called when a drillable point has no inline `series` match. */
+    onDrillDown?(
+      ctx: ApexDrilldownContext
+    ): ApexDrilldownSeries | Promise<ApexDrilldownSeries>
+  }
+
+  export interface ApexOptions {
+    annotations?: ApexAnnotations
+    chart?: ApexChart
+    /**
+     * Series colors. Each entry is either a CSS color string (hex, rgb, hsl,
+     * named) or a function returning one per-datapoint. The list cycles when
+     * there are more series than colors.
+     */
+    colors?: Array<string | ((opts: ApexColorFormatterOpts) => string)>
+    dataLabels?: ApexDataLabels
+    /** Opt-in drilldown navigation. Requires `import 'apexcharts/features/drilldown'`. */
+    drilldown?: ApexDrilldown
+    fill?: ApexFill
+    forecastDataPoints?: ApexForecastDataPoints
+    grid?: ApexGrid
+    labels?: string[]
+    legend?: ApexLegend
+    markers?: ApexMarkers
+    noData?: ApexNoData
+    plotOptions?: ApexPlotOptions
+    responsive?: ApexResponsive[]
+    parsing?: ApexParsing;
+    series?: ApexAxisChartSeries | ApexNonAxisChartSeries
+    states?: ApexStates
+    stroke?: ApexStroke
+    subtitle?: ApexTitleSubtitle
+    theme?: ApexTheme
+    title?: ApexTitleSubtitle
+    tooltip?: ApexTooltip
+    xaxis?: ApexXAxis
+    yaxis?: ApexYAxis | ApexYAxis[]
+  }
+
+  // Re-exported sub-types — consumers can use these as:
+  //   import type ApexCharts from 'apexcharts'
+  //   const yaxis: ApexCharts.ApexYAxis = { ... }
+  export type { ApexAnnotations }
+  export type { ApexChart }
+  export type { ApexDataLabels }
+  export type { ApexFill }
+  export type { ApexForecastDataPoints }
+  export type { ApexGrid }
+  export type { ApexLegend }
+  export type { ApexMarkers }
+  export type { ApexNoData }
+  export type { ApexPlotOptions }
+  export type { ApexResponsive }
+  export type { ApexParsing }
+  export type { ApexStates }
+  export type { ApexStroke }
+  export type { ApexTitleSubtitle }
+  export type { ApexTheme }
+  export type { ApexTooltip }
+  export type { ApexXAxis }
+  export type { ApexYAxis }
+  export type { ApexAxisChartSeries }
+  export type { ApexNonAxisChartSeries }
+  export type { ApexLocale }
+  export type { ApexDropShadow }
+  export type { ApexChartContext }
+  export type { ApexChartEventOpts }
+  export type { ApexFormatterOpts }
+  export type { ApexLegendFormatterOpts }
+  export type { ApexColorFormatterOpts }
+  export type { ApexTooltipCustomOpts }
+  export type { XAxisAnnotations }
+  export type { YAxisAnnotations }
+  export type { PointAnnotations }
+  export type { TextAnnotations }
+  export type { ImageAnnotations }
+}
+
+type ApexDropShadow = {
+  enabled?: boolean
+  top?: number
+  left?: number
+  blur?: number
+  opacity?: number
+  /**
+   * Shadow color. A single string applies to all series; an array applies
+   * per-series (only respected by `chart.dropShadow`).
+   */
+  color?: string | string[]
+}
+
+/**
+ * Main Chart options
+ * See https://apexcharts.com/docs/options/chart/
+ */
+type ApexChart = {
+  width?: string | number
+  height?: string | number
+  type?:
+  | 'line'
+  | 'area'
+  | 'bar'
+  | 'pie'
+  | 'donut'
+  | 'radialBar'
+  | 'scatter'
+  | 'bubble'
+  | 'heatmap'
+  | 'candlestick'
+  | 'boxPlot'
+  | 'violin'
+  | 'radar'
+  | 'polarArea'
+  | 'rangeBar'
+  | 'rangeArea'
+  | 'treemap'
+  | 'funnel'
+  | 'pyramid'
+  | 'gauge'
+  /**
+   * Internal — populated when `type` is a first-class alias (`'funnel'`,
+   * `'pyramid'`, `'gauge'`). The original requested type is preserved here
+   * while `type` is normalized to the underlying renderer (`'bar'` or
+   * `'radialBar'`). Read-only for consumers.
+   */
+  requestedType?: 'funnel' | 'pyramid' | 'gauge'
+  foreColor?: string
+  fontFamily?: string
+  background?: string
+  offsetX?: number
+  offsetY?: number
+  dropShadow?: ApexDropShadow & {
+    enabledOnSeries?: undefined | number[]
+  }
+  nonce?: string
+  events?: {
+    animationEnd?(chart: ApexCharts, options?: ApexChartEventOpts): void
+    beforeMount?(chart: ApexCharts, options?: ApexChartEventOpts): void
+    mounted?(chart: ApexCharts, options?: ApexChartEventOpts): void
+    updated?(chart: ApexCharts, options?: ApexChartEventOpts): void
+    mouseMove?(e: MouseEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    mouseLeave?(e: MouseEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    click?(e: MouseEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    xAxisLabelClick?(e: MouseEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    legendClick?(chart: ApexCharts, seriesIndex?: number, options?: ApexChartEventOpts): void
+    markerClick?(e: MouseEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    selection?(chart: ApexCharts, options?: { xaxis?: { min: number; max: number }; yaxis?: { min: number; max: number } }): void
+    dataPointSelection?(e: MouseEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    dataPointMouseEnter?(e: MouseEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    dataPointMouseLeave?(e: MouseEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    beforeZoom?(chart: ApexCharts, options?: { xaxis: { min: number; max: number } }): boolean | void
+    beforeResetZoom?(chart: ApexCharts, options?: ApexChartEventOpts): boolean | void
+    zoomed?(chart: ApexCharts, options?: { xaxis: { min: number; max: number }; yaxis?: { min: number; max: number }[] }): void
+    scrolled?(chart: ApexCharts, options?: { xaxis: { min: number; max: number } }): void
+    brushScrolled?(chart: ApexCharts, options?: { xaxis: { min: number; max: number }; yaxis?: { min: number; max: number }[] }): void
+    keyDown?(e: KeyboardEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    keyUp?(e: KeyboardEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    /** Fired before a drill-down transition begins. Requires the Drilldown feature. */
+    drillDownStart?(info: ApexDrilldownEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    /** Fired after a drill-down transition completes. Requires the Drilldown feature. */
+    drillDownEnd?(info: ApexDrilldownEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    /** Fired after navigating back up a drilldown level. Requires the Drilldown feature. */
+    drillUp?(info: ApexDrilldownEvent, chart?: ApexCharts, options?: ApexChartEventOpts): void
+    /** Fired when an async onDrillDown resolver throws or rejects. Requires the Drilldown feature. */
+    drillDownError?(info: { id: string | number | null; error: any }, chart?: ApexCharts, options?: ApexChartEventOpts): void
+  }
+  brush?: {
+    enabled?: boolean
+    autoScaleYaxis?: boolean
+    target?: string
+    targets?: string[]
+  }
+  id?: string
+  injectStyleSheet?: boolean
+  group?: string
+  locales?: ApexLocale[]
+  defaultLocale?: string
+  parentHeightOffset?: number
+  redrawOnParentResize?: boolean
+  redrawOnWindowResize?: boolean | ((...args: any[]) => boolean)
+  sparkline?: {
+    enabled?: boolean
+  }
+  stacked?: boolean
+  stackType?: 'normal' | '100%'
+  stackOnlyBar?: boolean;
+  toolbar?: {
+    show?: boolean
+    offsetX?: number
+    offsetY?: number
+    tools?: {
+      download?: boolean | string
+      selection?: boolean | string
+      zoom?: boolean | string
+      zoomin?: boolean | string
+      zoomout?: boolean | string
+      pan?: boolean | string
+      reset?: boolean | string
+      customIcons?: {
+        icon?: string
+        title?: string
+        index?: number
+        class?: string
+        click?(chart: ApexCharts, options?: ApexChartEventOpts, e?: MouseEvent): void
+      }[]
+    }
+    export?: {
+      csv?: {
+        filename?: undefined | string
+        columnDelimiter?: string
+        headerCategory?: string
+        headerValue?: string
+        categoryFormatter?(value?: string | number): string
+        valueFormatter?(value?: string | number): string
+      },
+      svg?: {
+        filename?: undefined | string
+      }
+      png?: {
+        filename?: undefined | string
+      }
+      width?: number
+      scale?: number
+    }
+    autoSelected?: 'zoom' | 'selection' | 'pan'
+  }
+  zoom?: {
+    enabled?: boolean
+    type?: 'x' | 'y' | 'xy'
+    autoScaleYaxis?: boolean
+    allowMouseWheelZoom?: boolean
+    zoomedArea?: {
+      fill?: {
+        color?: string
+        opacity?: number
+      }
+      stroke?: {
+        color?: string
+        opacity?: number
+        width?: number
+      }
+    }
+  }
+  selection?: {
+    enabled?: boolean
+    type?: string
+    fill?: {
+      color?: string
+      opacity?: number
+    }
+    stroke?: {
+      width?: number
+      color?: string
+      opacity?: number
+      dashArray?: number
+    }
+    xaxis?: {
+      min?: number
+      max?: number
+    }
+    yaxis?: {
+      min?: number
+      max?: number
+    }
+  }
+  animations?: {
+    /**
+     * Master switch. Each chart type gets a tailored initial-mount animation
+     * by default (line/area pen-stroke draw, bar grow, scatter pop, heatmap
+     * diagonal wave, treemap largest-first cascade, pie/donut/gauge sweep).
+     * Set false to render charts without any animation.
+     */
+    enabled?: boolean
+    /** Animation duration in ms (default 800). */
+    speed?: number
+    /**
+     * Drives per-element stagger across all chart types. When enabled, bars,
+     * heatmap cells, scatter points, and treemap tiles reveal in sequence;
+     * line/area markers fade in progressively as the line draws.
+     */
+    animateGradually?: {
+      enabled?: boolean
+      /** Requested stagger step in ms; auto-capped per chart so total
+       *  stagger ≤ ~half the animation speed. */
+      delay?: number
+    }
+    /** Data-change (updateSeries) animation. Independent from initial mount. */
+    dynamicAnimation?: {
+      enabled?: boolean
+      speed?: number
+    }
+    /**
+     * Cross-type morph (updateOptions changing chart.type). Requires the
+     * optional `apexcharts/features/morph` feature to be registered; without
+     * that import these settings have no effect. Supported pairs include
+     * bar ↔ pie/donut/radialBar/polarArea (and the trivial pie↔donut↔polarArea
+     * cases). Falls back to instant snap when types or data shape are
+     * incompatible.
+     */
+    chartTypeMorph?: {
+      enabled?: boolean
+      speed?: number
+    }
+    /**
+     * When true (default), honors the OS-level prefers-reduced-motion media
+     * query — all initial-mount animations are skipped and the chart renders
+     * instantly. Set to false to override (e.g. for QA / demo screens).
+     */
+    respectReducedMotion?: boolean
+    /**
+     * Above this many data points (default 1000), the per-element morph +
+     * stagger — which spins up one JS-driven animation timeline per path — is
+     * replaced by a single GPU-composited opacity fade of the whole series.
+     * Keeps initial render and zoom transitions smooth on large datasets
+     * (e.g. thousands of candlesticks/bars). Set to 0 to always animate
+     * per-element regardless of dataset size.
+     */
+    largeDatasetThreshold?: number
+  }
+  accessibility?: {
+    enabled?: boolean
+    description?: string
+    announcements?: {
+      enabled?: boolean
+    }
+    keyboard?: {
+      enabled?: boolean
+      navigation?: {
+        enabled?: boolean
+        wrapAround?: boolean
+      }
+    }
+  }
+  dataReducer?: {
+    enabled?: boolean
+    algorithm?: 'lttb'
+    targetPoints?: number
+    threshold?: number
+  }
+}
+
+type ApexStates = {
+  hover?: {
+    filter?: {
+      type?: 'none' | 'lighten' | 'darken'
+    }
+  }
+  active?: {
+    allowMultipleDataPointsSelection?: boolean
+    filter?: {
+      type?: 'none' | 'lighten' | 'darken'
+    }
+  }
+}
+
+/**
+ * Chart Title options
+ * See https://apexcharts.com/docs/options/title/
+ */
+type ApexTitleSubtitle = {
+  text?: string
+  align?: 'left' | 'center' | 'right'
+  margin?: number
+  offsetX?: number
+  offsetY?: number
+  floating?: boolean
+  style?: {
+    fontSize?: string
+    fontFamily?: string
+    fontWeight?: string | number
+    color?: string
+  }
+}
+
+/**
+ * Chart Series options.
+ * See https://apexcharts.com/docs/options/series/
+ */
+type ApexAxisChartSeries = {
+ name?: string
+ type?: string
+ color?: string
+ group?: string
+ hidden?: boolean
+ zIndex?: number
+ parsing?: ApexParsing;
+ data:
+ | (number | null)[]
+ | {
+   x: string | number;
+   /**
+    * A plain value for most charts. For `candlestick`/`boxPlot`, the
+    * summary array (`[O,H,L,C]` / `[min,Q1,median,Q3,max]`). For `violin`, an
+    * object carrying the precomputed density profile (`[value, weight]` pairs)
+    * plus the raw observations rendered as jitter. For a `scatter` strip plot
+    * (`plotOptions.scatter.jitter`), the array of observations in this category.
+    */
+   y:
+     | number
+     | null
+     | number[]
+     | { density: [number, number][]; points?: number[] };
+   /**
+    * Optional raw observations for a `boxPlot` data point, rendered as jitter
+    * dots when `plotOptions.boxPlot.points.show` is enabled.
+    */
+   points?: number[];
+   fill?: ApexFill;
+   fillColor?: string;
+   strokeColor?: string;
+   meta?: unknown;
+   /**
+    * Drilldown target: the `id` of a `drilldown.series` entry. Clicking this
+    * point drills into that level. Requires the Drilldown feature.
+    */
+   drilldown?: string | number;
+   goals?: {
+     name?: string,
+     value: number,
+     strokeHeight?: number;
+     strokeWidth?: number;
+     strokeColor?: string;
+     strokeDashArray?: number;
+     strokeLineCap?: 'butt' | 'square' | 'round'
+   }[];
+   barHeightOffset?: number;
+   columnWidthOffset?: number;
+ }[]
+ | [number, number | null][]
+ | [number, (number | null)[]][]
+ | number[][]
+ | Record<string, any>[];
+}[]
+
+type ApexNonAxisChartSeries =
+  | number[]
+  | ApexAxisChartSeries
+
+/**
+ * Options for the line drawn on line and area charts.
+ * See https://apexcharts.com/docs/options/stroke/
+ */
+type ApexStroke = {
+  show?: boolean
+  curve?: 'smooth' | 'straight' | 'stepline' | 'linestep' | 'monotoneCubic' | ('smooth' | 'straight' | 'stepline' | 'linestep' | 'monotoneCubic')[]
+  lineCap?: 'butt' | 'square' | 'round'
+  colors?: string[]
+  width?: number | number[]
+  dashArray?: number | number[]
+  fill?: ApexFill
+}
+
+type ApexAnnotations = {
+  yaxis?: YAxisAnnotations[]
+  xaxis?: XAxisAnnotations[]
+  points?: PointAnnotations[]
+  texts?: TextAnnotations[]
+  images?: ImageAnnotations[]
+}
+
+type AnnotationLabel = {
+  borderColor?: string
+  borderWidth?: number
+  borderRadius?: number
+  text?: string | string[]
+  textAnchor?: string
+  offsetX?: number
+  offsetY?: number
+  style?: AnnotationStyle
+  position?: string
+  orientation?: string
+  mouseEnter?: (annotation: AnnotationLabel, e: MouseEvent) => void
+  mouseLeave?: (annotation: AnnotationLabel, e: MouseEvent) => void
+  click?: (annotation: AnnotationLabel, e: MouseEvent) => void
+}
+
+type AnnotationStyle = {
+  background?: string
+  color?: string
+  fontFamily?: string
+  fontWeight?: string | number
+  fontSize?: string
+  cssClass?: string
+  padding?: {
+    left?: number
+    right?: number
+    top?: number
+    bottom?: number
+  }
+}
+
+type XAxisAnnotations = {
+  id?: number | string
+  x?: null | number | string
+  x2?: null | number | string
+  strokeDashArray?: number
+  fillColor?: string
+  borderColor?: string
+  borderWidth?: number
+  opacity?: number
+  offsetX?: number
+  offsetY?: number
+  label?: AnnotationLabel
+}
+
+type YAxisAnnotations = {
+  id?: number | string
+  y?: null | number | string
+  y2?: null | number | string
+  strokeDashArray?: number
+  fillColor?: string
+  borderColor?: string
+  borderWidth?: number
+  opacity?: number
+  offsetX?: number
+  offsetY?: number
+  width?: number | string
+  yAxisIndex?: number
+  label?: AnnotationLabel
+}
+
+type PointAnnotations = {
+  id?: number | string
+  x?: number | string
+  y?: null | number
+  yAxisIndex?: number
+  seriesIndex?: number
+  mouseEnter?: (annotation: PointAnnotations, e: MouseEvent) => void
+  mouseLeave?: (annotation: PointAnnotations, e: MouseEvent) => void
+  click?: (annotation: PointAnnotations, e: MouseEvent) => void
+  marker?: {
+    size?: number
+    fillColor?: string
+    strokeColor?: string
+    strokeWidth?: number
+    shape?: string
+    offsetX?: number
+    offsetY?: number
+    cssClass?: string
+  }
+  label?: AnnotationLabel
+  image?: {
+    path?: string
+    width?: number
+    height?: number
+    offsetX?: number
+    offsetY?: number
+  }
+}
+
+
+type TextAnnotations = {
+  x?: number
+  y?: number
+  text?: string
+  textAnchor?: string
+  foreColor?: string
+  fontSize?: string | number
+  fontFamily?: undefined | string
+  fontWeight?: string | number
+  backgroundColor?: string
+  borderColor?: string
+  borderRadius?: number
+  borderWidth?: number
+  paddingLeft?: number
+  paddingRight?: number
+  paddingTop?: number
+  paddingBottom?: number
+}
+
+type ImageAnnotations = {
+  path?: string
+  x?: number,
+  y?: number,
+  width?: number,
+  height?: number,
+}
+
+/**
+ * Options for localization.
+ * See https://apexcharts.com/docs/options/chart/locales
+ */
+type ApexLocale = {
+  name?: string
+  options?: {
+    months?: string[]
+    shortMonths?: string[]
+    days?: string[]
+    shortDays?: string[]
+    toolbar?: {
+      download?: string
+      selection?: string
+      selectionZoom?: string
+      zoomIn?: string
+      zoomOut?: string
+      pan?: string
+      reset?: string
+      menu?: string
+      exportToSVG?: string
+      exportToPNG?: string
+      exportToCSV?: string
+    }
+  }
+}
+
+/**
+ * PlotOptions for specifying chart-type-specific configuration.
+ * See https://apexcharts.com/docs/options/plotoptions/bar/
+ */
+type ApexPlotOptions = {
+  line?: {
+    isSlopeChart?: boolean
+    colors?: {
+      threshold?: number,
+      colorAboveThreshold?: string,
+      colorBelowThreshold?: string,
+    },
+  }
+  area?: {
+    fillTo?: 'origin' | 'end'
+  }
+  bar?: {
+    horizontal?: boolean
+    columnWidth?: string | number;
+    barHeight?: string | number;
+    distributed?: boolean
+    borderRadius?: number;
+    borderRadiusApplication?: 'around' | 'end';
+    borderRadiusWhenStacked?: 'all' | 'last';
+    hideZeroBarsWhenGrouped?: boolean
+    rangeBarOverlap?: boolean
+    rangeBarGroupRows?: boolean
+    isDumbbell?: boolean;
+    dumbbellColors?: string[][];
+    isFunnel?: boolean;
+    isFunnel3d?: boolean;
+    colors?: {
+      ranges?: {
+        from?: number
+        to?: number
+        color?: string
+      }[]
+      backgroundBarColors?: string[]
+      backgroundBarOpacity?: number
+      backgroundBarRadius?: number
+    }
+    dataLabels?: {
+      maxItems?: number
+      hideOverflowingLabels?: boolean
+      position?: string
+      orientation?: 'horizontal' | 'vertical',
+      total?: {
+        enabled?: boolean,
+        formatter?(val?: string, opts?: ApexFormatterOpts): string,
+        offsetX?: number,
+        offsetY?: number,
+        style?: {
+          color?: string,
+          fontSize?: string,
+          fontFamily?: string,
+          fontWeight?: number | string
+        }
+      }
+    }
+  }
+  bubble?: {
+    zScaling?: boolean
+    minBubbleRadius?: number
+    maxBubbleRadius?: number
+  }
+  scatter?: {
+    /**
+     * Spread overlapping points apart ("jitter"). Two uses, one engine:
+     *  - Strip plot: supply data as `{ x: 'Category', y: [v1, v2, ...] }`. Each
+     *    category becomes a band and the values scatter horizontally within it.
+     *  - Overplotting: ordinary `{ x, y }` points get a small random offset so
+     *    dense clusters fan out. The underlying data (and tooltip values) stay
+     *    exact; only the drawn position moves.
+     * Offsets are in axis units and deterministic (stable across re-renders).
+     */
+    jitter?: {
+      enabled?: boolean
+      /** Max ± horizontal offset, in x-axis units (1 = one category step). */
+      x?: number
+      /** Max ± vertical offset, in y-axis units. */
+      y?: number
+      /** Single series: colour each band differently (by its position). */
+      distributed?: boolean
+      /** Per-band cap; values beyond this are stride-thinned. */
+      maxPoints?: number
+    }
+  }
+  candlestick?: {
+    type?: string,
+    colors?: {
+      upward?: string | string[]
+      downward?: string | string[]
+    }
+    wick?: {
+      useFillColor?: boolean
+    }
+  }
+  boxPlot?: {
+    colors?: {
+      upper?: string | string[]
+      lower?: string | string[]
+    }
+    /**
+     * Individual observations ("jitter") overlaid on each box. Inert unless a
+     * data point supplies a `points: number[]` array; `show` is false by
+     * default so existing boxPlot charts are unchanged.
+     */
+    points?: {
+      show?: boolean
+      shape?: 'circle' | 'square'
+      /** Marker radius in pixels. */
+      size?: number
+      /** 0..1 fraction of the box half-width to scatter within. */
+      jitter?: number
+      /** Cap per box; observations beyond this are stride-thinned. */
+      maxPoints?: number
+      opacity?: number
+      /**
+       * Dot fill colour. Defaults to 'series-dark' (a darker shade of the
+       * series colour). Use 'series' for the series colour, or any literal
+       * colour string.
+       */
+      fillColor?: string
+      /** Colour of the outline around each dot. Defaults to '#fff'. */
+      strokeColor?: string
+      /** Width of the dot's outline in pixels. Defaults to 1; 0 disables it. */
+      strokeWidth?: number
+      /**
+       * Colour each dot by its value along a colour ramp (overrides fillColor).
+       * Points are bucketed into `steps` shades to keep rendering performant.
+       */
+      colorScale?: {
+        colors: string[]
+        min?: number
+        max?: number
+        steps?: number
+      }
+    }
+  }
+  violin?: {
+    /**
+     * Multiplies the density-derived half-width. 1 maps the density's own
+     * maxWeight to half the category slot.
+     */
+    bandwidthScale?: number
+    /**
+     * 'individual' (default): each violin is scaled to its own peak density, so
+     * all violins reach the full slot width. 'group': all violins share the
+     * densest violin's scale, keeping widths proportional to density across
+     * categories.
+     */
+    normalize?: 'individual' | 'group'
+    /** Individual observations ("jitter") overlaid on the violin shape. */
+    points?: {
+      show?: boolean
+      shape?: 'circle' | 'square'
+      /** Marker radius in pixels. */
+      size?: number
+      /** 0..1 fraction of the half-width to scatter within. */
+      jitter?: number
+      /** Clamp jitter to the density width at each value so points stay inside. */
+      constrainToViolin?: boolean
+      /** Cap per violin; observations beyond this are stride-thinned. */
+      maxPoints?: number
+      opacity?: number
+      /**
+       * Dot fill colour. Defaults to 'series-dark' (a darker shade of each
+       * violin's own colour). Use 'series' for the violin's colour as-is, or
+       * any literal colour string (e.g. '#fff').
+       */
+      fillColor?: string
+      /** Colour of the ring/outline around each dot. Defaults to '#fff'. */
+      strokeColor?: string
+      /** Width of the dot's outline in pixels. Defaults to 1; 0 disables it. */
+      strokeWidth?: number
+      /**
+       * Colour each dot by its value along a colour ramp (overrides fillColor).
+       * Points are bucketed into `steps` shades to keep rendering performant.
+       */
+      colorScale?: {
+        /** Hex colour stops, low → high (a sequential colour ramp). */
+        colors: string[]
+        /** Value mapped to the first stop. Defaults to the data minimum. */
+        min?: number
+        /** Value mapped to the last stop. Defaults to the data maximum. */
+        max?: number
+        /** Number of shade buckets. Defaults to 24. */
+        steps?: number
+      }
+    }
+  }
+  heatmap?: {
+    radius?: number
+    enableShades?: boolean
+    shadeIntensity?: number
+    reverseNegativeShade?: boolean
+    distributed?: boolean
+    useFillColorAsStroke?: boolean
+    colorScale?: {
+      ranges?: {
+        from?: number
+        to?: number
+        color?: string
+        foreColor?: string
+        name?: string
+      }[]
+      inverse?: boolean
+      min?: number
+      max?: number
+      /**
+       * When enabled, replaces the default categorical heatmap legend with a
+       * continuous color gradient strip and a hover indicator arrow that
+       * tracks the currently hovered cell's value along the spectrum.
+       * Follows `legend.position` (top / right / bottom / left); the arrow
+       * orientation flips to point at the strip from the chart-facing side.
+       */
+      gradientLegend?: {
+        enabled?: boolean
+        /**
+         * Strip length for horizontal placements (top/bottom). Accepts a
+         * number (pixels) or percentage string (e.g. `'70%'`, resolved against
+         * the chart's SVG width). Default `'70%'`.
+         */
+        width?: number | string
+        /**
+         * Strip length for vertical placements (left/right). Accepts a number
+         * (pixels) or percentage string (e.g. `'70%'`, resolved against the
+         * chart's SVG height). Default `'70%'`.
+         */
+        height?: number | string
+        /** Strip thickness (short axis) in pixels. Default 12. */
+        thickness?: number
+        /**
+         * Strip alignment within the legend area.
+         * - top/bottom: 'start' = left, 'center', 'end' = right
+         * - left/right: 'start' = top,  'center', 'end' = bottom
+         * Default `'center'`.
+         */
+        align?: 'start' | 'center' | 'end'
+        /**
+         * Number of color stops sampled from the shade function when no
+         * explicit `ranges` are provided. Default 16.
+         */
+        stops?: number
+        /** Show min/max labels at the ends of the strip. Default true. */
+        showLabels?: boolean
+        /** Show a value tooltip next to the arrow on cell hover. Default true. */
+        showHoverValue?: boolean
+        labelStyle?: {
+          fontSize?: string
+          fontFamily?: string
+          colors?: string
+        }
+        arrow?: {
+          size?: number
+          color?: string
+        }
+        /** Formatter for min/max labels and the hover value tooltip. */
+        formatter?(value: number): string
+      }
+    }
+  }
+  funnel?: {
+    /**
+     * 'rectangle' (default) preserves the existing centered-rectangle funnel
+     * geometry. 'trapezoid' produces continuous sloped sides between
+     * consecutive stages (each stage's bottom width matches the next stage's
+     * top width).
+     */
+    shape?: 'rectangle' | 'trapezoid'
+    /**
+     * For `shape: 'trapezoid'` only — last stage's bottom edge:
+     * 'flat' (default, parallel sides) or 'taper' (taper to a point).
+     */
+    lastShape?: 'flat' | 'taper'
+  }
+  treemap?: {
+    enableShades?: boolean
+    shadeIntensity?: number
+    distributed?: boolean
+    reverseNegativeShade?: boolean
+    useFillColorAsStroke?: boolean
+    dataLabels?: { format?: 'scale' | 'truncate' }
+    borderRadius?: number
+    colorScale?: {
+      inverse?: boolean
+      ranges?: {
+        from?: number
+        to?: number
+        color?: string
+        foreColor?: string
+        name?: string
+      }[];
+      min?: number
+      max?: number
+    };
+    seriesTitle?: {
+      show?: boolean,
+      offsetY?: number,
+      offsetX?: number,
+      borderColor?: string,
+      borderWidth?: number,
+      borderRadius?: number,
+      style?: {
+        background?: string,
+        color?: string,
+        fontSize?: string,
+        fontFamily?: string,
+        fontWeight?: number | string,
+        cssClass?: string,
+        padding?: {
+          left?: number,
+          right?: number,
+          top?: number,
+          bottom?: number,
+        },
+      },
+    }
+  }
+  pie?: {
+    startAngle?: number
+    endAngle?: number
+    customScale?: number
+    offsetX?: number
+    offsetY?: number
+    expandOnClick?: boolean
+    dataLabels?: {
+      offset?: number
+      minAngleToShowLabel?: number
+      /**
+       * External (outer) labels: render the category/series name outside the
+       * slice, joined by a leader (connector) line, so the chart is readable
+       * without the legend. The percentage keeps rendering inside the slice.
+       * Applies to pie and donut only (ignored for polarArea, where the radial
+       * length already encodes the value).
+       */
+      external?: {
+        show?: boolean
+        offsetX?: number
+        offsetY?: number
+        fontSize?: string
+        fontFamily?: string
+        fontWeight?: string | number
+        color?: string
+        /**
+         * Return a string for a single-line label, or an array of strings to
+         * stack multiple lines (e.g. `[name, percent + '%']`).
+         */
+        formatter?(
+          name: string,
+          opts: {
+            seriesIndex: number
+            percent: number
+            value: number
+            w: ApexChartContext
+          }
+        ): string | string[]
+        /** Leader line from the slice edge to the label. */
+        connector?: {
+          show?: boolean
+          width?: number
+          color?: string
+          length?: number
+          gap?: number
+        }
+      }
+    }
+    donut?: {
+      size?: string
+      background?: string
+      labels?: {
+        show?: boolean
+        name?: {
+          show?: boolean
+          fontSize?: string
+          fontFamily?: string
+          fontWeight?: string | number
+          color?: string
+          offsetY?: number,
+          formatter?(val: string): string
+        }
+        value?: {
+          show?: boolean
+          fontSize?: string
+          fontFamily?: string
+          fontWeight?: string | number
+          color?: string
+          offsetY?: number
+          formatter?(val: number | string): string
+        }
+        total?: {
+          show?: boolean
+          showAlways?: boolean
+          fontFamily?: string
+          fontWeight?: string | number
+          fontSize?: string
+          label?: string
+          color?: string
+          formatter?(w: ApexChartContext): string
+        }
+      }
+    }
+  }
+  polarArea?: {
+    rings?: {
+      strokeWidth?: number
+      strokeColor?: string
+    }
+    spokes?: {
+      strokeWidth?: number;
+      connectorColors?: string | string[];
+    };
+  }
+  radar?: {
+    size?: number
+    offsetX?: number
+    offsetY?: number
+    polygons?: {
+      strokeColors?: string | string[]
+      strokeWidth?: number | number[] | string | string[]
+      connectorColors?: string | string[]
+      fill?: {
+        colors?: string[]
+      }
+    }
+  }
+  radialBar?: {
+    inverseOrder?: boolean
+    startAngle?: number
+    endAngle?: number
+    offsetX?: number
+    offsetY?: number
+    /**
+     * Gauge sub-shape. 'arc' (default) renders the existing filled value-arc
+     * gauge; 'needle' replaces the value-arc with a rotating pointer/needle.
+     * Bands and ticks are independent and work for both shapes.
+     */
+    shape?: 'arc' | 'needle'
+    /**
+     * Value-to-angle mapping (gauge). Defaults: min: 0, max: 100. Override
+     * for gauges with a custom domain (e.g. min: 0, max: 240 speedometer).
+     */
+    min?: number
+    max?: number
+    /**
+     * Threshold bands rendered as colored arc segments along the gauge arc.
+     * Each band spans [`from`, `to`] in the gauge's `min..max` domain and is
+     * filled with `color`.
+     */
+    bands?: Array<{
+      from: number
+      to: number
+      color: string
+      label?: string
+    }>
+    bandsStyle?: {
+      strokeWidth?: string
+      gap?: number
+      hideTrackWhenPresent?: boolean
+      linecap?: 'butt' | 'round' | 'square'
+    }
+    ticks?: {
+      show?: boolean
+      major?: {
+        count?: number
+        length?: number
+        width?: number
+        color?: string
+        placement?: 'inside' | 'outside'
+      }
+      minor?: {
+        count?: number
+        length?: number
+        width?: number
+        color?: string
+        placement?: 'inside' | 'outside'
+      }
+      labels?: {
+        show?: boolean
+        offset?: number
+        fontSize?: string
+        fontFamily?: string
+        fontWeight?: string | number
+        color?: string
+        formatter?: (value: number) => string
+      }
+    }
+    needle?: {
+      color?: string
+      length?: string | number
+      baseWidth?: number
+      tipWidth?: number
+      /**
+       * When true, also render the filled value-arc alongside the needle.
+       * Default false preserves needle-only behavior.
+       */
+      showValueArc?: boolean
+      /**
+       * px offset from the geometric arc center on Y. Positive values push
+       * the needle base down (toward the chord midpoint of a ∩-shape
+       * gauge); negative pushes up. The needle rotates around this shifted
+       * point.
+       */
+      offsetY?: number
+      animation?: {
+        enabled?: boolean
+        duration?: number
+        easing?: string
+      }
+    }
+    hollow?: {
+      margin?: number
+      size?: string
+      background?: string
+      image?: string
+      imageWidth?: number
+      imageHeight?: number
+      imageOffsetX?: number
+      imageOffsetY?: number
+      imageClipped?: boolean
+      position?: 'front' | 'back'
+      /**
+       * Optional stroke color around the hollow ring. Combined with
+       * `strokeDasharray` this produces a dashed indicator circle around
+       * the value text.
+       */
+      stroke?: string
+      strokeWidth?: number
+      strokeDasharray?: string | number
+      dropShadow?: ApexDropShadow
+    }
+    track?: {
+      show?: boolean
+      startAngle?: number
+      endAngle?: number
+      background?: string | string[]
+      strokeWidth?: string
+      opacity?: number
+      margin?: number
+      dropShadow?: ApexDropShadow
+    }
+    dataLabels?: {
+      show?: boolean
+      name?: {
+        show?: boolean
+        fontFamily?: string
+        fontWeight?: string | number
+        fontSize?: string
+        color?: string
+        offsetY?: number
+        formatter?(seriesName: string): string
+      }
+      value?: {
+        show?: boolean
+        fontFamily?: string
+        fontSize?: string
+        fontWeight?: string | number
+        color?: string
+        offsetY?: number
+        formatter?(val: number): string
+      }
+      total?: {
+        show?: boolean
+        label?: string
+        color?: string
+        fontFamily?: string
+        fontWeight?: string | number
+        fontSize?: string
+        formatter?(w: ApexChartContext): string
+      }
+    }
+    barLabels?: {
+      enabled?: boolean
+      offsetX?: number
+      offsetY?: number
+      useSeriesColors?: boolean
+      fontFamily?: string
+      fontWeight?: string | number
+      fontSize?: string
+      formatter?: (barName: string, opts?: ApexFormatterOpts) => string
+      onClick?: (barName: string, opts?: ApexFormatterOpts) => void
+    }
+  }
+}
+
+type ApexColorStop = {
+  offset: number
+  color: string
+  opacity: number
+}
+
+type ApexFill = {
+  colors?: string[]
+  opacity?: number | number[]
+  type?: string | string[]
+  gradient?: {
+    shade?: string
+    type?: string
+    shadeIntensity?: number
+    gradientToColors?: string[]
+    inverseColors?: boolean
+    opacityFrom?: number | number[]
+    opacityTo?: number | number[]
+    stops?: number[],
+    colorStops?: ApexColorStop[][] | ApexColorStop[]
+  }
+  image?: {
+    src?: string | string[]
+    width?: number
+    height?: number
+  }
+  pattern?: {
+    style?: string | string[]
+    width?: number
+    height?: number
+    strokeWidth?: number
+  }
+}
+
+/**
+ * Chart Legend configuration options.
+ * See https://apexcharts.com/docs/options/legend/
+ */
+type ApexLegend = {
+  show?: boolean
+  showForSingleSeries?: boolean
+  showForNullSeries?: boolean
+  showForZeroSeries?: boolean
+  floating?: boolean
+  inverseOrder?: boolean
+  position?: 'top' | 'right' | 'bottom' | 'left'
+  horizontalAlign?: 'left' | 'center' | 'right'
+  fontSize?: string
+  fontFamily?: string
+  fontWeight?: string | number
+  width?: number
+  height?: number
+  offsetX?: number
+  offsetY?: number
+  formatter?(legendName: string, opts?: ApexLegendFormatterOpts): string
+  tooltipHoverFormatter?(legendName: string, opts?: ApexLegendFormatterOpts): string
+  customLegendItems?: string[]
+  clusterGroupedSeries?: boolean;
+  clusterGroupedSeriesOrientation?: 'vertical' | 'horizontal';
+  labels?: {
+    colors?: string | string[]
+    useSeriesColors?: boolean
+  }
+  markers?: {
+    size?: number
+    strokeWidth?: number
+    fillColors?: string[]
+    shape?: ApexMarkerShape
+    offsetX?: number
+    offsetY?: number
+    customHTML?(): string
+    onClick?(e: MouseEvent): void
+  }
+  itemMargin?: {
+    horizontal?: number
+    vertical?: number
+  }
+  onItemClick?: {
+    toggleDataSeries?: boolean
+  }
+  onItemHover?: {
+    highlightDataSeries?: boolean
+  }
+}
+
+type MarkerShapeOptions = "circle" | "square" | "rect" | "line" | 'cross' | 'plus' | 'star' | 'sparkle' | 'diamond' | 'triangle'
+
+type ApexMarkerShape = MarkerShapeOptions | MarkerShapeOptions[]
+
+type ApexDiscretePoint = {
+  seriesIndex?: number
+  dataPointIndex?: number
+  fillColor?: string
+  strokeColor?: string
+  size?: number
+  shape?: ApexMarkerShape
+}
+
+type ApexMarkers = {
+  size?: number | number[]
+  colors?: string | string[]
+  strokeColors?: string | string[]
+  strokeWidth?: number | number[]
+  strokeOpacity?: number | number[]
+  strokeDashArray?: number | number[]
+  fillOpacity?: number | number[]
+  discrete?: ApexDiscretePoint[]
+  shape?: ApexMarkerShape
+  offsetX?: number
+  offsetY?: number
+  showNullDataPoints?: boolean
+  onClick?(e?: MouseEvent): void
+  onDblClick?(e?: MouseEvent): void
+  hover?: {
+    size?: number
+    sizeOffset?: number
+  }
+}
+
+type ApexNoData = {
+  text?: string
+  align?: 'left' | 'right' | 'center'
+  verticalAlign?: 'top' | 'middle' | 'bottom'
+  offsetX?: number
+  offsetY?: number
+  style?: {
+    color?: string
+    fontSize?: string
+    fontFamily?: string
+  }
+}
+
+type ApexParsing = {
+  x?: string;
+  y?: string | string[];
+  z?: string;
+}
+
+/**
+ * Chart Datalabels options
+ * See https://apexcharts.com/docs/options/datalabels/
+ */
+type ApexDataLabels = {
+  enabled?: boolean
+  enabledOnSeries?: undefined | number[]
+  textAnchor?: 'start' | 'middle' | 'end'
+  distributed?: boolean
+  offsetX?: number
+  offsetY?: number
+  style?: {
+    fontSize?: string
+    fontFamily?: string
+    fontWeight?: string | number
+    colors?: string[]
+  }
+  background?: {
+    enabled?: boolean
+    foreColor?: string
+    backgroundColor?: string
+    borderRadius?: number
+    padding?: number
+    opacity?: number
+    borderWidth?: number
+    borderColor?: string
+    dropShadow?: ApexDropShadow
+  }
+  dropShadow?: ApexDropShadow
+  formatter?(val: string | number | number[], opts?: ApexFormatterOpts): string | number | (string | number)[]
+}
+
+type ApexResponsive = {
+  breakpoint?: number
+  options?: ApexCharts.ApexOptions
+}
+
+type ApexTooltipY = {
+  title?: {
+    formatter?(seriesName: string, opts?: ApexFormatterOpts): string
+  }
+  formatter?(val: number, opts?: ApexFormatterOpts): string
+}
+
+/**
+ * Chart Tooltip options
+ * See https://apexcharts.com/docs/options/tooltip/
+ */
+type ApexTooltip = {
+  enabled?: boolean
+  enabledOnSeries?: undefined | number[]
+  shared?: boolean
+  followCursor?: boolean
+  intersect?: boolean
+  inverseOrder?: boolean
+  arrow?: boolean
+  custom?:
+    | ((opts: ApexTooltipCustomOpts) => string | number | Element | { nodeName: string })
+    | Array<(opts: ApexTooltipCustomOpts) => string | number | Element | { nodeName: string }>
+  fillSeriesColor?: boolean
+  theme?: 'light' | 'dark'
+  cssClass?: string
+  hideEmptySeries?: boolean
+  style?: {
+    fontSize?: string
+    fontFamily?: string
+    background?: string
+  }
+  onDatasetHover?: {
+    highlightDataSeries?: boolean
+  }
+  x?: {
+    show?: boolean
+    format?: string
+    formatter?(val: string | number, opts?: ApexFormatterOpts): string
+  }
+  y?: ApexTooltipY | ApexTooltipY[]
+  z?: {
+    title?: string
+    formatter?(val: number): string
+  }
+  marker?: {
+    show?: boolean
+    fillColors?: string[]
+  }
+  items?: {
+    display?: string
+  }
+  fixed?: {
+    enabled?: boolean
+    position?: string // topRight; topLeft; bottomRight; bottomLeft
+    offsetX?: number
+    offsetY?: number
+  }
+}
+
+/**
+ * X Axis options
+ * See https://apexcharts.com/docs/options/xaxis/
+ */
+type ApexXAxis = {
+  type?: 'category' | 'datetime' | 'numeric'
+  /**
+   * X-axis category labels. Pass a flat array for a single row of labels,
+   * or a 2-D array (`[group, label][]`) to render grouped category axes.
+   */
+  categories?: Array<string | number> | Array<Array<string | number>>;
+  overwriteCategories?: number[] | string[] | undefined;
+  offsetX?: number;
+  offsetY?: number;
+  sorted?: boolean;
+  labels?: {
+    show?: boolean
+    rotate?: number
+    rotateAlways?: boolean
+    hideOverlappingLabels?: boolean
+    showDuplicates?: boolean
+    trim?: boolean
+    minHeight?: number
+    maxHeight?: number
+    style?: {
+      colors?: string | string[]
+      fontSize?: string
+      fontFamily?: string
+      fontWeight?: string | number
+      cssClass?: string
+    }
+    offsetX?: number
+    offsetY?: number
+    format?: string
+    formatter?(value: string | number, timestamp?: number, opts?: ApexFormatterOpts): string | string[]
+    datetimeUTC?: boolean
+    datetimeFormatter?: {
+      year?: string
+      month?: string
+      day?: string
+      hour?: string
+      minute?: string
+      second?: string
+    }
+  }
+  group?: {
+    groups?: { title: string, cols: number }[],
+    style?: {
+      colors?: string | string[]
+      fontSize?: string
+      fontFamily?: string
+      fontWeight?: string | number
+      cssClass?: string
+    }
+  }
+  axisBorder?: {
+    show?: boolean
+    color?: string
+    height?: number
+    offsetX?: number
+    offsetY?: number
+  }
+  axisTicks?: {
+    show?: boolean
+    borderType?: 'solid' | 'dotted' | 'dashed'
+    color?: string
+    height?: number
+    offsetX?: number
+    offsetY?: number
+  }
+  tickPlacement?: string
+  tickAmount?: number | 'dataPoints'
+  stepSize?: number
+  min?: number
+  max?: number
+  range?: number
+  floating?: boolean
+  decimalsInFloat?: number
+  position?: string
+  title?: {
+    text?: string
+    offsetX?: number
+    offsetY?: number
+    style?: {
+      color?: string
+      fontFamily?: string
+      fontWeight?: string | number
+      fontSize?: string
+      cssClass?: string
+    }
+  }
+  crosshairs?: {
+    show?: boolean
+    width?: number | string
+    position?: string
+    opacity?: number
+    stroke?: {
+      color?: string
+      width?: number
+      dashArray?: number
+    }
+    fill?: {
+      type?: string
+      color?: string
+      gradient?: {
+        colorFrom?: string
+        colorTo?: string
+        stops?: number[]
+        opacityFrom?: number
+        opacityTo?: number
+      }
+    }
+    dropShadow?: ApexDropShadow
+  }
+  tooltip?: {
+    enabled?: boolean
+    offsetY?: number
+    formatter?(value: string | number, opts?: ApexFormatterOpts): string
+    style?: {
+      fontSize?: string
+      fontFamily?: string
+    }
+  }
+}
+
+/**
+ * Y Axis options
+ * See https://apexcharts.com/docs/options/yaxis/
+ */
+
+type ApexYAxis = {
+  show?: boolean
+  showAlways?: boolean
+  showForNullSeries?: boolean
+  seriesName?: string | string[]
+  opposite?: boolean
+  reversed?: boolean
+  logarithmic?: boolean,
+  logBase?: number,
+  tickAmount?: number
+  stepSize?: number
+  forceNiceScale?: boolean
+  alignZero?: boolean
+  min?: number | ((min: number) => number)
+  max?: number | ((max: number) => number)
+  floating?: boolean
+  decimalsInFloat?: number
+  labels?: {
+    show?: boolean
+    showDuplicates?: boolean
+    minWidth?: number
+    maxWidth?: number
+    offsetX?: number
+    offsetY?: number
+    rotate?: number
+    align?: 'left' | 'center' | 'right'
+    padding?: number
+    style?: {
+      colors?: string | string[]
+      fontSize?: string
+      fontWeight?: string | number
+      fontFamily?: string
+      cssClass?: string
+    }
+    formatter?(val: number, opts?: ApexFormatterOpts): string | string[]
+  }
+  axisBorder?: {
+    show?: boolean
+    color?: string
+    width?: number
+    offsetX?: number
+    offsetY?: number
+  }
+  axisTicks?: {
+    show?: boolean
+    color?: string
+    width?: number
+    offsetX?: number
+    offsetY?: number
+  }
+  title?: {
+    text?: string
+    rotate?: number
+    offsetX?: number
+    offsetY?: number
+    style?: {
+      color?: string
+      fontSize?: string
+      fontWeight?: string | number
+      fontFamily?: string
+      cssClass?: string
+    }
+  }
+  crosshairs?: {
+    show?: boolean
+    position?: string
+    stroke?: {
+      color?: string
+      width?: number
+      dashArray?: number
+    }
+  }
+  tooltip?: {
+    enabled?: boolean
+    offsetX?: number
+  }
+}
+
+type ApexForecastDataPoints = {
+  count?: number
+  fillOpacity?: number
+  strokeWidth?: undefined | number
+  dashArray?: number
+}
+
+/**
+ * Plot X and Y grid options
+ * See https://apexcharts.com/docs/options/grid/
+ */
+type ApexGrid = {
+  show?: boolean
+  borderColor?: string
+  strokeDashArray?: number
+  position?: 'front' | 'back'
+  xaxis?: {
+    lines?: {
+      show?: boolean
+      offsetX?: number
+      offsetY?: number
+    }
+  }
+  yaxis?: {
+    lines?: {
+      show?: boolean
+      offsetX?: number
+      offsetY?: number
+    }
+  }
+  row?: {
+    colors?: string[]
+    opacity?: number
+  }
+  column?: {
+    colors?: string[]
+    opacity?: number
+  }
+  padding?: {
+    top?: number
+    right?: number
+    bottom?: number
+    left?: number
+  }
+}
+
+type ApexTheme = {
+  mode?: 'light' | 'dark'
+  palette?: string
+  monochrome?: {
+    enabled?: boolean
+    color?: string
+    shadeTo?: 'light' | 'dark'
+    shadeIntensity?: number
+  }
+  accessibility?: {
+    colorBlindMode?: 'deuteranopia' | 'protanopia' | 'tritanopia' | 'highContrast' | ''
+  }
+}
+
+export = ApexCharts;
+export as namespace ApexCharts;

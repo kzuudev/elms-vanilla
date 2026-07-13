@@ -1,0 +1,157 @@
+// @ts-check
+import Utils from '../../utils/Utils'
+import Helpers from './Helpers'
+import { applyProgressiveReveal } from '../Animations'
+
+export default class PointAnnotations {
+  /**
+   * @param {import('./Annotations').default} annoCtx
+   */
+  constructor(annoCtx) {
+    this.w = annoCtx.w
+    this.annoCtx = annoCtx
+    this.helpers = new Helpers(this.annoCtx)
+  }
+
+  /**
+   * @param {Record<string, any>} anno
+   * @param {Element} parent
+   * @param {number} index
+   */
+  addPointAnnotation(anno, parent, index) {
+    const w = this.w
+
+    if (w.globals.collapsedSeriesIndices.indexOf(anno.seriesIndex) > -1) {
+      return
+    }
+
+    const resultX = this.helpers.getX1X2('x1', anno)
+    const x = resultX.x
+    const clipX = resultX.clipped
+    const resultY = this.helpers.getY1Y2('y1', anno)
+    const y = resultY.yP
+    const clipY = resultY.clipped
+
+    if (!Utils.isNumber(x)) return
+
+    if (!(clipY || clipX)) {
+      const optsPoints = {
+        pSize: anno.marker.size,
+        pointStrokeWidth: anno.marker.strokeWidth,
+        pointFillColor: anno.marker.fillColor,
+        pointStrokeColor: anno.marker.strokeColor,
+        shape: anno.marker.shape,
+        pRadius: anno.marker.radius,
+        class: `apexcharts-point-annotation-marker ${anno.marker.cssClass} ${
+          anno.id ? anno.id : ''
+        }`,
+      }
+
+      let point = this.annoCtx.graphics.drawMarker(
+        x + anno.marker.offsetX,
+        y + anno.marker.offsetY,
+        optsPoints,
+      )
+
+      parent.appendChild(point.node)
+
+      // Progressive reveal — fades in when the line's pen-stroke reaches x.
+      applyProgressiveReveal(point, x, w)
+
+      const text = anno.label.text ? anno.label.text : ''
+
+      const elText = this.annoCtx.graphics.drawText({
+        x: x + anno.label.offsetX,
+        y:
+          y +
+          anno.label.offsetY -
+          anno.marker.size -
+          parseFloat(anno.label.style.fontSize) / 1.6,
+        text,
+        textAnchor: anno.label.textAnchor,
+        fontSize: anno.label.style.fontSize,
+        fontFamily: anno.label.style.fontFamily,
+        fontWeight: anno.label.style.fontWeight,
+        foreColor: anno.label.style.color,
+        cssClass: `apexcharts-point-annotation-label ${
+          anno.label.style.cssClass
+        } ${anno.id ? anno.id : ''}`,
+      })
+
+      elText.attr({
+        rel: index,
+      })
+
+      parent.appendChild(elText.node)
+      applyProgressiveReveal(elText, x, w)
+
+      // TODO: deprecate this as we will use custom
+      if (anno.customSVG.SVG) {
+        const g = this.annoCtx.graphics.group({
+          class:
+            'apexcharts-point-annotations-custom-svg ' +
+            anno.customSVG.cssClass,
+        })
+
+        g.attr({
+          transform: `translate(${x + anno.customSVG.offsetX}, ${
+            y + anno.customSVG.offsetY
+          })`,
+        })
+
+        g.node.innerHTML = anno.customSVG.SVG
+        parent.appendChild(g.node)
+      }
+
+      if (anno.image.path) {
+        const imgWidth = anno.image.width ? anno.image.width : 20
+        const imgHeight = anno.image.height ? anno.image.height : 20
+
+        point = this.annoCtx.addImage({
+          x: x + anno.image.offsetX - imgWidth / 2,
+          y: y + anno.image.offsetY - imgHeight / 2,
+          width: imgWidth,
+          height: imgHeight,
+          path: anno.image.path,
+          appendTo: '.apexcharts-point-annotations',
+        })
+      }
+
+      if (anno.mouseEnter) {
+        point.node.addEventListener(
+          'mouseenter',
+          anno.mouseEnter.bind(this, anno),
+        )
+      }
+      if (anno.mouseLeave) {
+        point.node.addEventListener(
+          'mouseleave',
+          anno.mouseLeave.bind(this, anno),
+        )
+      }
+      if (anno.click) {
+        point.node.addEventListener('click', anno.click.bind(this, anno))
+      }
+    }
+  }
+
+  drawPointAnnotations() {
+    const w = this.w
+
+    const elg = this.annoCtx.graphics.group({
+      class: 'apexcharts-point-annotations',
+    })
+
+    /**
+     * @param {Record<string, any>} anno
+     * @param {number} index
+     */
+    w.config.annotations.points.map(
+      (/** @type {any} */ anno, /** @type {any} */ index) => {
+        this.addPointAnnotation(anno, elg.node, index)
+      },
+    )
+
+    return elg
+  }
+}

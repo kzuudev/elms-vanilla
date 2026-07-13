@@ -101,3 +101,30 @@ export type TotalEmployee = {
     total_inactive_employees: number,
     total_departs_employees: number,
 }
+
+
+// Pending Leave Request possible to overlap
+export type OverlappingLeave = {
+    id: number;
+    employee_first_name: string;
+    employee_last_name: string;
+    start_date: string;
+    total_days: number;
+    end_date: string;
+    leave_type_id: number;
+    leave_request_status: string;
+    leave_type_name: string;
+}
+
+export type LeaveOverlap = {
+    user_id: number;
+    first_name: string;
+    last_name: string;
+    leave_type: string;
+    leave_status: string;
+    total_days: number;
+    department: string;
+    start_date: string;
+    end_date: string;
+    overlap: OverlappingLeave[];
+}

@@ -1,0 +1,325 @@
+// @ts-check
+import apexchartsLegendCSS from '../../assets/apexcharts-legend.css'
+import Utils from '../../utils/Utils'
+import Graphics from '../Graphics'
+import { Environment } from '../../utils/Environment.js'
+
+export default class Helpers {
+  /**
+   * @param {import('./Legend').default} lgCtx
+   */
+  constructor(lgCtx) {
+    this.w = lgCtx.w
+    this.lgCtx = lgCtx
+  }
+
+  getLegendStyles() {
+    if (Environment.isSSR()) return null
+
+    const stylesheet = document.createElement('style')
+    stylesheet.setAttribute('type', 'text/css')
+    const nonce = this.w.config.chart.nonce
+    if (nonce) {
+      stylesheet.setAttribute('nonce', nonce)
+    }
+
+    const rule = document.createTextNode(apexchartsLegendCSS)
+    stylesheet.appendChild(rule)
+    return stylesheet
+  }
+
+  getLegendDimensions() {
+    const w = this.w
+    const currLegendsWrap = w.dom.baseEl.querySelector('.apexcharts-legend')
+    if (!currLegendsWrap) {
+      return { clwh: 0, clww: 0 }
+    }
+    const { width: currLegendsWrapWidth, height: currLegendsWrapHeight } =
+      currLegendsWrap.getBoundingClientRect()
+
+    return {
+      clwh: currLegendsWrapHeight,
+      clww: currLegendsWrapWidth,
+    }
+  }
+
+  appendToForeignObject() {
+    const legendStyles = this.getLegendStyles()
+    if (this.w.config.chart.injectStyleSheet !== false && legendStyles) {
+      this.w.dom.elLegendForeign?.appendChild(legendStyles)
+    }
+  }
+
+  /**
+   * @param {number} seriesCnt
+   * @param {boolean} isHidden
+   */
+  toggleDataSeries(seriesCnt, isHidden) {
+    const w = this.w
+    if (w.globals.axisCharts || w.config.chart.type === 'radialBar') {
+      w.globals.resized = true // we don't want initial animations again
+
+      let seriesEl = null
+
+      /** @type {number | null} */
+      let realIndex = null
+
+      // yes, make it null. 1 series will rise at a time
+      w.globals.risingSeries = []
+
+      if (w.globals.axisCharts) {
+        seriesEl = w.dom.baseEl.querySelector(
+          `.apexcharts-series[data\\:realIndex='${seriesCnt}']`,
+        )
+        if (!seriesEl) return
+        realIndex = parseInt(seriesEl.getAttribute('data:realIndex') ?? '', 10)
+      } else {
+        seriesEl = w.dom.baseEl.querySelector(
+          `.apexcharts-series[rel='${seriesCnt + 1}']`,
+        )
+        if (!seriesEl) return
+        realIndex = parseInt(seriesEl.getAttribute('rel') ?? '', 10) - 1
+      }
+
+      if (isHidden) {
+        const seriesToMakeVisible = [
+          {
+            cs: w.globals.collapsedSeries,
+            csi: w.globals.collapsedSeriesIndices,
+          },
+          {
+            cs: w.globals.ancillaryCollapsedSeries,
+            csi: w.globals.ancillaryCollapsedSeriesIndices,
+          },
+        ]
+        seriesToMakeVisible.forEach((r) => {
+          const cs = /** @type {any} */ (r).cs
+          const csi = /** @type {any} */ (r).csi
+          this.riseCollapsedSeries(cs, csi, /** @type {number} */ (realIndex))
+        })
+      } else {
+        this.hideSeries({ seriesEl, realIndex })
+      }
+
+      // Update ARIA attributes for accessibility (axis charts)
+      if (w.config.chart.accessibility.enabled) {
+        const legendItem = w.dom.baseEl.querySelector(
+          `.apexcharts-legend-series[rel="${seriesCnt + 1}"]`,
+        )
+        if (legendItem) {
+          const isCollapsed =
+            w.globals.collapsedSeriesIndices.includes(realIndex) ||
+            w.globals.ancillaryCollapsedSeriesIndices.includes(realIndex)
+          legendItem.setAttribute(
+            'aria-pressed',
+            isCollapsed ? 'true' : 'false',
+          )
+
+          // Update aria-label - get text from legend text element
+          const legendTextEl = legendItem.querySelector(
+            '.apexcharts-legend-text',
+          )
+          const seriesName = legendTextEl
+            ? legendTextEl.textContent
+            : w.seriesData.seriesNames[seriesCnt]
+          const statusText = isCollapsed ? 'hidden' : 'visible'
+          legendItem.setAttribute(
+            'aria-label',
+            `${seriesName}, ${statusText}. Press Enter or Space to toggle.`,
+          )
+        }
+      }
+    } else {
+      // for non-axis charts i.e pie / donuts
+      const seriesEl = w.dom.Paper.findOne(
+        ` .apexcharts-series[rel='${seriesCnt + 1}'] path`,
+      )
+
+      const type = w.config.chart.type
+      if (type === 'pie' || type === 'polarArea' || type === 'donut') {
+        const dataLabels = w.config.plotOptions.pie.donut.labels
+
+        const graphics = new Graphics(this.w)
+        graphics.pathMouseDown(seriesEl, null)
+        this.lgCtx.printDataLabelsInner(seriesEl.node, dataLabels)
+      }
+
+      // Update ARIA attributes for accessibility (non-axis charts)
+      if (w.config.chart.accessibility.enabled) {
+        const legendItem = w.dom.baseEl.querySelector(
+          `.apexcharts-legend-series[rel="${seriesCnt + 1}"]`,
+        )
+        if (legendItem) {
+          const isCollapsed =
+            w.globals.collapsedSeriesIndices.includes(seriesCnt)
+          legendItem.setAttribute(
+            'aria-pressed',
+            isCollapsed ? 'true' : 'false',
+          )
+
+          // Update aria-label - get text from legend text element
+          const legendTextEl = legendItem.querySelector(
+            '.apexcharts-legend-text',
+          )
+          const seriesName = legendTextEl
+            ? legendTextEl.textContent
+            : w.seriesData.seriesNames[seriesCnt]
+          const statusText = isCollapsed ? 'hidden' : 'visible'
+          legendItem.setAttribute(
+            'aria-label',
+            `${seriesName}, ${statusText}. Press Enter or Space to toggle.`,
+          )
+        }
+      }
+    }
+  }
+
+  /** @param {{realIndex: any}} opts */
+  getSeriesAfterCollapsing({ realIndex }) {
+    const w = this.w
+    const gl = w.globals
+
+    const series = Utils.clone(w.config.series)
+
+    if (gl.axisCharts) {
+      const yaxis = w.config.yaxis[gl.seriesYAxisReverseMap[realIndex]]
+
+      const collapseData = {
+        index: realIndex,
+        data: series[realIndex].data.slice(),
+        type: series[realIndex].type || w.config.chart.type,
+      }
+      if (yaxis && yaxis.show && yaxis.showAlways) {
+        if (gl.ancillaryCollapsedSeriesIndices.indexOf(realIndex) < 0) {
+          gl.ancillaryCollapsedSeries.push(collapseData)
+          gl.ancillaryCollapsedSeriesIndices.push(realIndex)
+        }
+      } else {
+        if (gl.collapsedSeriesIndices.indexOf(realIndex) < 0) {
+          gl.collapsedSeries.push(collapseData)
+          gl.collapsedSeriesIndices.push(realIndex)
+
+          const removeIndexOfRising = gl.risingSeries.indexOf(realIndex)
+          gl.risingSeries.splice(removeIndexOfRising, 1)
+        }
+      }
+    } else {
+      gl.collapsedSeries.push({
+        index: realIndex,
+        data: series[realIndex],
+        type: /** @type {any} */ (w.config.series[realIndex]).type ?? 'line',
+      })
+      gl.collapsedSeriesIndices.push(realIndex)
+    }
+
+    gl.allSeriesCollapsed =
+      gl.collapsedSeries.length + gl.ancillaryCollapsedSeries.length ===
+      w.config.series.length
+
+    return this._getSeriesBasedOnCollapsedState(series)
+  }
+
+  /** @param {{seriesEl: any, realIndex: any}} opts */
+  hideSeries({ seriesEl, realIndex }) {
+    const w = this.w
+
+    const series = this.getSeriesAfterCollapsing({
+      realIndex,
+    })
+
+    const seriesChildren = seriesEl.childNodes
+    for (let sc = 0; sc < seriesChildren.length; sc++) {
+      if (
+        seriesChildren[sc].classList.contains('apexcharts-series-markers-wrap')
+      ) {
+        if (seriesChildren[sc].classList.contains('apexcharts-hide')) {
+          seriesChildren[sc].classList.remove('apexcharts-hide')
+        } else {
+          seriesChildren[sc].classList.add('apexcharts-hide')
+        }
+      }
+    }
+
+    this.lgCtx.updateSeries(
+      series,
+      w.config.chart.animations.dynamicAnimation.enabled,
+    )
+  }
+
+  /**
+   * @param {any[]} collapsedSeries
+   * @param {number[]} seriesIndices
+   * @param {number} realIndex
+   */
+  riseCollapsedSeries(collapsedSeries, seriesIndices, realIndex) {
+    const w = this.w
+    let series = Utils.clone(w.config.series)
+
+    if (collapsedSeries.length > 0) {
+      for (let c = 0; c < collapsedSeries.length; c++) {
+        if (collapsedSeries[c].index === realIndex) {
+          if (w.globals.axisCharts) {
+            series[realIndex].data = collapsedSeries[c].data.slice()
+          } else {
+            series[realIndex] = collapsedSeries[c].data
+          }
+          if (typeof series[realIndex] !== 'number') {
+            series[realIndex].hidden = false
+          }
+          collapsedSeries.splice(c, 1)
+          seriesIndices.splice(c, 1)
+          w.globals.risingSeries.push(realIndex)
+          c--
+        }
+      }
+
+      series = this._getSeriesBasedOnCollapsedState(series)
+
+      this.lgCtx.updateSeries(
+        series,
+        w.config.chart.animations.dynamicAnimation.enabled,
+      )
+    }
+  }
+
+  /**
+   * @param {any[]} series
+   */
+  _getSeriesBasedOnCollapsedState(series) {
+    const w = this.w
+    let collapsed = 0
+
+    if (w.globals.axisCharts) {
+      /**
+       * @param {any} s
+       * @param {number} sI
+       */
+      series.forEach((s, sI) => {
+        if (
+          !(
+            w.globals.collapsedSeriesIndices.indexOf(sI) < 0 &&
+            w.globals.ancillaryCollapsedSeriesIndices.indexOf(sI) < 0
+          )
+        ) {
+          series[sI].data = []
+          collapsed++
+        }
+      })
+    } else {
+      /**
+       * @param {any} s
+       * @param {number} sI
+       */
+      series.forEach((s, sI) => {
+        if (!(w.globals.collapsedSeriesIndices.indexOf(sI) < 0)) {
+          series[sI] = 0
+          collapsed++
+        }
+      })
+    }
+
+    w.globals.allSeriesCollapsed = collapsed === series.length
+
+    return series
+  }
+}

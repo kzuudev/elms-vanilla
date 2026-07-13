@@ -1,0 +1,213 @@
+// @ts-check
+import Utils from './../utils/Utils'
+
+/**
+ * ApexCharts Filters Class for setting hover/active states on the paths.
+ *
+ * @module Formatters
+ **/
+class Filters {
+  /**
+   * @param {import('../types/internal').ChartStateW} w
+   */
+  constructor(w) {
+    this.w = w
+  }
+
+  // create a re-usable filter which can be appended other filter effects and applied to multiple elements
+  /**
+   * @param {any} el
+   * @param {number} i
+   */
+  getDefaultFilter(el, i) {
+    const w = this.w
+    if (el.unfilter) {
+      el.unfilter(true)
+    }
+
+    if (w.config.chart.dropShadow.enabled) {
+      this.dropShadow(el, w.config.chart.dropShadow, i)
+    }
+  }
+
+  /**
+   * @param {any} el
+   * @param {number} i
+   * @param {string} filterType
+   */
+  applyFilter(el, i, filterType) {
+    const w = this.w
+    if (el.unfilter) {
+      el.unfilter(true)
+    }
+
+    if (filterType === 'none') {
+      this.getDefaultFilter(el, i)
+      return
+    }
+
+    const shadowAttr = w.config.chart.dropShadow
+    const brightnessFactor = filterType === 'lighten' ? 2 : 0.3
+
+    if (el.filterWith) {
+      /**
+       * @param {any} add
+       */
+      el.filterWith((/** @type {any} */ add) => {
+        add.colorMatrix({
+          type: 'matrix',
+          values: `
+            ${brightnessFactor} 0 0 0 0
+            0 ${brightnessFactor} 0 0 0
+            0 0 ${brightnessFactor} 0 0
+            0 0 0 1 0
+          `,
+          in: 'SourceGraphic',
+          result: 'brightness',
+        })
+
+        if (shadowAttr.enabled) {
+          this.addShadow(add, i, shadowAttr, 'brightness')
+        }
+      })
+
+      if (!shadowAttr.noUserSpaceOnUse) {
+        el.filterer()?.node?.setAttribute('filterUnits', 'userSpaceOnUse')
+      }
+
+      // this scales the filter to a bigger size so that the dropshadow doesn't crops
+      this._scaleFilterSize(el.filterer()?.node)
+    }
+  }
+
+  // appends dropShadow to the filter object which can be chained with other filter effects
+  /**
+   * @param {any} add
+   * @param {number} i
+   * @param {Record<string, any>} attrs
+   * @param {string} source
+   */
+  addShadow(add, i, attrs, source) {
+    const w = this.w
+    let { blur, top, left, color, opacity } = attrs
+    color = Array.isArray(color) ? color[i] : color
+
+    if (w.config.chart.dropShadow.enabledOnSeries?.length > 0) {
+      if (w.config.chart.dropShadow.enabledOnSeries.indexOf(i) === -1) {
+        return add
+      }
+    }
+
+    add.offset({
+      in: source,
+      dx: left,
+      dy: top,
+      result: 'offset',
+    })
+
+    add.gaussianBlur({
+      in: 'offset',
+      stdDeviation: blur,
+      result: 'blur',
+    })
+
+    add.flood({
+      'flood-color': color,
+      'flood-opacity': opacity,
+      result: 'flood',
+    })
+
+    add.composite({
+      in: 'flood',
+      in2: 'blur',
+      operator: 'in',
+      result: 'shadow',
+    })
+
+    add.merge(['shadow', source])
+  }
+
+  // directly adds dropShadow to the element and returns the same element.
+  /**
+   * @param {any} el
+   * @param {Record<string, any>} attrs
+   */
+  dropShadow(el, attrs, i = 0) {
+    const w = this.w
+
+    if (el.unfilter) {
+      el.unfilter(true)
+    }
+
+    if (Utils.isMsEdge() && w.config.chart.type === 'radialBar') {
+      // in radialbar charts, dropshadow is clipping actual drawing in IE
+      return el
+    }
+
+    if (w.config.chart.dropShadow.enabledOnSeries?.length > 0) {
+      if (w.config.chart.dropShadow.enabledOnSeries?.indexOf(i) === -1) {
+        return el
+      }
+    }
+
+    if (el.filterWith) {
+      el.filterWith((/** @type {any} */ add) => {
+        this.addShadow(add, i, attrs, 'SourceGraphic')
+      })
+
+      if (!attrs.noUserSpaceOnUse) {
+        el.filterer()?.node?.setAttribute('filterUnits', 'userSpaceOnUse')
+      }
+
+      // this scales the filter to a bigger size so that the dropshadow doesn't crops
+      this._scaleFilterSize(el.filterer()?.node)
+    }
+
+    return el
+  }
+
+  /**
+   * @param {any} el
+   * @param {number} realIndex
+   * @param {number} dataPointIndex
+   */
+  setSelectionFilter(el, realIndex, dataPointIndex) {
+    const w = this.w
+    if (typeof w.interact.selectedDataPoints[realIndex] !== 'undefined') {
+      if (
+        w.interact.selectedDataPoints[realIndex].indexOf(dataPointIndex) > -1
+      ) {
+        el.node.setAttribute('selected', true)
+        const activeFilter = w.config.states.active.filter
+        if (activeFilter !== 'none') {
+          this.applyFilter(el, realIndex, activeFilter.type)
+        }
+      }
+    }
+  }
+
+  /**
+   * @param {any} el
+   */
+  _scaleFilterSize(el) {
+    if (!el) return
+    /**
+     * @param {Record<string, any>} attrs
+     */
+    const setAttributes = (attrs) => {
+      for (const key in attrs) {
+        if (Object.prototype.hasOwnProperty.call(attrs, key)) {
+          el.setAttribute(key, attrs[key])
+        }
+      }
+    }
+    setAttributes({
+      width: '200%',
+      height: '200%',
+      x: '-50%',
+      y: '-50%',
+    })
+  }
+}
+
+export default Filters

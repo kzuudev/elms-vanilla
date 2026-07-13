@@ -1,0 +1,514 @@
+// @ts-check
+import TreemapSquared from '../libs/Treemap-squared'
+import Graphics from '../modules/Graphics'
+import Animations from '../modules/Animations'
+import Fill from '../modules/Fill'
+import Helpers from './common/treemap/Helpers'
+import Filters from '../modules/Filters'
+
+import Utils from '../utils/Utils'
+
+/**
+ * ApexCharts TreemapChart Class.
+ * @module TreemapChart
+ **/
+
+export default class TreemapChart {
+  /**
+   * @param {import('../types/internal').ChartStateW} w
+   * @param {import('../types/internal').ChartContext} ctx
+   */
+  constructor(w, ctx) {
+    this.ctx = ctx
+    this.w = w
+
+    this.strokeWidth = this.w.config.stroke.width
+    this.helpers = new Helpers(w, ctx)
+    this.dynamicAnim = this.w.config.chart.animations.dynamicAnimation
+
+    /** @type {any} */
+    this.labels = []
+  }
+
+  /**
+   * @param {any[]} series
+   */
+  draw(series) {
+    const w = this.w
+    const graphics = new Graphics(this.w, this.ctx)
+    const fill = new Fill(this.w)
+
+    const ret = graphics.group({
+      class: 'apexcharts-treemap',
+    })
+
+    if (w.globals.noData) return ret
+
+    /** @type {any[]} */
+    const ser = []
+    /**
+     * @param {number[]} s
+     */
+    series.forEach((s) => {
+      /**
+       * @param {number} v
+       */
+      const d = s.map((/** @type {any} */ v) => {
+        return Math.abs(v)
+      })
+      ser.push(d)
+    })
+
+    this.negRange = this.helpers.checkColorRange()
+
+    w.config.series.forEach((/** @type {any} */ s, /** @type {any} */ i) => {
+      /**
+       * @param {number} l
+       */
+      s.data.forEach((/** @type {any} */ l) => {
+        if (!Array.isArray(this.labels[i])) this.labels[i] = []
+        this.labels[i].push(l.x)
+      })
+    })
+
+    const nodes = TreemapSquared.generate(
+      ser,
+      w.layout.gridWidth,
+      w.layout.gridHeight,
+    )
+
+    nodes.forEach((node, i) => {
+      const elSeries = graphics.group({
+        class: `apexcharts-series apexcharts-treemap-series`,
+        seriesName: Utils.escapeString(w.seriesData.seriesNames[i]),
+        rel: i + 1,
+        'data:realIndex': i,
+      })
+
+      // Set up event delegation once per series group instead of per-cell listeners
+      graphics.setupEventDelegation(elSeries, '.apexcharts-treemap-rect')
+
+      if (w.config.chart.dropShadow.enabled) {
+        const shadow = w.config.chart.dropShadow
+        const filters = new Filters(this.w)
+        filters.dropShadow(ret, shadow, i)
+      }
+
+      const elDataLabelWrap = graphics.group({
+        class: 'apexcharts-data-labels',
+      })
+
+      const bounds = {
+        xMin: Infinity,
+        yMin: Infinity,
+        xMax: -Infinity,
+        yMax: -Infinity,
+      }
+
+      // Cascade: assign each tile a rank ordered by area (descending), so the
+      // largest tiles get rank 0 (no delay) and smaller tiles cascade in.
+      // Gated by `animateGradually`.
+      const animCfg = w.config.chart.animations
+      const gradCfg = animCfg.animateGradually
+      const cascadeEnabled = gradCfg && gradCfg.enabled !== false
+      /** @type {number[]} */
+      const cascadeDelays = new Array(node.length).fill(0)
+      if (cascadeEnabled) {
+        const tileCount = node.length || 1
+        const baseDelay = Math.min(
+          gradCfg.delay || 0,
+          (animCfg.speed * 0.5) / tileCount,
+        )
+        const ranked = node
+          .map(
+            /** @param {number[]} r @param {number} j */
+            (r, j) => ({ j, area: (r[2] - r[0]) * (r[3] - r[1]) }),
+          )
+          .sort(
+            /** @param {{j: number, area: number}} a @param {{j: number, area: number}} b */
+            (a, b) => b.area - a.area,
+          )
+        ranked.forEach(
+          /** @param {{j: number, area: number}} item @param {number} rank */
+          (item, rank) => {
+            cascadeDelays[item.j] = rank * baseDelay
+          },
+        )
+      }
+
+      /**
+       * @param {number} r
+       * @param {number} j
+       */
+      node.forEach((/** @type {any} */ r, /** @type {any} */ j) => {
+        const x1 = r[0]
+        const y1 = r[1]
+        const x2 = r[2]
+        const y2 = r[3]
+
+        bounds.xMin = Math.min(bounds.xMin, x1)
+        bounds.yMin = Math.min(bounds.yMin, y1)
+        bounds.xMax = Math.max(bounds.xMax, x2)
+        bounds.yMax = Math.max(bounds.yMax, y2)
+
+        const colorProps = this.helpers.getShadeColor(
+          w.config.chart.type,
+          i,
+          j,
+          this.negRange,
+        )
+        const color = colorProps.color
+
+        const pathFill = fill.fillPath({
+          color,
+          seriesNumber: i,
+          dataPointIndex: j,
+        })
+
+        const elRect = graphics.drawRect(
+          x1,
+          y1,
+          x2 - x1,
+          y2 - y1,
+          w.config.plotOptions.treemap.borderRadius,
+          '#fff',
+          1,
+          this.strokeWidth,
+          w.config.plotOptions.treemap.useFillColorAsStroke
+            ? color
+            : w.globals.stroke.colors[i],
+        )
+
+        elRect.attr({
+          cx: x1,
+          cy: y1,
+          index: i,
+          i,
+          j,
+          width: x2 - x1,
+          height: y2 - y1,
+          fill: pathFill,
+        })
+
+        elRect.node.classList.add('apexcharts-treemap-rect')
+
+        let fromRect = {
+          x: x1 + (x2 - x1) / 2,
+          y: y1 + (y2 - y1) / 2,
+          width: 0,
+          height: 0,
+        }
+        const toRect = {
+          x: x1,
+          y: y1,
+          width: x2 - x1,
+          height: y2 - y1,
+        }
+
+        if (w.config.chart.animations.enabled && !w.globals.dataChanged) {
+          let speed = 1
+          if (!w.globals.resized) {
+            speed = w.config.chart.animations.speed
+          }
+          this.animateTreemap(
+            elRect,
+            fromRect,
+            toRect,
+            speed,
+            cascadeDelays[j] || 0,
+          )
+        }
+        if (w.globals.dataChanged) {
+          let speed = 1
+          if (this.dynamicAnim.enabled && w.globals.shouldAnimate) {
+            speed = this.dynamicAnim.speed
+
+            if (
+              w.globals.previousPaths[i] &&
+              /** @type {Record<string,any>} */ (w.globals.previousPaths[i])[
+                j
+              ] &&
+              /** @type {Record<string,any>} */ (w.globals.previousPaths[i])[j]
+                .rect
+            ) {
+              fromRect = /** @type {Record<string,any>} */ (
+                w.globals.previousPaths[i]
+              )[j].rect
+            }
+
+            this.animateTreemap(elRect, fromRect, toRect, speed)
+          }
+        }
+
+        let fontSize = this.getFontSize(r)
+
+        let formattedText = w.config.dataLabels.formatter(this.labels[i][j], {
+          value: w.seriesData.series[i][j],
+          seriesIndex: i,
+          dataPointIndex: j,
+          w,
+        })
+        if (w.config.plotOptions.treemap.dataLabels.format === 'truncate') {
+          fontSize = parseInt(String(w.config.dataLabels.style.fontSize), 10)
+          formattedText = this.truncateLabels(
+            String(formattedText),
+            fontSize,
+            x1,
+            y1,
+            x2,
+            y2,
+          )
+        }
+        let dataLabels = null
+        if (w.seriesData.series[i][j]) {
+          dataLabels = this.helpers.calculateDataLabels({
+            text: formattedText,
+            x: (x1 + x2) / 2,
+            y: (y1 + y2) / 2 + this.strokeWidth / 2 + fontSize / 3,
+            i,
+            j,
+            colorProps,
+            fontSize,
+            series,
+          })
+        }
+        if (w.config.dataLabels.enabled && dataLabels) {
+          this.rotateToFitLabel(
+            dataLabels,
+            fontSize,
+            formattedText,
+            x1,
+            y1,
+            x2,
+            y2,
+          )
+        }
+        elSeries.add(elRect)
+        if (dataLabels !== null) {
+          elSeries.add(dataLabels)
+        }
+      })
+
+      const seriesTitle = w.config.plotOptions.treemap.seriesTitle
+      if (w.config.series.length > 1 && seriesTitle && seriesTitle.show) {
+        const sName =
+          /** @type {Record<string,any>} */ (w.config.series[i]).name || ''
+
+        if (sName && bounds.xMin < Infinity && bounds.yMin < Infinity) {
+          const {
+            offsetX,
+            offsetY,
+            borderColor,
+            borderWidth,
+            borderRadius,
+            style,
+          } = seriesTitle
+
+          const textColor = style.color || w.config.chart.foreColor
+          const padding = {
+            left: style.padding.left,
+            right: style.padding.right,
+            top: style.padding.top,
+            bottom: style.padding.bottom,
+          }
+
+          const textSize = graphics.getTextRects(
+            sName,
+            style.fontSize,
+            style.fontFamily,
+          )
+          const labelRectWidth = textSize.width + padding.left + padding.right
+          const labelRectHeight = textSize.height + padding.top + padding.bottom
+
+          // Position
+          const labelX = bounds.xMin + (offsetX || 0)
+          const labelY = bounds.yMin + (offsetY || 0)
+
+          // Draw background rect
+          const elLabelRect = graphics.drawRect(
+            labelX,
+            labelY,
+            labelRectWidth,
+            labelRectHeight,
+            borderRadius,
+            style.background,
+            1,
+            borderWidth,
+            borderColor,
+          )
+
+          const elLabelText = graphics.drawText({
+            x: labelX + padding.left,
+            y: labelY + padding.top + (textSize?.height ?? 0) * 0.75,
+            text: sName,
+            fontSize: style.fontSize,
+            fontFamily: style.fontFamily,
+            fontWeight: style.fontWeight,
+            foreColor: textColor,
+            cssClass: style.cssClass || '',
+          })
+
+          elSeries.add(elLabelRect)
+          elSeries.add(elLabelText)
+        }
+      }
+
+      elSeries.add(elDataLabelWrap)
+      ret.add(elSeries)
+    })
+
+    return ret
+  }
+
+  // This calculates a font-size based upon
+  // average label length and the size of the box
+  /**
+   * @param {number[]} coordinates
+   */
+  getFontSize(coordinates) {
+    const w = this.w
+
+    // total length of labels (i.e [["Italy"],["Spain", "Greece"]] -> 16)
+    /**
+     * @param {any[]} arr
+     */
+    function totalLabelLength(arr) {
+      let i,
+        total = 0
+      if (Array.isArray(arr[0])) {
+        for (i = 0; i < arr.length; i++) {
+          total += totalLabelLength(arr[i])
+        }
+      } else {
+        for (i = 0; i < arr.length; i++) {
+          total += arr[i].length
+        }
+      }
+      return total
+    }
+
+    // count of labels (i.e [["Italy"],["Spain", "Greece"]] -> 3)
+    /**
+     * @param {any[]} arr
+     */
+    function countLabels(arr) {
+      let i,
+        total = 0
+      if (Array.isArray(arr[0])) {
+        for (i = 0; i < arr.length; i++) {
+          total += countLabels(arr[i])
+        }
+      } else {
+        for (i = 0; i < arr.length; i++) {
+          total += 1
+        }
+      }
+      return total
+    }
+
+    const averagelabelsize =
+      totalLabelLength(this.labels) / countLabels(this.labels)
+
+    /**
+     * @param {number} width
+     * @param {number} height
+     */
+    function fontSize(width, height) {
+      const area = width * height
+      const arearoot = Math.pow(area, 0.5)
+      return Math.min(
+        arearoot / averagelabelsize,
+        parseInt(w.config.dataLabels.style.fontSize, 10),
+      )
+    }
+
+    return fontSize(
+      coordinates[2] - coordinates[0],
+      coordinates[3] - coordinates[1],
+    )
+  }
+
+  /**
+   * @param {any} elText
+   * @param {string | number} fontSize
+   * @param {string} text
+   * @param {number} x1
+   * @param {number} y1
+   * @param {number} x2
+   * @param {number} y2
+   */
+  rotateToFitLabel(elText, fontSize, text, x1, y1, x2, y2) {
+    const graphics = new Graphics(this.w)
+    const textRect = graphics.getTextRects(text, String(fontSize))
+
+    // if the label fits better sideways then rotate it
+    if (
+      textRect.width + this.w.config.stroke.width + 5 > x2 - x1 &&
+      textRect.width <= y2 - y1
+    ) {
+      const labelRotatingCenter = graphics.rotateAroundCenter(elText.node)
+
+      elText.node.setAttribute(
+        'transform',
+        `rotate(-90 ${labelRotatingCenter.x} ${
+          labelRotatingCenter.y
+        }) translate(${textRect.height / 3})`,
+      )
+    }
+  }
+
+  // This is an alternative label formatting method that uses a
+  // consistent font size, and trims the edge of long labels
+  /**
+   * @param {string} text
+   * @param {number} fontSize
+   * @param {number} x1
+   * @param {number} y1
+   * @param {number} x2
+   * @param {number} y2
+   */
+  truncateLabels(text, fontSize, x1, y1, x2, y2) {
+    const graphics = new Graphics(this.w)
+    const textRect = graphics.getTextRects(text, String(fontSize))
+
+    // Determine max width based on ideal orientation of text
+    const labelMaxWidth =
+      textRect.width + this.w.config.stroke.width + 5 > x2 - x1 &&
+      y2 - y1 > x2 - x1
+        ? y2 - y1
+        : x2 - x1
+    const truncatedText = graphics.getTextBasedOnMaxWidth({
+      text: text,
+      maxWidth: labelMaxWidth,
+      fontSize: fontSize,
+    })
+
+    // Return empty label when text has been trimmed for very small rects
+    if (text.length !== truncatedText.length && labelMaxWidth / fontSize < 5) {
+      return ''
+    } else {
+      return truncatedText
+    }
+  }
+
+  /**
+   * @param {any} el
+   * @param {Record<string, any>} fromRect
+   * @param {Record<string, any>} toRect
+   * @param {number} speed
+   * @param {number} [delay] - per-tile cascade delay in ms
+   */
+  animateTreemap(el, fromRect, toRect, speed, delay = 0) {
+    const animations = new Animations(this.w)
+    animations.animateRect(
+      el,
+      fromRect,
+      toRect,
+      speed,
+      () => {
+        animations.animationCompleted(el)
+      },
+      delay,
+    )
+  }
+}

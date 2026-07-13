@@ -1,0 +1,425 @@
+// @ts-check
+import Formatters from '../Formatters'
+import Graphics from '../Graphics'
+import Utils from '../../utils/Utils'
+import DateTime from '../../utils/DateTime'
+
+export default class DimXAxis {
+  /**
+   * @param {import('./Dimensions').default} dCtx
+   */
+  constructor(dCtx) {
+    this.w = dCtx.w
+    this.dCtx = dCtx
+  }
+
+  /**
+   * Get X Axis Dimensions
+   * @memberof Dimensions
+   * @return {{width: number, height: number}}
+   **/
+  getxAxisLabelsCoords() {
+    const w = this.w
+
+    let xaxisLabels = w.labelData.labels.slice()
+    if (w.config.xaxis.convertedCatToNumeric && xaxisLabels.length === 0) {
+      xaxisLabels = w.labelData.categoryLabels
+    }
+
+    let rect
+
+    if (w.labelData.timescaleLabels.length > 0) {
+      const coords = this.getxAxisTimeScaleLabelsCoords()
+      rect = {
+        width: coords.width,
+        height: coords.height,
+      }
+      w.layout.rotateXLabels = false
+    } else {
+      this.dCtx.lgWidthForSideLegends =
+        (w.config.legend.position === 'left' ||
+          w.config.legend.position === 'right') &&
+        !w.config.legend.floating
+          ? this.dCtx.lgRect.width
+          : 0
+
+      // get the longest string from the labels array and also apply label formatter
+      const xlbFormatter = w.formatters.xLabelFormatter
+      // prevent changing xaxisLabels to avoid issues in multi-yaxes - fix #522
+      let val = Utils.getLargestStringFromArr(xaxisLabels)
+      let valArr = this.dCtx.dimHelpers.getLargestStringFromMultiArr(
+        val,
+        xaxisLabels,
+      )
+
+      // the labels gets changed for bar charts
+      if (w.globals.isBarHorizontal) {
+        /**
+         * @param {any} a
+         * @param {any} b
+         */
+        val = w.globals.yAxisScale[0].result.reduce(
+          (/** @type {any} */ a, /** @type {any} */ b) =>
+            a.length > b.length ? a : b,
+          0,
+        )
+        valArr = val
+      }
+
+      const xFormat = new Formatters(this.w)
+      const timestamp = val
+      val = xFormat.xLabelFormat(
+        /** @type {Function} */ (xlbFormatter),
+        val,
+        timestamp,
+        {
+          i: undefined,
+          dateFormatter: new DateTime(this.w).formatDate,
+          w,
+        },
+      )
+      valArr = xFormat.xLabelFormat(
+        /** @type {Function} */ (xlbFormatter),
+        valArr,
+        timestamp,
+        {
+          i: undefined,
+          dateFormatter: new DateTime(this.w).formatDate,
+          w,
+        },
+      )
+
+      if (
+        (w.config.xaxis.convertedCatToNumeric && typeof val === 'undefined') ||
+        String(val).trim() === ''
+      ) {
+        val = '1'
+        valArr = val
+      }
+
+      const graphics = new Graphics(this.w)
+      let xLabelrect = graphics.getTextRects(
+        val,
+        w.config.xaxis.labels.style.fontSize,
+      )
+      let xArrLabelrect = xLabelrect
+      if (val !== valArr) {
+        xArrLabelrect = graphics.getTextRects(
+          valArr,
+          w.config.xaxis.labels.style.fontSize,
+        )
+      }
+
+      rect = {
+        width:
+          xLabelrect.width >= xArrLabelrect.width
+            ? xLabelrect.width
+            : xArrLabelrect.width,
+        height:
+          xLabelrect.height >= xArrLabelrect.height
+            ? xLabelrect.height
+            : xArrLabelrect.height,
+      }
+
+      if (
+        (rect.width * xaxisLabels.length >
+          w.globals.svgWidth -
+            this.dCtx.lgWidthForSideLegends -
+            this.dCtx.yAxisWidth -
+            this.dCtx.gridPad.left -
+            this.dCtx.gridPad.right &&
+          w.config.xaxis.labels.rotate !== 0) ||
+        w.config.xaxis.labels.rotateAlways
+      ) {
+        if (!w.globals.isBarHorizontal) {
+          w.layout.rotateXLabels = true
+          /**
+           * @param {string} text
+           */
+          const getRotatedTextRects = (text) => {
+            return graphics.getTextRects(
+              text,
+              w.config.xaxis.labels.style.fontSize,
+              w.config.xaxis.labels.style.fontFamily,
+              `rotate(${w.config.xaxis.labels.rotate} 0 0)`,
+              false,
+            )
+          }
+          xLabelrect = getRotatedTextRects(val)
+          if (val !== valArr) {
+            xArrLabelrect = getRotatedTextRects(valArr)
+          }
+
+          rect.height =
+            (xLabelrect.height > xArrLabelrect.height
+              ? xLabelrect.height
+              : xArrLabelrect.height) / 1.5
+          rect.width =
+            xLabelrect.width > xArrLabelrect.width
+              ? xLabelrect.width
+              : xArrLabelrect.width
+        }
+      } else {
+        w.layout.rotateXLabels = false
+      }
+    }
+
+    if (!w.config.xaxis.labels.show) {
+      rect = {
+        width: 0,
+        height: 0,
+      }
+    }
+
+    return {
+      width: rect.width,
+      height: rect.height,
+    }
+  }
+
+  /**
+   * Get X Axis Label Group height
+   * @memberof Dimensions
+   * @return {{width: number, height: number}}
+   */
+  getxAxisGroupLabelsCoords() {
+    const w = this.w
+
+    if (!w.labelData.hasXaxisGroups) {
+      return { width: 0, height: 0 }
+    }
+
+    const fontSize =
+      w.config.xaxis.group.style?.fontSize ||
+      w.config.xaxis.labels.style.fontSize
+
+    /**
+     * @param {Record<string, any>} g
+     */
+    const xaxisLabels = w.labelData.groups.map(
+      (/** @type {any} */ g) => g.title,
+    )
+
+    let rect
+
+    // prevent changing xaxisLabels to avoid issues in multi-yaxes - fix #522
+    const val = Utils.getLargestStringFromArr(xaxisLabels)
+    const valArr = this.dCtx.dimHelpers.getLargestStringFromMultiArr(
+      val,
+      xaxisLabels,
+    )
+
+    const graphics = new Graphics(this.w)
+    const xLabelrect = graphics.getTextRects(val, fontSize)
+    let xArrLabelrect = xLabelrect
+    if (val !== valArr) {
+      xArrLabelrect = graphics.getTextRects(valArr, fontSize)
+    }
+
+    rect = {
+      width:
+        xLabelrect.width >= xArrLabelrect.width
+          ? xLabelrect.width
+          : xArrLabelrect.width,
+      height:
+        xLabelrect.height >= xArrLabelrect.height
+          ? xLabelrect.height
+          : xArrLabelrect.height,
+    }
+
+    if (!w.config.xaxis.labels.show) {
+      rect = {
+        width: 0,
+        height: 0,
+      }
+    }
+
+    return {
+      width: rect.width,
+      height: rect.height,
+    }
+  }
+
+  /**
+   * Get X Axis Title Dimensions
+   * @memberof Dimensions
+   * @return {{width: number, height: number}}
+   **/
+  getxAxisTitleCoords() {
+    const w = this.w
+    let width = 0
+    let height = 0
+
+    if (w.config.xaxis.title.text !== undefined) {
+      const graphics = new Graphics(this.w)
+
+      const rect = graphics.getTextRects(
+        w.config.xaxis.title.text,
+        w.config.xaxis.title.style.fontSize,
+      )
+
+      width = rect.width
+      height = rect.height
+    }
+
+    return {
+      width,
+      height,
+    }
+  }
+
+  getxAxisTimeScaleLabelsCoords() {
+    const w = this.w
+    this.dCtx.timescaleLabels = w.labelData.timescaleLabels.slice()
+
+    /**
+     * @param {string} label
+     */
+    const labels = this.dCtx.timescaleLabels.map(
+      (/** @type {any} */ label) => label.value,
+    )
+
+    //  get the longest string from the labels array and also apply label formatter to it
+    /**
+     * @param {any} a
+     * @param {any} b
+     */
+    const val = labels.reduce((/** @type {any} */ a, /** @type {any} */ b) => {
+      // if undefined, maybe user didn't pass the datetime(x) values
+      if (typeof a === 'undefined') {
+        console.error(
+          'You have possibly supplied invalid Date format. Please supply a valid JavaScript Date',
+        )
+        return 0
+      } else {
+        return a.length > b.length ? a : b
+      }
+    }, 0)
+
+    const graphics = new Graphics(this.w)
+    const rect = graphics.getTextRects(
+      val,
+      w.config.xaxis.labels.style.fontSize,
+    )
+
+    const totalWidthRotated = rect.width * 1.05 * labels.length
+
+    if (
+      totalWidthRotated > w.layout.gridWidth &&
+      w.config.xaxis.labels.rotate !== 0
+    ) {
+      w.globals.overlappingXLabels = true
+    }
+
+    return rect
+  }
+
+  // In certain cases, the last labels gets cropped in xaxis.
+  // Hence, we add some additional padding based on the label length to avoid the last label being cropped or we don't draw it at all
+  /**
+   * @param {Record<string, any>} xaxisLabelCoords
+   */
+  additionalPaddingXLabels(xaxisLabelCoords) {
+    const w = this.w
+    const gl = w.globals
+    const cnf = w.config
+    const xtype = cnf.xaxis.type
+
+    const lbWidth = xaxisLabelCoords.width
+
+    gl.skipLastTimelinelabel = false
+    gl.skipFirstTimelinelabel = false
+    const isBarOpposite =
+      w.config.yaxis[0].opposite && w.globals.isBarHorizontal
+
+    /**
+     * @param {number} i
+     */
+    const isCollapsed = (i) => gl.collapsedSeriesIndices.indexOf(i) !== -1
+
+    /**
+     * @param {ApexYAxis} yaxe
+     */
+    const rightPad = (yaxe) => {
+      if (this.dCtx.timescaleLabels && this.dCtx.timescaleLabels.length) {
+        // for timeline labels, we take the last label and check if it exceeds gridWidth
+        const firstimescaleLabel = this.dCtx.timescaleLabels[0]
+        const lastTimescaleLabel =
+          this.dCtx.timescaleLabels[this.dCtx.timescaleLabels.length - 1]
+
+        const lastLabelPosition =
+          lastTimescaleLabel.position +
+          lbWidth / 1.75 -
+          this.dCtx.yAxisWidthRight
+
+        const firstLabelPosition =
+          firstimescaleLabel.position -
+          lbWidth / 1.75 +
+          this.dCtx.yAxisWidthLeft
+
+        const lgRightRectWidth =
+          w.config.legend.position === 'right' && this.dCtx.lgRect.width > 0
+            ? this.dCtx.lgRect.width
+            : 0
+        if (
+          lastLabelPosition >
+          gl.svgWidth - w.layout.translateX - lgRightRectWidth
+        ) {
+          gl.skipLastTimelinelabel = true
+        }
+
+        if (
+          firstLabelPosition <
+          -((!yaxe.show || yaxe.floating) &&
+          (cnf.chart.type === 'bar' ||
+            cnf.chart.type === 'candlestick' ||
+            cnf.chart.type === 'rangeBar' ||
+            cnf.chart.type === 'boxPlot' ||
+            cnf.chart.type === 'violin')
+            ? lbWidth / 1.75
+            : 10)
+        ) {
+          gl.skipFirstTimelinelabel = true
+        }
+      } else if (xtype === 'datetime') {
+        // If user has enabled DateTime, but uses own's formatter
+        if (this.dCtx.gridPad.right < lbWidth && !w.layout.rotateXLabels) {
+          gl.skipLastTimelinelabel = true
+        }
+      } else if (xtype !== 'datetime') {
+        if (
+          this.dCtx.gridPad.right < lbWidth / 2 - this.dCtx.yAxisWidthRight &&
+          !w.layout.rotateXLabels &&
+          !w.config.xaxis.labels.trim
+        ) {
+          this.dCtx.xPadRight = lbWidth / 2 + 1
+        }
+      }
+    }
+
+    /**
+     * @param {ApexYAxis} yaxe
+     * @param {number} i
+     */
+    const padYAxe = (yaxe, i) => {
+      if (cnf.yaxis.length > 1 && isCollapsed(i)) return
+
+      rightPad(yaxe)
+    }
+
+    /**
+     * @param {ApexYAxis} yaxe
+     * @param {number} i
+     */
+    cnf.yaxis.forEach((/** @type {any} */ yaxe, /** @type {any} */ i) => {
+      if (isBarOpposite) {
+        if (this.dCtx.gridPad.left < lbWidth) {
+          this.dCtx.xPadLeft = lbWidth / 2 + 1
+        }
+        this.dCtx.xPadRight = lbWidth / 2 + 1
+      } else {
+        padYAxe(yaxe, i)
+      }
+    })
+  }
+}

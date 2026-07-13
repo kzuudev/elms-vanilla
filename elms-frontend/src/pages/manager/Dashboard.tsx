@@ -6,18 +6,21 @@ import {api} from "@/lib/api.ts";
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import UserProfile from "@/components/layout/UserProfile.tsx";
 import LeaveSummaryGrid from "@/features/dashboard/components/LeaveSummaryGrid.tsx";
-import {LeaveSummaryContext} from "@/features/context/analytics/LeaveSummaryContext.tsx";
+import LeaveOverlapTimeline from "@/features/dashboard/components/LeaveOverlapTimeline.tsx";
 
-import type {TotalPendingRequest, TotalRemainingBalance, TotalUsedDays} from "@/types/dashboard.ts";
+import {DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
+
+import type {TotalPendingRequest, TotalRemainingBalance, TotalUsedDays, LeaveOverlap} from "@/types/dashboard.ts";
 
 export default function ManagerDashboard() {
 
 
     const [error, setError] = useState<string | null>(null);
 
-    const [totalRemainingBalance, setTotalRemainingBalance] = useState<TotalRemainingBalance[]>();
-    const [totalPendingRequest, setTotalPendingRequest] = useState<TotalPendingRequest[]>();
-    const [totalUsedDays, setTotalUsedDays] = useState<TotalUsedDays[]>();
+    const [remainingBalance, setRemainingBalance] = useState<TotalRemainingBalance[]>();
+    const [pendingRequest, setPendingRequest] = useState<TotalPendingRequest[]>();
+    const [usedDays, setUsedDays] = useState<TotalUsedDays[]>();
+    const [overlap, setOverlap] = useState<LeaveOverlap[]>([]);
 
 
     const fetchManagerDashboard = async () => {
@@ -29,13 +32,17 @@ export default function ManagerDashboard() {
                     Authorization: `Bearer ${holder}`,
                 }
             });
-            setTotalRemainingBalance(response.data.remaining_balance);
-            setTotalPendingRequest(response.data.pending_request);
-            setTotalUsedDays(response.data.used_days);
+            setRemainingBalance(response.data.remaining_balance);
+            setPendingRequest(response.data.pending_request);
+            setUsedDays(response.data.used_days);
+            setOverlap(response.data.leave_overlap);
+
         }catch (e) {
             setError(e.response.data.message);
         }
     }
+
+    console.log(overlap);
 
     useEffect(() => {
 
@@ -46,7 +53,7 @@ export default function ManagerDashboard() {
    return (
       <>
           <AppSidebar>
-              <LeaveSummaryContext value={{totalRemainingBalance, totalPendingRequest, totalUsedDays, recentActivity: [], teamStatus: [], monthlyLeaveConsumption: []}}>
+              <DashboardAnalyticsContext.Provider value={{remainingBalance, pendingRequest, usedDays, overlap, recentActivity: [], monthlyLeaveConsumption: []}}>
                   <div className="w-full flex justify-between">
                       <div>
                           <h1 className="text-gray-600">Dashboard</h1>
@@ -59,7 +66,11 @@ export default function ManagerDashboard() {
                   <div>
                       <LeaveSummaryGrid/>
                   </div>
-              </LeaveSummaryContext>
+
+                  <div>
+                    <LeaveOverlapTimeline/>
+                  </div>
+              </DashboardAnalyticsContext.Provider>
           </AppSidebar>
 
           {error && (

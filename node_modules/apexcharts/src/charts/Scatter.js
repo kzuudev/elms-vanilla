@@ -1,0 +1,230 @@
+// @ts-check
+import Animations, { computeStagger } from '../modules/Animations'
+import Fill from '../modules/Fill'
+import Filters from '../modules/Filters'
+import Graphics from '../modules/Graphics'
+import Markers from '../modules/Markers'
+
+/**
+ * ApexCharts Scatter Class.
+ * This Class also handles bubbles chart as currently there is no major difference in drawing them,
+ * @module Scatter
+ **/
+export default class Scatter {
+  /**
+   * @param {import('../types/internal').ChartStateW} w
+   * @param {import('../types/internal').ChartContext} ctx
+   */
+  constructor(w, ctx) {
+    this.ctx = ctx
+    this.w = w
+
+    this.initialAnim = this.w.config.chart.animations.enabled
+
+    this.anim = new Animations(this.w)
+    this.filters = new Filters(this.w)
+    this.fill = new Fill(this.w)
+    this.markers = new Markers(this.w, this.ctx)
+    this.graphics = new Graphics(this.w)
+  }
+
+  /**
+   * @param {Element} elSeries
+   * @param {number} j
+   * @param {Record<string, any>} opts
+   */
+  draw(elSeries, j, opts) {
+    const w = this.w
+
+    const graphics = this.graphics
+
+    const realIndex = opts.realIndex
+    const pointsPos = opts.pointsPos
+    const zRatio = opts.zRatio
+    const elPointsMain = opts.elParent
+
+    const elPointsWrap = graphics.group({
+      class: `apexcharts-series-markers apexcharts-series-${w.config.chart.type}`,
+    })
+
+    elPointsWrap.attr('clip-path', `url(#gridRectMarkerMask${w.globals.cuid})`)
+
+    // Set up event delegation once on the group instead of per-point listeners
+    this.markers.setupMarkerDelegation(elPointsWrap)
+
+    if (Array.isArray(pointsPos.x)) {
+      for (let q = 0; q < pointsPos.x.length; q++) {
+        let dataPointIndex = j + 1
+        let shouldDraw = true
+
+        // a small hack as we have 2 points for the first val to connect it
+        if (j === 0 && q === 0) dataPointIndex = 0
+        if (j === 0 && q === 1) dataPointIndex = 1
+
+        let radius = w.globals.markers.size[realIndex]
+
+        if (zRatio !== Infinity) {
+          // means we have a bubble
+          const bubble = w.config.plotOptions.bubble
+          radius = w.seriesData.seriesZ[realIndex][dataPointIndex]
+
+          if (bubble.zScaling) {
+            radius /= zRatio
+          }
+
+          if (bubble.minBubbleRadius && radius < bubble.minBubbleRadius) {
+            radius = bubble.minBubbleRadius
+          }
+
+          if (bubble.maxBubbleRadius && radius > bubble.maxBubbleRadius) {
+            radius = bubble.maxBubbleRadius
+          }
+        }
+
+        const x = pointsPos.x[q]
+        const y = pointsPos.y[q]
+
+        radius = radius || 0
+
+        if (
+          y === null ||
+          typeof w.seriesData.series[realIndex][dataPointIndex] === 'undefined'
+        ) {
+          shouldDraw = false
+        }
+
+        if (shouldDraw) {
+          const point = this.drawPoint(
+            x,
+            y,
+            radius,
+            realIndex,
+            dataPointIndex,
+            j,
+          )
+          elPointsWrap.add(point)
+        }
+
+        elPointsMain.add(elPointsWrap)
+      }
+    }
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @param {number} radius
+   * @param {number} realIndex
+   * @param {number} dataPointIndex
+   * @param {number} j
+   */
+  drawPoint(x, y, radius, realIndex, dataPointIndex, j) {
+    const w = this.w
+
+    const i = realIndex
+    const anim = this.anim
+    const filters = this.filters
+    const fill = this.fill
+    const markers = this.markers
+    const graphics = this.graphics
+
+    const markerConfig = markers.getMarkerConfig({
+      cssClass: 'apexcharts-marker',
+      seriesIndex: i,
+      dataPointIndex,
+      radius:
+        w.config.chart.type === 'bubble' ||
+        (w.globals.comboCharts &&
+          w.config.series[realIndex] &&
+          /** @type {Record<string,any>} */ (w.config.series[realIndex]).type === 'bubble')
+          ? radius
+          : null,
+    })
+
+    let pathFillCircle = fill.fillPath({
+      seriesNumber: realIndex,
+      dataPointIndex,
+      color: markerConfig.pointFillColor,
+      patternUnits: 'objectBoundingBox',
+      value: w.seriesData.series[realIndex][j],
+    })
+
+    const el = graphics.drawMarker(x, y, markerConfig)
+
+    const _si = /** @type {Record<string,any>} */ (w.config.series[i])
+    if (_si.data[dataPointIndex]) {
+      if (_si.data[dataPointIndex].fillColor) {
+        pathFillCircle = _si.data[dataPointIndex].fillColor
+      }
+    }
+
+    // Distributed jitter: colour each band by its position (x value) instead of
+    // by series — lets a single-series strip plot show one colour per band.
+    const jt = w.config.plotOptions.scatter?.jitter
+    if (jt?.enabled && jt.distributed && w.globals.colors.length) {
+      const bandIdx = Math.round(w.seriesData.seriesX[realIndex]?.[dataPointIndex])
+      if (!isNaN(bandIdx)) {
+        pathFillCircle = w.globals.colors[bandIdx % w.globals.colors.length]
+      }
+    }
+
+    el.attr({
+      fill: pathFillCircle,
+    })
+
+    if (w.config.chart.dropShadow.enabled) {
+      const dropShadow = w.config.chart.dropShadow
+      filters.dropShadow(el, dropShadow, realIndex)
+    }
+
+    if (this.initialAnim && !w.globals.dataChanged && !w.globals.resized) {
+      const animCfg = w.config.chart.animations
+      // Pop effect: scale + opacity per marker. Per-point left-to-right
+      // stagger is driven by `animateGradually`.
+      const popSpeed = animCfg.speed
+      const totalPoints = w.globals.dataPoints || 1
+      const gradCfg = animCfg.animateGradually
+      const gradEnabled = gradCfg && gradCfg.enabled !== false
+      const baseDelay = gradEnabled
+        ? Math.min(20, (popSpeed * 0.5) / Math.max(1, totalPoints))
+        : 0
+      const delay = computeStagger({
+        style: baseDelay > 0 ? 'sequential' : 'none',
+        index: dataPointIndex,
+        baseDelay,
+      })
+      anim.animatePop(el, {
+        speed: popSpeed,
+        delay,
+        onComplete: () => anim.animationCompleted(el),
+      })
+    } else {
+      w.globals.animationEnded = true
+    }
+
+    el.attr({
+      rel: dataPointIndex,
+      j: dataPointIndex,
+      index: realIndex,
+      'default-marker-size': markerConfig.pSize,
+    })
+
+    filters.setSelectionFilter(el, realIndex, dataPointIndex)
+
+    el.node.classList.add('apexcharts-marker')
+
+    return el
+  }
+
+  /**
+   * @param {number} y
+   */
+  centerTextInBubble(y) {
+    const w = this.w
+    y = y + parseInt(w.config.dataLabels.style.fontSize, 10) / 4
+
+    return {
+      y,
+    }
+  }
+}

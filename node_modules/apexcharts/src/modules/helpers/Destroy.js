@@ -1,0 +1,146 @@
+// @ts-check
+import PerformanceCache from '../../utils/PerformanceCache'
+import { Environment } from '../../utils/Environment.js'
+
+export default class Destroy {
+  /**
+   * @param {import('../../types/internal').ChartContext} ctx
+   */
+  constructor(ctx) {
+    this.ctx = ctx
+    this.w = ctx.w
+  }
+
+  /**
+   * @param {{ isUpdating: boolean }} opts
+   */
+  clear({ isUpdating }) {
+    // Mark a real destroy so any deferred work scheduled before teardown
+    // (e.g. rAF draw-animation callbacks) bails instead of touching cleared
+    // DOM. Not set during updates: the chart is rebuilt right after, and
+    // initGlobalVars() resets the flag on the re-render anyway.
+    if (!isUpdating) {
+      this.w.globals.isDestroyed = true
+    }
+    if (this.ctx._zoomPanSelection) {
+      this.ctx._zoomPanSelection.destroy()
+    }
+    if (this.ctx._toolbar) {
+      this.ctx._toolbar.destroy()
+    }
+
+    // Cleanup ResizeObserver
+    if (
+      this.w.globals.resizeObserver &&
+      typeof this.w.globals.resizeObserver.disconnect === 'function'
+    ) {
+      this.w.globals.resizeObserver.disconnect()
+      this.w.globals.resizeObserver = null
+    }
+
+    // Clear all performance caches
+    PerformanceCache.invalidateAll(this.w)
+
+    if (isUpdating) {
+      // During updates the module instances are reused — they hold no
+      // per-render state (all state lives in w/w.globals). Only the lazy
+      // optional modules that have their own destroy() need clearing; the
+      // core eagerly-created modules stay alive so initModules() is skipped.
+      this.ctx._zoomPanSelection = null
+      this.ctx._toolbar = null
+      this.ctx._keyboardNavigation = null
+    } else {
+      // Full destroy — null everything so GC can collect the instances.
+      this.ctx.animations = null
+      this.ctx.axes = null
+      this.ctx.annotations = null
+      this.ctx.core = null
+      this.ctx.data = null
+      this.ctx.grid = null
+      this.ctx.series = null
+      this.ctx.responsive = null
+      this.ctx.theme = null
+      this.ctx.formatters = null
+      this.ctx.titleSubtitle = null
+      this.ctx.legend = null
+      this.ctx.dimensions = null
+      this.ctx.options = null
+      this.ctx.crosshairs = null
+      this.ctx._zoomPanSelection = null
+      this.ctx.updateHelpers = null
+      this.ctx._toolbar = null
+      this.ctx.localization = null
+      this.ctx._keyboardNavigation = null
+      this.ctx.w.globals.tooltip = null
+    }
+    this.clearDomElements({ isUpdating })
+  }
+
+  /**
+   * @param {any} draw
+   */
+  killSVG(draw) {
+    draw.each(
+      /** @this {any} */ function () {
+        this.removeClass('*')
+        this.off()
+        // this.stop()
+      },
+      true,
+    )
+    // draw.ungroup()
+    draw.clear()
+  }
+
+  /**
+   * @param {{ isUpdating: boolean }} opts
+   */
+  clearDomElements({ isUpdating }) {
+    const domEls = /** @type {any} */ (this.w.dom)
+
+    // When the chart never completed setupElements() — e.g. it was rendered
+    // while detached from the DOM, so create() bailed out early — domEls.Paper
+    // is undefined. Guard the browser teardown so destroy()/clear() on such an
+    // un-mounted chart doesn't throw "Cannot read properties of undefined
+    // (reading 'node')". See react-apexcharts#602 / vue-apexcharts#256.
+    if (Environment.isBrowser() && domEls.Paper) {
+      const elSVG = domEls.Paper.node
+      // fixes apexcharts.js#1654 & vue-apexcharts#256
+      if (elSVG.parentNode && elSVG.parentNode.parentNode && !isUpdating) {
+        elSVG.parentNode.parentNode.style.minHeight = 'unset'
+      }
+
+      // detach root event
+      const baseEl = domEls.baseEl
+      if (baseEl) {
+        // see https://github.com/apexcharts/vue-apexcharts/issues/275
+        this.ctx.eventList.forEach((/** @type {string} */ event) => {
+          baseEl.removeEventListener(event, this.ctx.events.documentEvent)
+        })
+      }
+
+      if (this.ctx.el !== null) {
+        // remove all child elements - resetting the whole chart
+        while (this.ctx.el.firstChild) {
+          this.ctx.el.removeChild(this.ctx.el.firstChild)
+        }
+      }
+
+      this.killSVG(domEls.Paper)
+      domEls.Paper.remove()
+    }
+
+    domEls.elWrap = null
+    domEls.elGraphical = null
+    domEls.elLegendWrap = null
+    domEls.elLegendForeign = null
+    domEls.baseEl = null
+    domEls.elGridRect = null
+    domEls.elGridRectMask = null
+    domEls.elGridRectBarMask = null
+    domEls.elGridRectMarkerMask = null
+    domEls.elForecastMask = null
+    domEls.elNonForecastMask = null
+    domEls.elDefs = null
+  }
+}

@@ -1,0 +1,265 @@
+{
+  "name": "apexcharts",
+  "version": "5.16.0",
+  "description": "A JavaScript Chart Library",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apexcharts/apexcharts.js.git"
+  },
+  "main": "dist/apexcharts.common.js",
+  "es2020": "dist/apexcharts.esm.js",
+  "module": "dist/apexcharts.esm.js",
+  "unpkg": "dist/apexcharts.js",
+  "jsdelivr": "dist/apexcharts.js",
+  "typings": "types/apexcharts.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/apexcharts.d.ts",
+      "browser": {
+        "import": "./dist/apexcharts.esm.js",
+        "require": "./dist/apexcharts.common.js"
+      },
+      "node": {
+        "import": "./dist/apexcharts.ssr.esm.js",
+        "require": "./dist/apexcharts.ssr.common.js"
+      },
+      "default": "./dist/apexcharts.esm.js"
+    },
+    "./ssr": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/apexcharts.ssr.esm.js",
+      "require": "./dist/apexcharts.ssr.common.js"
+    },
+    "./client": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/apexcharts.esm.js",
+      "require": "./dist/apexcharts.common.js"
+    },
+    "./line": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/line.esm.js",
+      "require": "./dist/line.common.js"
+    },
+    "./area": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/area.esm.js",
+      "require": "./dist/area.common.js"
+    },
+    "./scatter": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/scatter.esm.js",
+      "require": "./dist/scatter.common.js"
+    },
+    "./bubble": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/bubble.esm.js",
+      "require": "./dist/bubble.common.js"
+    },
+    "./rangeArea": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/rangeArea.esm.js",
+      "require": "./dist/rangeArea.common.js"
+    },
+    "./bar": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/bar.esm.js",
+      "require": "./dist/bar.common.js"
+    },
+    "./column": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/column.esm.js",
+      "require": "./dist/column.common.js"
+    },
+    "./rangeBar": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/rangeBar.esm.js",
+      "require": "./dist/rangeBar.common.js"
+    },
+    "./candlestick": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/candlestick.esm.js",
+      "require": "./dist/candlestick.common.js"
+    },
+    "./boxPlot": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/boxPlot.esm.js",
+      "require": "./dist/boxPlot.common.js"
+    },
+    "./violin": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/violin.esm.js",
+      "require": "./dist/violin.common.js"
+    },
+    "./pie": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/pie.esm.js",
+      "require": "./dist/pie.common.js"
+    },
+    "./donut": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/donut.esm.js",
+      "require": "./dist/donut.common.js"
+    },
+    "./polarArea": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/polarArea.esm.js",
+      "require": "./dist/polarArea.common.js"
+    },
+    "./radialBar": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/radialBar.esm.js",
+      "require": "./dist/radialBar.common.js"
+    },
+    "./radar": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/radar.esm.js",
+      "require": "./dist/radar.common.js"
+    },
+    "./heatmap": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/heatmap.esm.js",
+      "require": "./dist/heatmap.common.js"
+    },
+    "./treemap": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/treemap.esm.js",
+      "require": "./dist/treemap.common.js"
+    },
+    "./core": {
+      "types": "./types/apexcharts.d.ts",
+      "import": "./dist/core.esm.js",
+      "require": "./dist/core.common.js"
+    },
+    "./features/exports": {
+      "import": "./dist/features/exports.esm.js",
+      "require": "./dist/features/exports.common.js"
+    },
+    "./features/legend": {
+      "import": "./dist/features/legend.esm.js",
+      "require": "./dist/features/legend.common.js"
+    },
+    "./features/toolbar": {
+      "import": "./dist/features/toolbar.esm.js",
+      "require": "./dist/features/toolbar.common.js"
+    },
+    "./features/annotations": {
+      "import": "./dist/features/annotations.esm.js",
+      "require": "./dist/features/annotations.common.js"
+    },
+    "./features/keyboard": {
+      "import": "./dist/features/keyboard.esm.js",
+      "require": "./dist/features/keyboard.common.js"
+    },
+    "./features/morph": {
+      "import": "./dist/features/morph.esm.js",
+      "require": "./dist/features/morph.common.js"
+    },
+    "./features/drilldown": {
+      "import": "./dist/features/drilldown.esm.js",
+      "require": "./dist/features/drilldown.common.js"
+    },
+    "./features/all": {
+      "import": "./dist/features/all.esm.js",
+      "require": "./dist/features/all.common.js"
+    },
+    "./dist/*": "./dist/*",
+    "./src/*": "./src/*",
+    "./types/*": "./types/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "dist/*.js",
+    "dist/*.js.map",
+    "dist/*.css",
+    "dist/locales/*.json",
+    "dist/features/*.js",
+    "dist/features/*.js.map",
+    "types/*.d.ts"
+  ],
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "serve": "vite",
+    "build": "node build/vite-build.mjs && vite build --mode ssr",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "typecheck:types": "tsc --noEmit -p tsconfig.types-test.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "npm run e2e && npm run unit -- --coverage",
+    "test:ci": "npm run e2e:ci && npm run unit",
+    "unit": "vitest run tests/unit/",
+    "e2e": "node tests/e2e/samples.js test",
+    "e2e:update": "node tests/e2e/samples.js update",
+    "e2e:ci": "node tests/e2e/samples.js test:ci",
+    "build:samples": "node samples/source/index.js generate",
+    "interaction": "playwright test --config=tests/interaction/playwright.config.mjs",
+    "interaction:headed": "playwright test --config=tests/interaction/playwright.config.mjs --headed",
+    "prepare": "npx simple-git-hooks",
+    "build:demos": "node build/build-demos.mjs"
+  },
+  "simple-git-hooks": {
+    "pre-push": "npm run lint >&2"
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.7",
+    "@babel/preset-env": "7.29.7",
+    "@blazediff/core": "1.0.0",
+    "@eslint/js": "^9.0.0",
+    "@playwright/test": "1.58.2",
+    "@rollup/plugin-terser": "0.4.4",
+    "@vitest/coverage-v8": "^4.0.18",
+    "babel-jest": "30.2.0",
+    "chalk": "3.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.1.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "fs-extra": "8.1.0",
+    "globals": "^15.0.0",
+    "jest": "29.7.0",
+    "jest-environment-jsdom": "29.7.0",
+    "jest-puppeteer": "^10.0.1",
+    "jsdom": "^28.0.0",
+    "nunjucks": "3.2.4",
+    "nyc": "15.0.0",
+    "pngjs": "3.4.0",
+    "prettier": "^3.2.0",
+    "puppeteer": "22.15.0",
+    "puppeteer-cluster": "0.24.0",
+    "simple-git-hooks": "2.13.1",
+    "terser": "5.46.0",
+    "tslint": "6.1.3",
+    "typescript": "5.0.2",
+    "vite": "^6.4.3",
+    "vitest": "^4.0.18"
+  },
+  "resolutions": {
+    "undici": "^7.28.0",
+    "form-data": "^4.0.6",
+    "serialize-javascript": "^7.0.5",
+    "vite": "^6.4.3",
+    "@babel/core": "^7.29.7"
+  },
+  "bugs": {
+    "url": "https://github.com/apexcharts/apexcharts.js/issues"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://apexcharts.com",
+  "sideEffects": [
+    "*.css",
+    "./src/svg/index.js",
+    "./src/modules/helpers/InitCtxVariables.js",
+    "./src/entries/*.js",
+    "./src/features/*.js",
+    "./dist/*.esm.js",
+    "./dist/features/*.esm.js"
+  ],
+  "keywords": [
+    "charts",
+    "graphs",
+    "visualizations",
+    "data"
+  ]
+}

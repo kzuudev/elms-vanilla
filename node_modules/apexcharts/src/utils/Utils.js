@@ -1,0 +1,764 @@
+// @ts-check
+/*
+ ** Generic functions which are not dependent on ApexCharts
+ */
+
+import { Environment } from './Environment.js'
+import { BrowserAPIs } from '../ssr/BrowserAPIs.js'
+
+class Utils {
+  /**
+   * @param {*} item
+   */
+  static isObject(item) {
+    return item && typeof item === 'object' && !Array.isArray(item)
+  }
+
+  // Type checking that works across different window objects
+  /**
+   * @param {string} type
+   * @param {string} val
+   */
+  static is(type, val) {
+    return Object.prototype.toString.call(val) === '[object ' + type + ']'
+  }
+
+  static isSafari() {
+    return (
+      Environment.isBrowser() &&
+      /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+    )
+  }
+
+  // to extend defaults with user options
+  // credit: http://stackoverflow.com/questions/27936772/deep-object-merging-in-es6-es7#answer-34749873
+  /**
+   * @param {any} target
+   * @param {any} source
+   */
+  static extend(target, source) {
+    const output = Object.assign({}, target)
+    if (this.isObject(target) && this.isObject(source)) {
+      Object.keys(source).forEach((key) => {
+        if (this.isObject(source[key])) {
+          if (!(key in target)) {
+            Object.assign(output, {
+              [key]: source[key],
+            })
+          } else {
+            output[key] = this.extend(target[key], source[key])
+          }
+        } else {
+          Object.assign(output, {
+            [key]: source[key],
+          })
+        }
+      })
+    }
+    return output
+  }
+
+  /**
+   * @param {any[]} arrToExtend
+   * @param {any} resultArr
+   */
+  static extendArray(arrToExtend, resultArr) {
+    /** @type {any[]} */
+    const extendedArr = []
+    /**
+     * @param {any} item
+     */
+    arrToExtend.map((/** @type {any} */ item) => {
+      extendedArr.push(Utils.extend(resultArr, item))
+    })
+    arrToExtend = extendedArr
+    return arrToExtend
+  }
+
+  // If month counter exceeds 12, it starts again from 1
+  /**
+   * @param {number} month
+   */
+  static monthMod(month) {
+    return month % 12
+  }
+
+  /**
+   * clone object with optional shallow copy for performance
+   * @param {*} source - Source object to clone
+   * @param {WeakMap<any, any>} visited - Circular reference tracker
+   * @param {boolean} shallow - If true, performs shallow copy (default: false)
+   * @returns {*} Cloned object
+   */
+  static clone(source, visited = new WeakMap(), shallow = false) {
+    if (source === null || typeof source !== 'object') {
+      return source
+    }
+
+    if (visited.has(source)) {
+      return visited.get(source)
+    }
+
+    /** @type {any} */
+    let cloneResult
+
+    if (Array.isArray(source)) {
+      if (shallow) {
+        cloneResult = source.slice()
+      } else {
+        cloneResult = []
+        visited.set(source, cloneResult)
+        for (let i = 0; i < source.length; i++) {
+          cloneResult[i] = this.clone(source[i], visited, false)
+        }
+      }
+    } else if (source instanceof Date) {
+      cloneResult = new Date(source.getTime())
+    } else {
+      if (shallow) {
+        cloneResult = Object.assign({}, source)
+      } else {
+        cloneResult = {}
+        visited.set(source, cloneResult)
+        for (const prop in source) {
+          if (Object.prototype.hasOwnProperty.call(source, prop)) {
+            cloneResult[prop] = this.clone(
+              /** @type {Record<string,any>} */ (source)[prop],
+              visited,
+              false,
+            )
+          }
+        }
+      }
+    }
+    return cloneResult
+  }
+
+  /**
+   * Shallow clone for performance when deep clone isn't needed
+   * @param {*} source - Source to clone
+   * @returns {*} Shallow cloned object
+   */
+  static shallowClone(source) {
+    if (source === null || typeof source !== 'object') {
+      return source
+    }
+    if (Array.isArray(source)) {
+      return source.slice()
+    }
+    return Object.assign({}, source)
+  }
+
+  /**
+   * Fast shallow equality check for objects
+   * @param {Object} obj1 - First object
+   * @param {Object} obj2 - Second object
+   * @returns {boolean} True if shallowly equal
+   */
+  static shallowEqual(obj1, obj2) {
+    if (obj1 === obj2) return true
+
+    if (!obj1 || !obj2) return false
+
+    if (typeof obj1 !== 'object' || typeof obj2 !== 'object') {
+      return obj1 === obj2
+    }
+
+    const keys1 = Object.keys(obj1)
+    const keys2 = Object.keys(obj2)
+
+    if (keys1.length !== keys2.length) return false
+
+    for (const key of keys1) {
+      if (
+        /** @type {Record<string,any>} */ (obj1)[key] !==
+        /** @type {Record<string,any>} */ (obj2)[key]
+      )
+        return false
+    }
+
+    return true
+  }
+
+  /**
+   * @param {number} x
+   */
+  static log10(x) {
+    return Math.log(x) / Math.LN10
+  }
+
+  /**
+   * @param {number} x
+   */
+  static roundToBase10(x) {
+    return Math.pow(10, Math.floor(Math.log10(x)))
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} base
+   */
+  static roundToBase(x, base) {
+    return Math.pow(base, Math.floor(Math.log(x) / Math.log(base)))
+  }
+
+  /**
+   * @param {any} val
+   */
+  static parseNumber(val) {
+    if (typeof val === 'number' || val === null) return val
+    return parseFloat(val)
+  }
+
+  /**
+   * @param {number} num
+   */
+  static stripNumber(num, precision = 2) {
+    return Number.isInteger(num) ? num : parseFloat(num.toPrecision(precision))
+  }
+
+  static randomId() {
+    return (Math.random() + 1).toString(36).substring(4)
+  }
+
+  /**
+   * @param {number} num
+   */
+  static noExponents(num) {
+    // Check if the number contains 'e' (exponential notation)
+    if (num.toString().includes('e')) {
+      return Math.round(num) // Round the number
+    }
+    return num // Return as-is if no exponential notation
+  }
+
+  /**
+   * @param {any} element
+   */
+  static elementExists(element) {
+    if (!element || !element.isConnected) {
+      return false
+    }
+    return true
+  }
+
+  /**
+   * detects if an element is inside a Shadow DOM
+   * @param {any} el
+   */
+  static isInShadowDOM(el) {
+    if (!el || !el.getRootNode) {
+      return false
+    }
+
+    const rootNode = el.getRootNode()
+
+    // check if root node is a ShadowRoot
+    return rootNode && rootNode !== document && Utils.is('ShadowRoot', rootNode)
+  }
+
+  /**
+   * gets the shadow root host element
+   * @param {any} el
+   */
+  static getShadowRootHost(el) {
+    if (!Utils.isInShadowDOM(el)) {
+      return null
+    }
+
+    const rootNode = el.getRootNode()
+    return rootNode.host || null
+  }
+
+  /**
+   * @param {any} el
+   */
+  static getDimensions(el) {
+    if (!el) return [0, 0]
+
+    // SSR: use provided dimensions or defaults
+    if (Environment.isSSR()) {
+      return [el._ssrWidth || 400, el._ssrHeight || 300]
+    }
+
+    let computedStyle
+    try {
+      computedStyle = getComputedStyle(el, null)
+    } catch (e) {
+      return [el.clientWidth || 0, el.clientHeight || 0]
+    }
+
+    let elementWidth = el.clientWidth
+    let elementHeight = el.clientHeight
+
+    // clientWidth/Height can be 0 when height:'100%' hasn't resolved yet
+    // (common inside shadow DOM or detached subtrees) — fall back to BCR
+    if (!elementWidth || !elementHeight) {
+      const rect = el.getBoundingClientRect()
+      elementWidth = elementWidth || rect.width
+      elementHeight = elementHeight || rect.height
+    }
+
+    elementHeight -=
+      parseFloat(computedStyle.paddingTop) +
+      parseFloat(computedStyle.paddingBottom)
+    elementWidth -=
+      parseFloat(computedStyle.paddingLeft) +
+      parseFloat(computedStyle.paddingRight)
+
+    return [elementWidth, elementHeight]
+  }
+  /**
+   * @returns {any}
+   * @param {any} element
+   */
+  static getBoundingClientRect(element) {
+    if (!element) {
+      return {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        width: 0,
+        height: 0,
+        x: 0,
+        y: 0,
+      }
+    }
+
+    // SSR: use abstraction layer
+    if (Environment.isSSR()) {
+      return BrowserAPIs.getBoundingClientRect(element)
+    }
+
+    const rect = element.getBoundingClientRect()
+    return {
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      left: rect.left,
+      width: element.clientWidth,
+      height: element.clientHeight,
+      x: rect.left,
+      y: rect.top,
+    }
+  }
+
+  /**
+   * @param {any[]} arr
+   */
+  static getLargestStringFromArr(arr) {
+    /**
+     * @param {string} a
+     * @param {string} b
+     */
+    return arr.reduce((a, b) => {
+      if (Array.isArray(b)) {
+        b = b.reduce((aa, bb) => (aa.length > bb.length ? aa : bb))
+      }
+      return a.length > b.length ? a : b
+    }, 0)
+  }
+
+  // http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb#answer-12342275
+  static hexToRgba(hex = '#999999', opacity = 0.6) {
+    if (hex.substring(0, 1) !== '#') {
+      hex = '#999999'
+    }
+
+    const hexStr = hex.replace('#', '')
+    /** @type {any[]} */
+    const h =
+      hexStr.match(new RegExp('(.{' + hexStr.length / 3 + '})', 'g')) || []
+
+    for (let i = 0; i < h.length; i++) {
+      h[i] = parseInt(h[i].length === 1 ? h[i] + h[i] : h[i], 16)
+    }
+
+    if (typeof opacity !== 'undefined') h.push(opacity)
+
+    return 'rgba(' + h.join(',') + ')'
+  }
+
+  /**
+   * @param {string} rgba
+   */
+  static getOpacityFromRGBA(rgba) {
+    return parseFloat(rgba.replace(/^.*,(.+)\)/, '$1'))
+  }
+
+  /**
+   * Parse a #RGB or #RRGGBB hex colour string into [r,g,b] in 0–255.
+   * Returns null for invalid input. Used by getContrastRatio.
+   * @param {string} hex
+   * @returns {[number, number, number] | null}
+   */
+  static parseHex(hex) {
+    if (typeof hex !== 'string') return null
+    let h = hex.trim().replace('#', '')
+    if (h.length === 3) {
+      h = h.split('').map((c) => c + c).join('')
+    }
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) return null
+    return [
+      parseInt(h.slice(0, 2), 16),
+      parseInt(h.slice(2, 4), 16),
+      parseInt(h.slice(4, 6), 16),
+    ]
+  }
+
+  /**
+   * Relative luminance per WCAG 2.x (https://www.w3.org/TR/WCAG22/#dfn-relative-luminance).
+   * @param {[number, number, number]} rgb 0–255 sRGB triplet
+   * @returns {number} 0.0–1.0
+   */
+  static relativeLuminance([r, g, b]) {
+    const channel = (/** @type {number} */ c) => {
+      const v = c / 255
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
+    }
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+  }
+
+  /**
+   * WCAG contrast ratio between two hex colours. Returns 0 for invalid input.
+   * Range: 1 (identical) … 21 (#000 vs #fff).
+   * WCAG AA requires ≥ 4.5 for normal text and ≥ 3.0 for large text / UI components.
+   * @param {string} hex1
+   * @param {string} hex2
+   * @returns {number}
+   */
+  static getContrastRatio(hex1, hex2) {
+    const rgb1 = Utils.parseHex(hex1)
+    const rgb2 = Utils.parseHex(hex2)
+    if (!rgb1 || !rgb2) return 0
+    const l1 = Utils.relativeLuminance(rgb1)
+    const l2 = Utils.relativeLuminance(rgb2)
+    const lighter = Math.max(l1, l2)
+    const darker = Math.min(l1, l2)
+    return (lighter + 0.05) / (darker + 0.05)
+  }
+
+  /**
+   * @param {any} rgb
+   */
+  static rgb2hex(rgb) {
+    rgb = rgb.match(
+      /^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i,
+    )
+    return rgb && rgb.length === 4
+      ? '#' +
+          ('0' + parseInt(rgb[1], 10).toString(16)).slice(-2) +
+          ('0' + parseInt(rgb[2], 10).toString(16)).slice(-2) +
+          ('0' + parseInt(rgb[3], 10).toString(16)).slice(-2)
+      : ''
+  }
+
+  /**
+   * @param {number} percent
+   * @param {string} color
+   */
+  shadeRGBColor(percent, color) {
+    const f = color.split(','),
+      t = percent < 0 ? 0 : 255,
+      p = percent < 0 ? percent * -1 : percent,
+      R = parseInt(f[0].slice(4), 10),
+      G = parseInt(f[1], 10),
+      B = parseInt(f[2], 10)
+    return (
+      'rgb(' +
+      (Math.round((t - R) * p) + R) +
+      ',' +
+      (Math.round((t - G) * p) + G) +
+      ',' +
+      (Math.round((t - B) * p) + B) +
+      ')'
+    )
+  }
+
+  /**
+   * @param {number} percent
+   * @param {string} color
+   */
+  shadeHexColor(percent, color) {
+    const f = parseInt(color.slice(1), 16),
+      t = percent < 0 ? 0 : 255,
+      p = percent < 0 ? percent * -1 : percent,
+      R = f >> 16,
+      G = (f >> 8) & 0x00ff,
+      B = f & 0x0000ff
+    return (
+      '#' +
+      (
+        0x1000000 +
+        (Math.round((t - R) * p) + R) * 0x10000 +
+        (Math.round((t - G) * p) + G) * 0x100 +
+        (Math.round((t - B) * p) + B)
+      )
+        .toString(16)
+        .slice(1)
+    )
+  }
+
+  // beautiful color shading blending code
+  // http://stackoverflow.com/questions/5560248/programmatically-lighten-or-darken-a-hex-color-or-rgb-and-blend-colors
+  /**
+   * @param {number} p
+   * @param {string} color
+   */
+  shadeColor(p, color) {
+    if (Utils.isColorHex(color)) {
+      return this.shadeHexColor(p, color)
+    } else {
+      return this.shadeRGBColor(p, color)
+    }
+  }
+
+  /**
+   * @param {string} color
+   */
+  static isColorHex(color) {
+    return /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)|(^#[0-9A-F]{8}$)/i.test(color)
+  }
+
+  /**
+   * @param {string} color
+   */
+  static isCSSVariable(color) {
+    if (typeof color !== 'string') return false
+
+    const value = color.trim()
+    return value.startsWith('var(') && value.endsWith(')')
+  }
+
+  /**
+   * @param {string} color
+   */
+  static getThemeColor(color) {
+    if (!Utils.isCSSVariable(color)) return color
+
+    // CSS variable resolution requires a live DOM — not possible in SSR
+    if (Environment.isSSR()) return color
+
+    const tempElem = document.createElement('div')
+    tempElem.style.cssText = 'position:fixed; left: -9999px; visibility:hidden;'
+    tempElem.style.color = color
+    document.body.appendChild(tempElem)
+
+    let computedColor
+    try {
+      computedColor = window.getComputedStyle(tempElem).color
+    } finally {
+      if (tempElem.parentNode) {
+        tempElem.parentNode.removeChild(tempElem)
+      }
+    }
+
+    return computedColor
+  }
+
+  /**
+   * @param {string} color
+   * @param {number} opacity
+   */
+  static applyOpacityToColor(color, opacity) {
+    const value = Number(opacity)
+    if (!Number.isFinite(value)) return color
+    if (value <= 0) return 'transparent'
+    if (value >= 1) return color
+    const percent = Math.round(value * 100)
+    return `color-mix(in srgb, ${color} ${percent}%, transparent)`
+  }
+
+  /**
+   * @param {number} size
+   * @param {number} dataPointsLen
+   */
+  static getPolygonPos(size, dataPointsLen) {
+    const dotsArray = []
+    const angle = (Math.PI * 2) / dataPointsLen
+    for (let i = 0; i < dataPointsLen; i++) {
+      const curPos = {}
+      curPos.x = size * Math.sin(i * angle)
+      curPos.y = -size * Math.cos(i * angle)
+      dotsArray.push(curPos)
+    }
+    return dotsArray
+  }
+
+  /**
+   * @param {number} centerX
+   * @param {number} centerY
+   * @param {number} radius
+   * @param {number} angleInDegrees
+   */
+  static polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0
+
+    return {
+      x: centerX + radius * Math.cos(angleInRadians),
+      y: centerY + radius * Math.sin(angleInRadians),
+    }
+  }
+
+  /**
+   * @param {string} str
+   */
+  static escapeString(str, escapeWith = 'x') {
+    let newStr = str.toString().slice()
+    newStr = newStr.replace(/[` ~!@#$%^&*()|+=?;:'",.<>{}[\]\\/]/gi, escapeWith)
+    return newStr
+  }
+
+  /**
+   * @param {number} val
+   */
+  static negToZero(val) {
+    return val < 0 ? 0 : val
+  }
+
+  /**
+   * @param {any[]} arr
+   * @param {number} old_index
+   * @param {number} new_index
+   */
+  static moveIndexInArray(arr, old_index, new_index) {
+    if (new_index >= arr.length) {
+      let k = new_index - arr.length + 1
+      while (k--) {
+        arr.push(undefined)
+      }
+    }
+    arr.splice(new_index, 0, arr.splice(old_index, 1)[0])
+    return arr
+  }
+
+  /**
+   * @param {string} s
+   */
+  static extractNumber(s) {
+    return parseFloat(s.replace(/[^\d.]*/g, ''))
+  }
+
+  /**
+   * @param {any} el
+   * @param {string} cls
+   */
+  static findAncestor(el, cls) {
+    while ((el = el.parentElement) && !el.classList.contains(cls));
+    return el
+  }
+
+  /**
+   * @param {any} el
+   * @param {Record<string, any>} styles
+   */
+  static setELstyles(el, styles) {
+    for (const key in styles) {
+      if (Object.prototype.hasOwnProperty.call(styles, key)) {
+        el.style.key = styles[key]
+      }
+    }
+  }
+  // prevents JS prevision errors when adding
+  /**
+   * @param {number} a
+   * @param {number} b
+   */
+  static preciseAddition(a, b) {
+    const aDecimals = (String(a).split('.')[1] || '').length
+    const bDecimals = (String(b).split('.')[1] || '').length
+
+    const factor = Math.pow(10, Math.max(aDecimals, bDecimals))
+
+    return (Math.round(a * factor) + Math.round(b * factor)) / factor
+  }
+
+  /**
+   * @param {any} value
+   */
+  static isNumber(value) {
+    return (
+      !isNaN(value) &&
+      parseFloat(String(Number(value))) === value &&
+      !isNaN(parseInt(value, 10))
+    )
+  }
+
+  /**
+   * @param {number} n
+   */
+  static isFloat(n) {
+    return Number(n) === n && n % 1 !== 0
+  }
+
+  static isMsEdge() {
+    if (Environment.isSSR()) return false
+
+    const ua = window.navigator.userAgent
+
+    const edge = ua.indexOf('Edge/')
+    if (edge > 0) {
+      // Edge (IE 12+) => return version number
+      return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10)
+    }
+
+    // other browser
+    return false
+  }
+  //
+  // Find the Greatest Common Divisor of two numbers
+  //
+  /**
+   * @param {number} a
+   * @param {number} b
+   */
+  static getGCD(a, b, p = 7) {
+    let factor = Math.pow(10, p - Math.floor(Math.log10(Math.max(a, b))))
+    if (factor > 1) {
+      a = Math.round(Math.abs(a) * factor)
+      b = Math.round(Math.abs(b) * factor)
+    } else {
+      factor = 1
+    }
+
+    while (b) {
+      const t = b
+      b = a % b
+      a = t
+    }
+    return a / factor
+  }
+
+  /**
+   * @param {number} n
+   */
+  static getPrimeFactors(n) {
+    const factors = []
+    let divisor = 2
+
+    while (n >= 2) {
+      if (n % divisor == 0) {
+        factors.push(divisor)
+        n = n / divisor
+      } else {
+        divisor++
+      }
+    }
+    return factors
+  }
+
+  /**
+   * @param {number} a
+   * @param {number} b
+   */
+  static mod(a, b, p = 7) {
+    const big = Math.pow(10, p - Math.floor(Math.log10(Math.max(a, b))))
+    a = Math.round(Math.abs(a) * big)
+    b = Math.round(Math.abs(b) * big)
+
+    return (a % b) / big
+  }
+}
+
+export default Utils
