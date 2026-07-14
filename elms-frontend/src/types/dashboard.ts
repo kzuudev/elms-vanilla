@@ -19,7 +19,7 @@ export type TotalUsedDays = {
 
 export type MonthlyLeaveConsumption = {
     month_num: number,
-    total_used_days: number,
+    total_used_days: string,
 }
 
 export type TeamStatus = {
@@ -52,11 +52,18 @@ export type PendingLeaveRequest = {
 }
 
 
-export type TeamOverview = {
-    total_employees: number,
-    available_today: number,
-    on_leave_today: number,
-    upcoming_leave_days: number,
+export type TeamAvailability = {
+    user_id: number;
+    employee_first_name: string;
+    employee_last_name: string;
+    user_position: string;
+    user_status: boolean;
+    department: string;
+    leave_type_id: number;
+    leave_type_name: string;
+    leave_request_status: string; // e.g., "approved"
+    start_date: string;           // e.g., "2026-07-05"
+    end_date: string;
 }
 
 export type MonthlyConsumption = MonthlyLeaveConsumption[]

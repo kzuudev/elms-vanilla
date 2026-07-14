@@ -73,24 +73,30 @@ trait HasSharedAnalytics {
                 u.last_name as employee_last_name,
                 u.role as user_position,
                 u.department as department,
+                u.is_active as user_status,
                 lr.leave_type_id as leave_type_id,
                 lt.name as leave_type_name,
                 lr.status as leave_request_status,
                 lr.start_date as start_date,
                 lr.end_date as end_date
-            FROM leave_requests lr
-            LEFT JOIN users u ON lr.user_id = u.id
+            FROM users u
+            LEFT JOIN leave_requests lr 
+                ON u.id = lr.user_id 
+                AND lr.status = 'approved' 
+                AND lr.deleted_at IS NULL
+                AND CURRENT_DATE >= lr.start_date 
+                AND CURRENT_DATE <= lr.end_date
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
-            WHERE lr.user_id != :current_user_id AND lr.status != 'rejected'
+            WHERE u.id != :current_user_id
+              AND u.is_active = 1 
         ";
-
 
         $params = [
             'current_user_id' => $currentUserId,
         ];
 
         if($userRole === 'manager') {
-            $query .= ' AND lr.assigned_to = :manager_id';
+            $query .= ' AND u.assigned_to = :manager_id';
             $params['manager_id'] = $currentUserId;
         }
 

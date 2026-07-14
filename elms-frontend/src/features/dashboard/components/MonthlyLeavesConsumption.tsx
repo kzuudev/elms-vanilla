@@ -11,8 +11,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 export default function MonthlyLeavesConsumption() {
 
-    // Expecting array objects like: { month_name: "Jun", total_used_days: 3 }
-
     const { user } = useContext(UserContext);
 
     const managementAnalytics = useContext(DashboardAnalyticsContext);
@@ -34,7 +32,7 @@ export default function MonthlyLeavesConsumption() {
 
             return {
                 month: month,
-                "Days Used": foundMonth ? Number(foundMonth.total_used_day) : 0
+                "Days Used": foundMonth ? Number(foundMonth.total_used_days) : 0
             };
         }
 
