@@ -102,11 +102,11 @@ export type RecentLeaveRequest = {
 
 }
 
-export type TotalEmployee = {
-    total_employees: number,
-    total_active_employees: number,
-    total_inactive_employees: number,
-    total_departs_employees: number,
+export type TotalUsers = {
+    total_users: number,
+    total_active_users: number,
+    total_inactive_users: number,
+    total_departs_users: number,
 }
 
 

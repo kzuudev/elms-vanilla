@@ -9,11 +9,14 @@ import LeaveSummaryGrid from "@/features/dashboard/components/LeaveSummaryGrid.t
 import LeaveOverlapTimeline from "@/features/dashboard/components/LeaveOverlapTimeline.tsx";
 import MonthlyLeavesConsumption from "@/features/dashboard/components/MonthlyLeavesConsumption.tsx";
 import TeamCoverageWidget from "@/features/dashboard/components/TeamCoverageWidget.tsx";
+import TeamInsights from "@/features/dashboard/components/TeamInsights.tsx";
+
 
 import {DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
 
-import type {TotalPendingRequest, TotalRemainingBalance, TotalUsedDays, LeaveOverlap, MonthlyConsumption, TeamAvailability} from "@/types/dashboard.ts";
+import type {TotalPendingRequest, TotalRemainingBalance, TotalUsedDays, LeaveOverlap, MonthlyConsumption, TeamAvailability, TotalUsers} from "@/types/dashboard.ts";
 import Search from "@/components/ui/search.tsx";
+
 
 
 
@@ -28,6 +31,7 @@ export default function ManagerDashboard() {
     const [overlap, setOverlap] = useState<LeaveOverlap[]>([]);
     const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyConsumption[]>([]);
     const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
+    const [totalUsers, setTotalUsers] = useState<TotalUsers[]>([]);
 
 
     const fetchManagerDashboard = async () => {
@@ -45,6 +49,7 @@ export default function ManagerDashboard() {
             setOverlap(response.data.leave_overlap);
             setMonthlyLeaveConsumption(response.data.monthly_leave_consumption);
             setTeamAvailability(response.data.team_availability);
+            setTotalUsers(response.data.total_users);
 
         }catch (e) {
             setError(e.response.data.message);
@@ -62,7 +67,7 @@ export default function ManagerDashboard() {
    return (
       <>
           <AppSidebar>
-              <DashboardAnalyticsContext.Provider value={{remainingBalance, pendingRequest, usedDays, overlap, teamAvailability, recentActivity: [], monthlyLeaveConsumption}}>
+              <DashboardAnalyticsContext.Provider value={{remainingBalance, pendingRequest, usedDays, overlap, teamAvailability, recentActivity: [], monthlyLeaveConsumption, totalUsers}}>
                   <div className="flex flex-col gap-4">
                       <div  className="w-full flex justify-between">
                           <div className="">
@@ -82,11 +87,11 @@ export default function ManagerDashboard() {
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                           <LeaveOverlapTimeline />
                           <MonthlyLeavesConsumption />
-                          <TeamCoverageWidget />
+                          <TeamInsights />
                       </div>
 
-                      <div>
-
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          <TeamCoverageWidget />
                       </div>
 
                   </div>
