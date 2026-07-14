@@ -135,3 +135,10 @@ export type LeaveOverlap = {
     end_date: string;
     overlap: OverlappingLeave[];
 }
+
+export type EmployeeRecentActivity = {
+    id: number;
+    date: string;
+    member_name: string;
+    recent_activity: string;
+}

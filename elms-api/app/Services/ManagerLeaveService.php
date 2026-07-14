@@ -10,19 +10,19 @@ use App\Traits\HasSharedAnalytics;
 
 
 
-class ManagerLeaveService implements LeaveAnalyticsInterface {
+class ManagerLeaveService implements LeaveAnalyticsInterface
+{
 
     use HasSharedAnalytics;
+
     private $db;
     private int $managerId;
 
     private string $userRole;
 
 
-
-
-
-    public function __construct() {
+    public function __construct()
+    {
 
         $this->db = App::resolve(Database::class);
         $this->managerId = Auth::authenticate()['id'];
@@ -53,17 +53,20 @@ class ManagerLeaveService implements LeaveAnalyticsInterface {
 
     }
 
-    public function getMonthlyConsumption(): array {
+    public function getMonthlyConsumption(): array
+    {
 
         return $this->executeMonthlyConsumptionQuery($this->userRole, $this->managerId);
     }
 
-    public function getBacklogRequests(): array {
+    public function getBacklogRequests(): array
+    {
         return $this->executeBacklogQuery($this->userRole, $this->managerId);
 
     }
 
-    public function getTeamOverlap(): array {
+    public function getTeamOverlap(): array
+    {
 
         $query = "
             SELECT lr.*,
@@ -85,7 +88,7 @@ class ManagerLeaveService implements LeaveAnalyticsInterface {
 
         $params = [];
 
-        if($this->userRole === 'manager') {
+        if ($this->userRole === 'manager') {
             $query .= " AND lr.assigned_to = :manager_id";
             $params['manager_id'] = $this->managerId;
         }
@@ -119,10 +122,10 @@ class ManagerLeaveService implements LeaveAnalyticsInterface {
         return $data;
 
 
-
     }
 
-    public function getTotalUsers(): array {
+    public function getTotalUsers(): array
+    {
 
         $authenticatedUser = $this->db->query("
             SELECT 
@@ -149,24 +152,32 @@ class ManagerLeaveService implements LeaveAnalyticsInterface {
                 $this->managerId,
             );
 
-//            $data[] = [
-//                'user_id' => $user['id'],
-//                'first_name' => $user['first_name'],
-//                'last_name' => $user['last_name'],
-//                'user_role' => $user['user_role'],
-//                'department' => $user['department'],
-//                'is_active' => $user['is_active'],
-//                'total_users' => $users,
-//            ];
-
-
-
 
         }
 
         return $users;
     }
 
+    public function getRecentActivity(): array
+    {
 
+        $recentActivity = $this->db->query("
+         SELECT lr.*,
+                lt.name AS leave_type_name,
+                u.first_name AS first_name,
+                u.last_name AS last_name,
+                lr.status AS request_status,
+                lr.start_date AS request_date,
+                lr.end_date AS return_date
+            FROM leave_requests lr
+            LEFT JOIN users u ON lr.user_id = u.id
+            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+            WHERE lr.assigned_to = :manager_id
+        ", [
+            'manager_id' => $this->managerId,
+        ])->all();
+
+        return $recentActivity;
+    }
 
 }

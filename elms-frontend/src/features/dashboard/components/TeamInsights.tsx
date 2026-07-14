@@ -57,9 +57,8 @@ export default function TeamInsights() {
                         <div>
                             <div className="flex justify-between items-center">
                                 <div className="flex flex-col">
-                                    <span className="text-sm text-gray-500">Availability</span>
-                                    <span className="text-2xl font-bold text-gray-900 mt-1">{activeWorkingPercentage.toFixed(0)}%</span>
-                                    <span className="text-xs text-gray-400 mt-0.5">({activeWorkingCount} active)</span>
+                                    <span className="text-sm text-gray-500 mb-3">Availability</span>
+                                    <span className="text-3xl font-bold text-gray-900 mt-1">{activeWorkingPercentage.toFixed(0)}%</span>
                                 </div>
                             </div>
                         </div>
@@ -69,8 +68,8 @@ export default function TeamInsights() {
                         <div>
                             <div className="flex justify-between items-center">
                                 <div className="flex flex-col">
-                                    <span className="text-sm text-gray-500 font-medium">Approval Backlog</span>
-                                    <span className="text-2xl font-bold text-gray-900 mt-1">{backlogCount}</span>
+                                    <span className="text-sm text-gray-500 font-medium mb-3">Approval Backlog</span>
+                                    <span className="text-3xl font-bold text-gray-900">{backlogCount}</span>
                                 </div>
 
                                 <div className="w-12 h-12 rounded-full bg-gray-55 flex items-center justify-center text-gray-500 bg-gray-100">
@@ -84,14 +83,13 @@ export default function TeamInsights() {
                         <div>
                             <div className="flex justify-between items-center">
                                 <div className="flex flex-col">
-                                    <h2 className="text-sm font-medium text-gray-900">Total Users</h2>
-                                    <span className="text-2xl font-bold text-gray-900 mt-1">{teamSize}</span>
+                                    <h2 className="text-sm font-medium text-gray-900 mb-3">Total Users</h2>
+                                    <span className="text-3xl font-bold text-gray-900">{teamSize}</span>
                                 </div>
                                 
                                 <div className="w-12 h-12 rounded-full bg-gray-55 flex items-center justify-center text-gray-500 bg-gray-100">
                                     <Users size={22} className="text-gray-600" />
                                 </div>
-
                             </div>
                         </div>
                     </div>

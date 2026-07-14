@@ -21,6 +21,8 @@ class ManagerDashboardController {
 
     private ManagerLeaveService $totalUsersService;
 
+    private ManagerLeaveService $recentActivityService;
+
     public function __construct() {
 
         $this->remainingLeaveService = App::resolve(ManagerLeaveService::class);
@@ -31,6 +33,7 @@ class ManagerDashboardController {
         $this->monthlyLeaveConsumptionService = App::resolve(ManagerLeaveService::class);
         $this->backlogRequestsService = App::resolve(ManagerLeaveService::class);
         $this->totalUsersService = App::resolve(ManagerLeaveService::class);
+        $this->recentActivityService = App::resolve(ManagerLeaveService::class);
 
     }
     public function index(): void {
@@ -47,6 +50,7 @@ class ManagerDashboardController {
             $monthlyLeaveConsumption = $this->monthlyLeaveConsumptionService->getMonthlyConsumption();
             $backlogRequests = $this->backlogRequestsService->getBacklogRequests();
             $totalUsers = $this->totalUsersService->getTotalUsers();
+            $recentActivity = $this->recentActivityService->getRecentActivity();
 
             http_response_code(200);
             echo json_encode([
@@ -59,7 +63,8 @@ class ManagerDashboardController {
                 'leave_overlap' => $leaveOverlap,
                 'monthly_leave_consumption' => $monthlyLeaveConsumption,
                 'approval_backlogs' => $backlogRequests,
-                'total_users' => $totalUsers
+                'total_users' => $totalUsers,
+                'recent_activity' => $recentActivity,
             ]);
             exit;
         }
