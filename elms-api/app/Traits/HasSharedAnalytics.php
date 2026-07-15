@@ -118,7 +118,7 @@ trait HasSharedAnalytics {
                 u.department AS department,
                 DATE_FORMAT(lr.start_date, '%b') AS month_name,
                 MONTH(lr.start_date) AS month_num,
-                SUM(lr.total_days) AS total_used_day
+                SUM(lr.total_days) AS total_used_days
             FROM leave_requests lr
             LEFT JOIN users u ON lr.user_id = u.id
             WHERE lr.user_id != :current_user_id AND lr.status = 'approved'

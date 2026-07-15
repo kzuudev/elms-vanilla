@@ -18,6 +18,8 @@ class AdminDashboardController {
 
     private AdminLeaveService $totalUsersService;
 
+    private AdminLeaveService $recentActivityService;
+
     public function __construct() {
 
         $this->usersAvailabilityService = App::resolve(AdminLeaveService::class);
@@ -25,6 +27,7 @@ class AdminDashboardController {
         $this->monthlyLeaveConsumptionService = App::resolve(AdminLeaveService::class);
         $this->backlogRequestsService = App::resolve(AdminLeaveService::class);
         $this->totalUsersService = App::resolve(AdminLeaveService::class);
+        $this->recentActivityService = App::resolve(AdminLeaveService::class);
     }
 
     public function index(): void {
@@ -38,6 +41,7 @@ class AdminDashboardController {
             $monthlyLeaveConsumption = $this->monthlyLeaveConsumptionService->getMonthlyConsumption();
             $backlogRequests = $this->backlogRequestsService->getBacklogRequests();
             $totalUsers = $this->totalUsersService->getTotalUsers();
+            $recentActivity = $this->recentActivityService->getRecentActivity();
 
             http_response_code(200);
             echo json_encode([
@@ -47,7 +51,8 @@ class AdminDashboardController {
                 'leave_overlap' => $leaveOverlap,
                 'monthly_leave_consumption' => $monthlyLeaveConsumption,
                 'approval_backlogs' => $backlogRequests,
-                'total_users' => $totalUsers
+                'total_users' => $totalUsers,
+                'recent_activity' => $recentActivity,
             ]);
             exit;
 

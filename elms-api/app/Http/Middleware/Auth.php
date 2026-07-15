@@ -39,7 +39,7 @@ class Auth {
 
         // Find the user
         $user = $db->query("
-            SELECT u.id, u.first_name, u.email, u.role 
+            SELECT u.id, u.first_name, u.email, u.role, u.department
             FROM personal_access_tokens pat
             JOIN users u ON pat.user_id = u.id
             WHERE pat.token = :token

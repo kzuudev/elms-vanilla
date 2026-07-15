@@ -19,7 +19,8 @@ export type TotalUsedDays = {
 
 export type MonthlyLeaveConsumption = {
     month_num: number,
-    total_used_days: string,
+    month_name: string,
+    total_used_days: number,
 }
 
 export type TeamStatus = {
@@ -66,7 +67,11 @@ export type TeamAvailability = {
     end_date: string;
 }
 
-export type MonthlyConsumption = MonthlyLeaveConsumption[]
+export type MonthlyConsumption = {
+    month_num: number,
+    month_name: string,
+    total_used_days: number,
+}
 
 export type BacklogRequest = {
     total_request: number,

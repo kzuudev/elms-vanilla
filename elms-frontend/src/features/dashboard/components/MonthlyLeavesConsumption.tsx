@@ -6,8 +6,9 @@ import { DashboardAnalyticsContext} from "@/features/context/analytics/Dashboard
 import {UserContext} from "@/features/context/UserContext.tsx";
 
 import { Card } from '@/components/ui/card.tsx';
-// Swapped PieChart out for BarChart components for a professional time-series trend
+
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
 
 export default function MonthlyLeavesConsumption() {
 
@@ -17,32 +18,35 @@ export default function MonthlyLeavesConsumption() {
     const employeeAnalytics = useContext(LeaveSummaryContext);
 
     const role = user.role || null;
-    const isManagement = role === 'manager' || role === 'admin';
+    const isManager  = role === 'manager' || role === 'admin';
 
 
-    // 1. Array blueprint to ensure all 12 months render beautifully even with sparse DB data
+    // Array blueprint to ensure all 12 months render beautifully even with sparse DB data
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    // 2. Map and pad our database results against the full calendar year
+    // Map and pad the database results against the full calendar year
     const chartData = months.map(month => {
-        if (isManagement) {
-            const foundMonth = managementAnalytics.monthlyLeaveConsumption?.find(
+        if (isManager) {
+            const matchMonth = managementAnalytics?.monthlyLeaveConsumption?.filter(
                 (item: any) => item.month_name?.substring(0, 3).toLowerCase() === month.toLowerCase()
             );
 
+            const totalDaysUsed = matchMonth?.reduce((acc: number, item: any) =>
+                acc + Number(item.total_used_days), 0) || 0;
+
             return {
                 month: month,
-                "Days Used": foundMonth ? Number(foundMonth.total_used_days) : 0
+                "Days Used": matchMonth ? Number(totalDaysUsed) : 0
             };
         }
 
-        const foundMonth = employeeAnalytics.monthlyLeaveConsumption?.find(
+        const matchMonth = employeeAnalytics.monthlyLeaveConsumption?.find(
             (item: any) => item.month_name?.substring(0, 3).toLowerCase() === month.toLowerCase()
         );
 
         return {
             month: month,
-            "Days Used": foundMonth ? Number(foundMonth.total_used_days) : 0
+            "Days Used": matchMonth ? Number(matchMonth.total_used_days) : 0
         };
     });
 

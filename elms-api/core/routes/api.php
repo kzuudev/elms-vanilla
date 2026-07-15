@@ -62,7 +62,7 @@ $router->get('/leave-requests', [LeaveReviewController::class, 'index'])->only('
 $router->get('/leave-requests/{id}', [LeaveRequestController::class, 'show'])->only('auth');
 $router->patch('/leave-requests/{id}/review', [LeaveReviewController::class, 'patch'])->only('auth');
 
-    $router->get('/admin-dashboard', [AdminDashboardController::class, 'index'])->only('auth');
+$router->get('/admin-dashboard', [AdminDashboardController::class, 'index'])->only('auth');
 
 // return the router with existing routes inside it
 return $router;

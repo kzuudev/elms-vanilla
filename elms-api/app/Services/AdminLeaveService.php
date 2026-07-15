@@ -18,12 +18,14 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
     private int $adminId;
 
     private string $userRole;
+    private string $userDepartment;
 
     public function __construct() {
 
         $this->db = App::resolve(Database::class);
         $this->adminId = Auth::authenticate()['id'];
         $this->userRole = Auth::authenticate()['role'];
+        $this->userDepartment = Auth::authenticate()['department'];
 
     }
 
@@ -105,32 +107,43 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
             WHERE u.id = :admin_id AND u.role = :role
         ", [
          'admin_id' => $this->adminId,
-         'role' => $this->userRole,
+         'role' => $this->userRole
         ])->all();
 
         $users = [];
 
         foreach ($authenticatedUser as $user) {
-//            $data[] = [
-//                'user_id' => $user['id'],
-//                'first_name' => $user['first_name'],
-//                'last_name' => $user['last_name'],
-//                'user_role' => $user['user_role'],
-//                'department' => $user['department'],
-//                'is_active' => $user['is_active'],
-//                'total_users' => $user['total_users'],
-//            ];
-
             $users[] = $this->executeTotalUsers(
                 $user['department'],
                 $user['user_role'],
                 $this->adminId,
             );
-
-
         }
 
         return $users;
     }
 
+
+    public function getRecentActivity(): array {
+        $recentActivity = $this->db->query("
+            SELECT lr.id,
+                   CONCAT(u.first_name, ' ', u.last_name) AS employee_name,
+                   lt.name AS leave_type,
+                   lr.start_date AS start_date,
+                   lr.end_date AS end_date,
+                   lr.status AS leave_status,
+                   lr.created_at AS created_at
+            FROM leave_requests lr
+            INNER JOIN users u ON lr.user_id = u.id
+            INNER JOIN leave_types lt ON lr.leave_type_id = lt.id
+            WHERE u.department = :department 
+              AND u.id != :admin_id 
+            ORDER BY lr.created_at ASC
+            ", [
+            'admin_id' => $this->adminId,
+            'department' => $this->userDepartment,
+        ])->all();
+
+        return $recentActivity;
+    }
 }
