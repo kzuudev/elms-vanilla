@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { LeaveSummaryContext } from "@/features/context/analytics/LeaveSummaryContext.tsx";
 import {DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
 import {UserContext} from "@/features/context/UserContext.tsx";
+import type {EmployeeRecentActivityData} from "@/types/dashboard.ts";
 
 import { Card } from "@/components/ui/card.tsx";
 import {
@@ -17,7 +18,9 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table.tsx"; // Adjust this import path to match your project
+} from "@/components/ui/table.tsx";
+import { ScrollArea } from "@/components/ui/scroll-area.tsx";
+
 
 export default function RecentActivityTable() {
 
@@ -29,15 +32,37 @@ export default function RecentActivityTable() {
 
     const role = user.role || null;
 
-
     const tableHeaders = ["Date", "Type", "Duration", "Status"];
-    const ManagerHeaders = ["Date", "Team Member", "Recent Activity"];
+    const ManagerTableHeaders = ["Date", "Team Member", "Recent Activity"];
+
+
+    function formatActivityData(data: EmployeeRecentActivityData[]) {
+        return data?.map((activity) => {
+
+            let activityText = "";
+            if (activity.leave_status === "approved") {
+                activityText = `${activity.employee_name} ${activity.leave_type} was approved.`;
+            } else if (activity.leave_status === "pending") {
+                activityText = `${activity.employee_name} Requested ${activity.leave_type}.`;
+            } else if (activity.leave_status === "rejected") {
+                activityText = `${activity.employee_name} ${activity.leave_type} request was denied.`;
+            }
+
+            return {
+                id: activity.id,
+                date: activity.created_at ? format(new Date(activity.created_at), "MMMM dd, yyyy") : "",
+                member_name: activity.employee_name,
+                recent_activity: activityText,
+            };
+        });
+    }
+
+    const recentActivityData = formatActivityData(managementAnalytics?.recentActivity)
 
     return (
       <>
           {role !== 'manager' && role !== 'admin' ? (
               <Card className="w-full flex flex-col shadow-sm border border-gray-100">
-                  {/* Header Section matching your design */}
                   <div className="flex justify-between items-center px-3 border-b border-gray-100">
                       <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
                       <button className="text-sm font-semibold text-blue-800 hover:text-blue-900">
@@ -45,7 +70,6 @@ export default function RecentActivityTable() {
                       </button>
                   </div>
 
-                  {/* Your EXACT Table Format */}
                   <Table>
                       <TableHeader className="bg-gray-50/50">
                           <TableRow className="border-b border-border hover:bg-transparent">
@@ -59,20 +83,20 @@ export default function RecentActivityTable() {
 
                       <TableBody>
                           {/* Guard against null with a ternary operator or loading check */}
-                          {!employeeAnalytics.recentActivity ? (
+                          {!employeeAnalytics?.recentActivity ? (
                               <TableRow>
                                   <TableCell colSpan={tableHeaders.length} className="text-center py-8 text-muted-foreground">
                                       Loading recent activity...
                                   </TableCell>
                               </TableRow>
-                          ) : employeeAnalytics.recentActivity.length === 0 ? (
+                          ) : employeeAnalytics?.recentActivity.length === 0 ? (
                               <TableRow>
                                   <TableCell colSpan={tableHeaders.length} className="text-center py-8 text-muted-foreground">
                                       No recent leave requests found.
                                   </TableCell>
                               </TableRow>
                           ) : (
-                              employeeAnalytics.recentActivity.slice(0, 5).map((leave) => ( // .slice(0,5) limits it to 5 rows so the card doesn't get too long!
+                              employeeAnalytics?.recentActivity.slice(0, 5).map((leave) => ( // .slice(0,5) limits it to 5 rows so the card doesn't get too long!
                                   <TableRow key={leave.id} className="border-b border-gray-100">
 
                                       {/* Date formatting matching "Oct 15 - Oct 20" */}
@@ -85,12 +109,10 @@ export default function RecentActivityTable() {
 
                                       <TableCell className="text-gray-900">{leave.leave_type_name}</TableCell>
 
-                                      {/* Dynamically adding "Day" or "Days" */}
                                       <TableCell className="text-gray-900">
                                           {leave.total_days} {leave.total_days > 1 ? 'Days' : 'Day'}
                                       </TableCell>
 
-                                      {/* Your exact status badges */}
                                       {leave.request_status === "pending" ? (
                                           <TableCell><span className="bg-orange-50 text-orange-700 border border-orange-200/60 px-2 py-1 rounded-full text-xs font-medium capitalize">{leave.request_status}</span></TableCell>
                                       ) : leave.request_status === "approved" ? (
@@ -107,57 +129,57 @@ export default function RecentActivityTable() {
           ): role === 'manager' ? (
               <Card className="w-full flex flex-col shadow-sm border border-gray-100">
                   <div className="flex justify-between items-center px-3 border-b border-gray-100">
-                      <h2 className="text-xl font-bold text-gray-900 mb-3">Recent Activity</h2>
+                      <h2 className="text-base font-semibold text-gray-900 mb-3">Recent Activity</h2>
                   </div>
 
                   {/* The Table Format */}
-                  <Table>
-                      <TableHeader className="bg-gray-50/50">
-                          <TableRow className="border-b border-border hover:bg-transparent">
-                              {ManagerHeaders.map((header, index) => (
-                                  <TableHead key={index} className="text-gray-600 font-semibold py-3 h-auto">
-                                      {header}
-                                  </TableHead>
-                              ))}
-                          </TableRow>
-                      </TableHeader>
+                 <ScrollArea className="h-[300px] w-full">
+                     <Table>
+                         <TableHeader className="bg-gray-50/50">
+                             <TableRow className="border-b border-border hover:bg-transparent">
+                                 {ManagerTableHeaders.map((header, index) => (
+                                     <TableHead key={index} className="text-gray-600 font-semibold py-3 h-auto">
+                                         {header}
+                                     </TableHead>
+                                 ))}
+                             </TableRow>
+                         </TableHeader>
 
-                      <TableBody>
-                          {/* Guard against null with a ternary operator or loading check */}
-                          {!managementAnalytics.recentActivity ? (
-                              <TableRow>
-                                  <TableCell colSpan={tableHeaders.length} className="text-center py-8 text-muted-foreground">
-                                      Loading recent activity...
-                                  </TableCell>
-                              </TableRow>
-                          ) : managementAnalytics.recentActivity.length === 0 ? (
-                              <TableRow>
-                                  <TableCell colSpan={tableHeaders.length} className="text-center py-8 text-muted-foreground">
-                                      No recent activity found.
-                                  </TableCell>
-                              </TableRow>
-                          ) : (
-                              managementAnalytics.recentActivity.slice(0, 3).map((activity) => (
-                                  <TableRow key={activity.id} className="border-b border-gray-100">
+                         <TableBody>
+                             {/* Guard against null with a ternary operator or loading check */}
+                             {!managementAnalytics?.recentActivity || !managementAnalytics?.recentActivity ? (
+                                 <TableRow>
+                                     <TableCell colSpan={tableHeaders.length} className="text-center py-8 text-muted-foreground">
+                                         Loading recent activity...
+                                     </TableCell>
+                                 </TableRow>
+                             ) : managementAnalytics?.recentActivity.length === 0 ? (
+                                 <TableRow>
+                                     <TableCell colSpan={tableHeaders.length} className="text-center py-8 text-muted-foreground">
+                                         No recent activity found.
+                                     </TableCell>
+                                 </TableRow>
+                             ) : (
+                                 recentActivityData?.slice(0, 7).map((activity) => (
+                                     <TableRow key={activity.id} className="border-b border-gray-100">
 
-                                      {/* Date formatting matching "Oct 15 - Oct 20" */}
-                                      <TableCell className="text-gray-900">
-                                          {!activity.date
-                                              ? format(new Date(activity.date), 'MMM dd')
-                                              : null
-                                          }
-                                      </TableCell>
+                                         <TableCell className="py-4 px-4 text-gray-900 whitespace-nowrap">
+                                             {activity.date}
+                                         </TableCell>
 
-                                      <TableCell className="text-gray-900">{activity.member_name}</TableCell>
+                                         <TableCell className="py-4 px-4 text-gray-900 font-medium">
+                                             {activity.member_name}
+                                         </TableCell>
 
-                                      <TableCell className="text-gray-900">
-                                          {activity.recent_activity}
-                                      </TableCell>
-                                  </TableRow>
-                              ))
-                          )}
-                      </TableBody>
-                  </Table>
+                                         <TableCell className="py-4 px-4 text-gray-600">
+                                             {activity.recent_activity}
+                                         </TableCell>
+                                     </TableRow>
+                                 ))
+                             )}
+                         </TableBody>
+                     </Table>
+                 </ScrollArea>
               </Card>
           ) : null}
       </>

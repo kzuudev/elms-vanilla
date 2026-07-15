@@ -142,3 +142,13 @@ export type EmployeeRecentActivity = {
     member_name: string;
     recent_activity: string;
 }
+
+export type EmployeeRecentActivityData = {
+    id: number;
+    employee_name: string;
+    leave_type: string;
+    start_date: string;
+    end_date: string;
+    leave_status: string;
+    created_at: string;
+}

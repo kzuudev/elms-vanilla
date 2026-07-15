@@ -14,7 +14,16 @@ import RecentActivityTable from "@/features/dashboard/components/RecentActivityT
 
 import {DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
 
-import type {TotalPendingRequest, TotalRemainingBalance, TotalUsedDays, LeaveOverlap, MonthlyConsumption, TeamAvailability, TotalUsers} from "@/types/dashboard.ts";
+import type {
+    TotalPendingRequest,
+    TotalRemainingBalance,
+    TotalUsedDays,
+    LeaveOverlap,
+    MonthlyConsumption,
+    TeamAvailability,
+    TotalUsers,
+    EmployeeRecentActivityData
+} from "@/types/dashboard.ts";
 import Search from "@/components/ui/search.tsx";
 
 
@@ -32,6 +41,7 @@ export default function ManagerDashboard() {
     const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyConsumption[]>([]);
     const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
     const [totalUsers, setTotalUsers] = useState<TotalUsers[]>([]);
+    const [recentActivity, setRecentActivity] = useState<EmployeeRecentActivityData[]>([]);
 
 
     const fetchManagerDashboard = async () => {
@@ -50,13 +60,11 @@ export default function ManagerDashboard() {
             setMonthlyLeaveConsumption(response.data.monthly_leave_consumption);
             setTeamAvailability(response.data.team_availability);
             setTotalUsers(response.data.total_users);
-
+            setRecentActivity(response.data.recent_activity);
         }catch (e) {
             setError(e.response.data.message);
         }
     }
-
-    console.log(overlap);
 
     useEffect(() => {
 
@@ -67,7 +75,7 @@ export default function ManagerDashboard() {
    return (
       <>
           <AppSidebar>
-              <DashboardAnalyticsContext.Provider value={{remainingBalance, pendingRequest, usedDays, overlap, teamAvailability, recentActivity: [], monthlyLeaveConsumption, totalUsers}}>
+              <DashboardAnalyticsContext.Provider value={{remainingBalance, pendingRequest, usedDays, overlap, teamAvailability, recentActivity, monthlyLeaveConsumption, totalUsers}}>
                   <div className="flex flex-col gap-4">
                       <div  className="w-full flex justify-between">
                           <div className="">

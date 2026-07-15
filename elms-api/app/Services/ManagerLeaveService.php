@@ -158,6 +158,7 @@ class ManagerLeaveService implements LeaveAnalyticsInterface
         return $users;
     }
 
+
     public function getRecentActivity(): array
     {
 
@@ -168,7 +169,8 @@ class ManagerLeaveService implements LeaveAnalyticsInterface
                 u.last_name AS last_name,
                 lr.status AS request_status,
                 lr.start_date AS request_date,
-                lr.end_date AS return_date
+                lr.end_date AS return_date,
+                lr.created_at AS request_created_at
             FROM leave_requests lr
             LEFT JOIN users u ON lr.user_id = u.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
@@ -177,7 +179,29 @@ class ManagerLeaveService implements LeaveAnalyticsInterface
             'manager_id' => $this->managerId,
         ])->all();
 
-        return $recentActivity;
+        $formattedActivity = array_map([self::class, 'getActivityData'], $recentActivity);
+
+        return $formattedActivity;
     }
 
+
+    public static function getActivityData($activity) : array {
+
+        $employeeName = $activity['first_name'] . ' ' . $activity['last_name'];
+        $leaveType = $activity['leave_type_name'];
+        $startDate = $activity['request_date'];
+        $endDate = $activity['return_date'];
+        $status = $activity['request_status'];
+        $createdAt = $activity['request_created_at'];
+
+        return [
+            'employee_name' => $employeeName,
+            'leave_type' => $leaveType,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'leave_status' => $status,
+            'created_at' => $createdAt,
+        ];
+
+    }
 }

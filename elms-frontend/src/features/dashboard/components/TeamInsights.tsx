@@ -1,6 +1,5 @@
 "use client"
 
-
 import {useContext} from "react";
 import {UserContext} from "@/features/context/UserContext.tsx";
 import {DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
@@ -23,15 +22,16 @@ export default function TeamInsights() {
 
     const activeWorkingCount = managementAnalytics?.teamAvailability.filter(team => {
 
-        const startDay = new Date(team.start_date) || null;
-        const endDay = new Date(team.end_date) || null;
-        startDay.setHours(0, 0, 0, 0);
-        endDay.setHours(0, 0, 0, 0);
+        const startOfDay = new Date(team.start_date);
+        const endOfDay = new Date(team.end_date);
+        startOfDay.setHours(0, 0, 0, 0);
+        endOfDay.setHours(0, 0, 0, 0);
 
 
-        const isApproved = managementAnalytics?.teamAvailability.filter(team => team.leave_request_status === 'approved');
-        const isTodayWithinLeave = startDay && endDay
-            ? (today >= startDay && today <= endDay)
+        const isApproved = team.leave_request_status === 'approved';
+
+        const isTodayWithinLeave = startOfDay && endOfDay
+            ? (today >= startOfDay && today <= endOfDay)
             : false;
 
         const isOnLeave = isApproved && isTodayWithinLeave;
@@ -39,7 +39,7 @@ export default function TeamInsights() {
         return team.user_status && !isOnLeave;
     }).length || 0;
 
-    const activeWorkingPercentage = teamSize > 0 ? Math.round((activeWorkingCount / teamSize)) * 100 : 0;
+    const activeWorkingPercentage = teamSize > 0 ? (activeWorkingCount / teamSize) * 100 : 0;
 
 
     const backlogCount = managementAnalytics?.teamAvailability.filter(request => request.leave_request_status === 'pending').length || 0;
@@ -49,7 +49,7 @@ export default function TeamInsights() {
         <>
             <div className="">
                 <div className="flex justify-between items-center mb-5">
-                    <h2 className="text-xl font-bold text-gray-900">Team Insights</h2>
+                    <h2 className="text-base font-semibold text-gray-900">Team Insights</h2>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">

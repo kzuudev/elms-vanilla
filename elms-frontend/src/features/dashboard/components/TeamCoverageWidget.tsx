@@ -39,7 +39,7 @@ export default function TeamCoverageWidget() {
                     </div>
 
                     {/* Team List Container */}
-                    <ScrollArea className="h-62 w-full">
+                    <ScrollArea className="h-[250px]  w-full">
                         <div className="h-full flex flex-col gap-3">
                             {/* .slice(0, 3) guarantees we only loop through the first 3 people */}
                             {managementAnalytics?.teamAvailability?.slice(0, 10).map((team, index) => {

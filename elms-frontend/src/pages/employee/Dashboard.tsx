@@ -78,6 +78,10 @@ export default function EmployeeDashboard() {
                        </div>
                    </div>
                 </LeaveSummaryContext.Provider>
+
+                {error && (
+                    <div className="text-red-600">{error}</div>
+                )}
             </AppSidebar>
         </>
     )
