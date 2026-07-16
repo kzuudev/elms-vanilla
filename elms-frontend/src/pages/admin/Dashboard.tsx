@@ -13,14 +13,14 @@ import TeamCoverageWidget from "@/features/dashboard/components/TeamCoverageWidg
 import RecentActivityTable from "@/features/dashboard/components/RecentActivityTable.tsx";
 
 import type {
-    EmployeeRecentActivityData,
+    AdminRecentActivityData,
     LeaveOverlap,
     MonthlyConsumption, TeamAvailability,
     TotalPendingRequest,
     TotalRemainingBalance,
     TotalUsedDays, TotalUsers
 } from "@/types/dashboard.ts";
-import {DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
+import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
 import Search from "@/components/ui/search.tsx";
 
 
@@ -36,7 +36,7 @@ export default function AdminDashboard() {
     const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyConsumption[]>([]);
     const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
     const [totalUsers, setTotalUsers] = useState<TotalUsers[]>([]);
-    const [recentActivity, setRecentActivity] = useState<EmployeeRecentActivityData[]>([]);
+    const [recentActivity, setRecentActivity] = useState<AdminRecentActivityData[]>([]);
 
     const fetchAdminDashboard = async () => {
 
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
     return (
         <>
             <AppSidebar>
-                <DashboardAnalyticsContext.Provider value={{remainingBalance, pendingRequest, usedDays, overlap, teamAvailability, recentActivity, monthlyLeaveConsumption, totalUsers}}>
+                <AdminAnalyticsContext.Provider value={{remainingBalance, pendingRequest, usedDays, overlap, teamAvailability, recentActivity, monthlyLeaveConsumption, totalUsers}}>
                     <div className="flex flex-col gap-4">
                         <div  className="w-full flex justify-between">
                             <div className="">
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
                         </div>
 
                     </div>
-                </DashboardAnalyticsContext.Provider>
+                </AdminAnalyticsContext.Provider>
             </AppSidebar>
 
             {error && (

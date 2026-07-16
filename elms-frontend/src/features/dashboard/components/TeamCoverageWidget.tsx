@@ -2,8 +2,10 @@
 
 import { useContext } from "react";
 import { LeaveSummaryContext } from "@/features/context/analytics/LeaveSummaryContext.tsx";
-import {DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
+import {ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
+import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
 import { UserContext } from "@/features/context/UserContext.tsx";
+
 import { MoreHorizontal } from 'lucide-react'; // Swapped to the 3-dots icon from your design
 
 import { Card } from '@/components/ui/card.tsx';
@@ -12,15 +14,18 @@ import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 export default function TeamCoverageWidget() {
 
 
+
     const { user } = useContext(UserContext);
+    const role = user.role || null;
 
     const employeeAnalytics = useContext(LeaveSummaryContext);
-    const managementAnalytics = useContext(DashboardAnalyticsContext);
+    const managerAnalytics = useContext(ManagerAnalyticsContext);
+    const adminAnalytics = useContext(AdminAnalyticsContext);
+
+    const managementAnalytics = role.includes('manager') ? managerAnalytics : role.includes('admin') ? adminAnalytics : null;
 
 
-    const role = user.role || null;
-    const isManagement = role === 'manager' || role === 'admin';
-
+    const isManagement= role === 'manager' || role === 'admin';
 
     return (
         <>

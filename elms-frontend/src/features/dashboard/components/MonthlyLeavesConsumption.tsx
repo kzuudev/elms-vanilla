@@ -2,7 +2,8 @@
 
 import { useContext } from "react";
 import { LeaveSummaryContext } from "@/features/context/analytics/LeaveSummaryContext.tsx";
-import { DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
+import { ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
+import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
 import {UserContext} from "@/features/context/UserContext.tsx";
 
 import { Card } from '@/components/ui/card.tsx';
@@ -14,11 +15,16 @@ export default function MonthlyLeavesConsumption() {
 
     const { user } = useContext(UserContext);
 
-    const managementAnalytics = useContext(DashboardAnalyticsContext);
+    const managerAnalytics = useContext(ManagerAnalyticsContext);
+    const adminAnalytics = useContext(AdminAnalyticsContext);
     const employeeAnalytics = useContext(LeaveSummaryContext);
 
     const role = user.role || null;
-    const isManager  = role === 'manager' || role === 'admin';
+
+    const isManager  = role === 'manager';
+    const isAdmin = role === 'admin';
+
+
 
 
     // Array blueprint to ensure all 12 months render beautifully even with sparse DB data
@@ -27,7 +33,19 @@ export default function MonthlyLeavesConsumption() {
     // Map and pad the database results against the full calendar year
     const chartData = months.map(month => {
         if (isManager) {
-            const matchMonth = managementAnalytics?.monthlyLeaveConsumption?.filter(
+            const matchMonth = managerAnalytics?.monthlyLeaveConsumption?.filter(
+                (item: any) => item.month_name?.substring(0, 3).toLowerCase() === month.toLowerCase()
+            );
+
+            const totalDaysUsed = matchMonth?.reduce((acc: number, item: any) =>
+                acc + Number(item.total_used_days), 0) || 0;
+
+            return {
+                month: month,
+                "Days Used": matchMonth ? Number(totalDaysUsed) : 0
+            };
+        }else if (isAdmin) {
+            const matchMonth = adminAnalytics?.monthlyLeaveConsumption?.filter(
                 (item: any) => item.month_name?.substring(0, 3).toLowerCase() === month.toLowerCase()
             );
 

@@ -80,11 +80,11 @@ class EmployeeLeaveService {
 
         $recentActivity = $this->db->query("
             SELECT lr.*,
-                lt.name AS leave_type_name,
+                lt.name AS leave_type,
                 m.first_name AS manager_name,
-                lr.start_date AS request_date,
-                lr.end_date AS return_date,
-                lr.status AS request_status
+                lr.start_date AS start_date,
+                lr.end_date AS end_date,
+                lr.status AS leave_status
             FROM leave_requests lr
             LEFT JOIN users m ON lr.assigned_to = m.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id

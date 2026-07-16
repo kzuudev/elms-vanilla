@@ -167,10 +167,10 @@ class ManagerLeaveService implements LeaveAnalyticsInterface
                 lt.name AS leave_type_name,
                 u.first_name AS first_name,
                 u.last_name AS last_name,
-                lr.status AS request_status,
-                lr.start_date AS request_date,
-                lr.end_date AS return_date,
-                lr.created_at AS request_created_at
+                lr.status AS leave_status,
+                lr.start_date AS start_date,
+                lr.end_date AS end_date,
+                lr.created_at AS created_at
             FROM leave_requests lr
             LEFT JOIN users u ON lr.user_id = u.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id

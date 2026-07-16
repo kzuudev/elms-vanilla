@@ -2,15 +2,28 @@
 
 import { useContext, useMemo } from "react";
 import type { ApexOptions } from "apexcharts";
-import Chart from "react-apexcharts"; // <-- The correct React import!
+import Chart from "react-apexcharts";
 
-import { DashboardAnalyticsContext } from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
+import { ManagerAnalyticsContext } from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
+import { AdminAnalyticsContext } from "@/features/context/analytics/AdminAnalyticsContext.tsx";
+import { UserContext } from "@/features/context/UserContext.tsx";
+
 import type { LeaveOverlap } from "@/types/dashboard.ts";
+
 import {Card} from "@/components/ui/card.tsx";
 
 export default function LeaveOverlapTimeline() {
 
-    const dashboardAnalytics = useContext(DashboardAnalyticsContext);
+    const {user} = useContext(UserContext);
+
+    const managerAnalytics = useContext(ManagerAnalyticsContext);
+    const adminAnalytics = useContext(AdminAnalyticsContext);
+
+    const isManager = user.role === 'manager';
+    const isAdmin = user.role === 'admin';
+
+    const dashboardAnalytics = isManager ? managerAnalytics :  isAdmin ? adminAnalytics : null;
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const overlapData: LeaveOverlap[] = dashboardAnalytics?.overlap || [];
 

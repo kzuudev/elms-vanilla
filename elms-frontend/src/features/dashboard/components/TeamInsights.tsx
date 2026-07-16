@@ -2,7 +2,8 @@
 
 import {useContext} from "react";
 import {UserContext} from "@/features/context/UserContext.tsx";
-import {DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
+import {ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
+import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
 
 import { ClipboardList, Users } from 'lucide-react';
 
@@ -10,39 +11,51 @@ import { ClipboardList, Users } from 'lucide-react';
 export default function TeamInsights() {
 
     const {user} = useContext(UserContext);
-    const managementAnalytics = useContext(DashboardAnalyticsContext);
+    const role = user.role || "";
 
-    const isManager = user?.role === 'manager';
-    const isAdmin = user?.role === 'admin';
+    const managerAnalytics = useContext(ManagerAnalyticsContext);
+    const adminAnalytics = useContext(AdminAnalyticsContext);
+
+    const managementAnalytics = role.includes('manager') ? managerAnalytics : role.includes('admin') ? adminAnalytics : null;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const teamSize = managementAnalytics?.teamAvailability?.length || 0;
 
-    const activeWorkingCount = managementAnalytics?.teamAvailability.filter(team => {
 
-        const startOfDay = new Date(team.start_date);
-        const endOfDay = new Date(team.end_date);
-        startOfDay.setHours(0, 0, 0, 0);
-        endOfDay.setHours(0, 0, 0, 0);
+    const activeWorkingCountFor = managementAnalytics?.teamAvailability || [];
+
+    const activeWorkingCount = activeWorkingCountFor.filter(team => {
+
+        // in case a team member doesn't have an active leave request
+        if (!team.start_date || !team.end_date) {
+            return team.user_status;
+        }
+
+       const startOfDay = new Date(team.start_date);
+       const endOfDay = new Date(team.end_date);
+       startOfDay.setHours(0, 0, 0, 0);
+       endOfDay.setHours(0, 0, 0, 0);
 
 
-        const isApproved = team.leave_request_status === 'approved';
+       const isApproved = team.leave_request_status === 'approved';
 
-        const isTodayWithinLeave = startOfDay && endOfDay
-            ? (today >= startOfDay && today <= endOfDay)
-            : false;
+       const isTodayWithinLeave = startOfDay && endOfDay
+           ? (today >= startOfDay && today <= endOfDay)
+           : false;
 
-        const isOnLeave = isApproved && isTodayWithinLeave;
+       const isOnLeave = isApproved && isTodayWithinLeave;
 
-        return team.user_status && !isOnLeave;
-    }).length || 0;
+       return team.user_status && !isOnLeave;
+   }).length || 0;
+
 
     const activeWorkingPercentage = teamSize > 0 ? (activeWorkingCount / teamSize) * 100 : 0;
 
 
-    const backlogCount = managementAnalytics?.teamAvailability.filter(request => request.leave_request_status === 'pending').length || 0;
+    const backlogCount = managementAnalytics?.pendingRequest?.length || 0;
+
 
 
     return (

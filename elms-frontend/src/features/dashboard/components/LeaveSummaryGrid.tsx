@@ -2,7 +2,8 @@
 
 import { useContext } from "react";
 import { LeaveSummaryContext } from "@/features/context/analytics/LeaveSummaryContext.tsx";
-import { DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
+import { ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
+import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
 import {UserContext} from "@/features/context/UserContext.tsx";
 
 import { Card } from '@/components/ui/card.tsx';
@@ -14,29 +15,29 @@ export default function LeaveSummaryGrid() {
 
 
     const role = user.role || null;
-    const isManagement = role === 'manager' || role === 'admin';
+    const isManager = role === 'manager';
+    const isAdmin = role === 'admin';
 
     const leaveSummary = useContext(LeaveSummaryContext);
-    const dashboardAnalytics = useContext(DashboardAnalyticsContext);
+    const managerDashboardAnalytics = useContext(ManagerAnalyticsContext);
+    const adminDashboardAnalytics = useContext(AdminAnalyticsContext);
+
+    const remainingBalance = isManager ? managerDashboardAnalytics?.remainingBalance?.[0].grand_total ?? 0
+        : isAdmin ? adminDashboardAnalytics?.remainingBalance?.[0].grand_total ?? 0 : leaveSummary?.totalRemainingBalance?.[0]?.grand_total ?? 0;
 
 
-    const remainingBalance = isManagement ? dashboardAnalytics?.remainingBalance?.[0].grand_total ?? 0
-        : leaveSummary?.totalRemainingBalance?.[0]?.grand_total ?? 0;
+    const pendingRequest = isManager ? managerDashboardAnalytics?.pendingRequest?.[0]?.total_days ?? 0
+        : isAdmin ? adminDashboardAnalytics?.pendingRequest?.[0]?.total_days ?? 0 : leaveSummary?.totalPendingRequest?.[0]?.total_days ?? 0;
 
-    const pendingRequest = isManagement
-        ? dashboardAnalytics?.pendingRequest?.[0]?.total_days ?? 0
-        : leaveSummary?.totalPendingRequest?.[0]?.total_days ?? 0;
+    const pendingQueue = isManager ? managerDashboardAnalytics?.pendingRequest?.[0]?.queued_leave_count ?? 0
+        : isAdmin ? adminDashboardAnalytics?.pendingRequest?.[0]?.queued_leave_count ?? 0 : leaveSummary?.totalPendingRequest?.[0]?.queued_leave_count ?? 0;
 
-    const pendingQueue = isManagement
-        ? dashboardAnalytics?.pendingRequest?.[0]?.queued_leave_count ?? 0
-        : leaveSummary?.totalPendingRequest?.[0]?.queued_leave_count ?? 0;
+    const usedDays = isManager ? managerDashboardAnalytics?.usedDays?.[0]?.total_used_days ?? 0
+        : isAdmin ? adminDashboardAnalytics?.usedDays?.[0]?.total_used_days ?? 0 : leaveSummary?.totalUsedDays?.[0]?.total_used_days ?? 0;
 
-    const usedDays = isManagement
-        ? dashboardAnalytics?.usedDays?.[0]?.total_used_days ?? 0
-        : leaveSummary?.totalUsedDays?.[0]?.total_used_days ?? 0;
+    const allocatedDays = isManager ? managerDashboardAnalytics?.usedDays?.[0]?.total_allocated_days ?? 0
+        : isAdmin ? adminDashboardAnalytics?.usedDays?.[0]?.total_allocated_days ?? 0 : leaveSummary?.totalUsedDays?.[0]?.total_allocated_days ?? 0;
 
-    const allocatedDays = isManagement ? dashboardAnalytics?.usedDays?.[0]?.total_allocated_days ?? 0
-        : leaveSummary?.totalUsedDays?.[0]?.total_allocated_days ?? 0;
 
     return (
 

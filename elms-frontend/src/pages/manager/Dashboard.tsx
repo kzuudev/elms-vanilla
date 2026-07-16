@@ -12,7 +12,7 @@ import TeamCoverageWidget from "@/features/dashboard/components/TeamCoverageWidg
 import TeamInsights from "@/features/dashboard/components/TeamInsights.tsx";
 import RecentActivityTable from "@/features/dashboard/components/RecentActivityTable.tsx";
 
-import {DashboardAnalyticsContext} from "@/features/context/analytics/DashboardAnalyticsContext.tsx";
+import {ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 
 import type {
     TotalPendingRequest,
@@ -22,7 +22,7 @@ import type {
     MonthlyConsumption,
     TeamAvailability,
     TotalUsers,
-    EmployeeRecentActivityData
+    ManagerRecentActivityData
 } from "@/types/dashboard.ts";
 import Search from "@/components/ui/search.tsx";
 
@@ -41,7 +41,7 @@ export default function ManagerDashboard() {
     const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyConsumption[]>([]);
     const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
     const [totalUsers, setTotalUsers] = useState<TotalUsers[]>([]);
-    const [recentActivity, setRecentActivity] = useState<EmployeeRecentActivityData[]>([]);
+    const [recentActivity, setRecentActivity] = useState<ManagerRecentActivityData[]>([]);
 
 
     const fetchManagerDashboard = async () => {
@@ -75,7 +75,7 @@ export default function ManagerDashboard() {
    return (
       <>
           <AppSidebar>
-              <DashboardAnalyticsContext.Provider value={{remainingBalance, pendingRequest, usedDays, overlap, teamAvailability, recentActivity, monthlyLeaveConsumption, totalUsers}}>
+              <ManagerAnalyticsContext.Provider value={{remainingBalance, pendingRequest, usedDays, overlap, teamAvailability, recentActivity, monthlyLeaveConsumption, totalUsers}}>
                   <div className="flex flex-col gap-4">
                       <div  className="w-full flex justify-between">
                           <div className="">
@@ -110,7 +110,7 @@ export default function ManagerDashboard() {
                       </div>
 
                   </div>
-              </DashboardAnalyticsContext.Provider>
+              </ManagerAnalyticsContext.Provider>
           </AppSidebar>
 
           {error && (
