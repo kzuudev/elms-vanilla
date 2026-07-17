@@ -15,7 +15,7 @@ class EmployeeDashboardController {
     private EmployeeLeaveService $usedLeaveService;
     private EmployeeLeaveService $recentLeaveService;
 
-    private EmployeeLeaveService $teamStatusLeaveService;
+    private EmployeeLeaveService $teamAvailabilityLeaveService;
     private EmployeeLeaveService $monthlyLeaveConsumptionService;
 
     public function __construct() {
@@ -24,7 +24,7 @@ class EmployeeDashboardController {
         $this->pendingLeaveService = App::resolve(EmployeeLeaveService::class);
         $this->usedLeaveService = App::resolve(EmployeeLeaveService::class);
         $this->recentLeaveService = App::resolve(EmployeeLeaveService::class);
-        $this->teamStatusLeaveService = App::resolve(EmployeeLeaveService::class);
+        $this->teamAvailabilityLeaveService = App::resolve(EmployeeLeaveService::class);
         $this->monthlyLeaveConsumptionService = App::resolve(EmployeeLeaveService::class);
 
     }
@@ -37,11 +37,11 @@ class EmployeeDashboardController {
         $current_user_id = $currentUser['id'] ?? null;;
         $current_user_role = $currentUser['role'] ?? null;
 
-        $totalRemainingBalance = $this->employeeLeaveService->getRemainingTotalBalance($current_user_id);
-        $totalPendingRequest = $this->pendingLeaveService->getPendingApprovalMetrics($current_user_id);
-        $totalUsedDays = $this->usedLeaveService->getUsedDays($current_user_id);
+        $totalRemainingBalance = $this->employeeLeaveService->getRemainingTotalBalance();
+        $totalPendingRequest = $this->pendingLeaveService->getPendingApprovalMetrics();
+        $totalUsedDays = $this->usedLeaveService->getUsedDays();
         $recentActivity = $this->recentLeaveService->getRecentActivity($current_user_id);
-        $teamStatus = $this->teamStatusLeaveService->getTeamStatus($current_user_id, $current_user_role);
+        $teamAvailability = $this->teamAvailabilityLeaveService->getTeamAvailability($current_user_id, $current_user_role);
         $monthlyLeaveConsumption = $this->monthlyLeaveConsumptionService->getMonthlyLeaveConsumption($current_user_id);
 
         http_response_code(200);
@@ -52,7 +52,7 @@ class EmployeeDashboardController {
             'total_pending_request' => $totalPendingRequest,
             'total_used_days' => $totalUsedDays,
             'recent_activity' => $recentActivity,
-            'team_status' => $teamStatus,
+            'team_availability' => $teamAvailability,
             'monthly_leave_consumption' => $monthlyLeaveConsumption
         ]);
         exit;

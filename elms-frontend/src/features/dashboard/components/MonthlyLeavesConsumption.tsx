@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext } from "react";
-import { LeaveSummaryContext } from "@/features/context/analytics/LeaveSummaryContext.tsx";
+import { EmployeeAnalyticsContext } from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
 import { ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
 import {UserContext} from "@/features/context/UserContext.tsx";
@@ -17,7 +17,7 @@ export default function MonthlyLeavesConsumption() {
 
     const managerAnalytics = useContext(ManagerAnalyticsContext);
     const adminAnalytics = useContext(AdminAnalyticsContext);
-    const employeeAnalytics = useContext(LeaveSummaryContext);
+    const employeeAnalytics = useContext(EmployeeAnalyticsContext);
 
     const role = user.role || null;
 

@@ -7,7 +7,7 @@ import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalytics
 
 import { ClipboardList, Users } from 'lucide-react';
 
-
+import {validateDate} from "@/utils/on-leave.ts";
 export default function TeamInsights() {
 
     const {user} = useContext(UserContext);
@@ -18,11 +18,8 @@ export default function TeamInsights() {
 
     const managementAnalytics = role.includes('manager') ? managerAnalytics : role.includes('admin') ? adminAnalytics : null;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     const teamSize = managementAnalytics?.teamAvailability?.length || 0;
-
 
     const activeWorkingCountFor = managementAnalytics?.teamAvailability || [];
 
@@ -30,16 +27,24 @@ export default function TeamInsights() {
 
         // in case a team member doesn't have an active leave request
         if (!team.start_date || !team.end_date) {
-            return team.user_status;
+            return team.is_active;
         }
 
-       const startOfDay = new Date(team.start_date);
-       const endOfDay = new Date(team.end_date);
-       startOfDay.setHours(0, 0, 0, 0);
-       endOfDay.setHours(0, 0, 0, 0);
+        const startOfDay = new Date(team.start_date);
+        const endOfDay = new Date(team.end_date);
+
+       validateDate({
+           start_date: startOfDay,
+           end_date: endOfDay,
+       });
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        startOfDay.setHours(0, 0, 0, 0);
+        endOfDay.setHours(0, 0, 0, 0);
 
 
-       const isApproved = team.leave_request_status === 'approved';
+       const isApproved = team?.leave_status === 'approved';
 
        const isTodayWithinLeave = startOfDay && endOfDay
            ? (today >= startOfDay && today <= endOfDay)
@@ -47,7 +52,7 @@ export default function TeamInsights() {
 
        const isOnLeave = isApproved && isTodayWithinLeave;
 
-       return team.user_status && !isOnLeave;
+       return team.is_active && !isOnLeave;
    }).length || 0;
 
 

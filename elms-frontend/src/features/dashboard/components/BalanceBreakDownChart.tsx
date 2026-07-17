@@ -2,13 +2,13 @@
 
 import {useContext} from "react";
 
-import {LeaveSummaryContext} from "@/features/context/analytics/LeaveSummaryContext.tsx";
+import {EmployeeAnalyticsContext} from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
 
 import { Card } from '@/components/ui/card.tsx';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 export default function BalanceBreakDownChart() {
 
-    const {totalRemainingBalance, totalPendingRequest, totalUsedDays} = useContext(LeaveSummaryContext);
+    const {totalRemainingBalance, totalPendingRequest, totalUsedDays} = useContext(EmployeeAnalyticsContext);
 
     const remaining = parseFloat(totalRemainingBalance?.[0].grand_total);
     const pending = parseFloat(totalPendingRequest?.[0].total_days);

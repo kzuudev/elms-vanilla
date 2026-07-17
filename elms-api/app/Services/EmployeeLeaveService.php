@@ -22,19 +22,22 @@ class EmployeeLeaveService {
         $this->userId = Auth::authenticate()['id'];
     }
 
-    public function getRemainingTotalBalance() {
+    public function getRemainingTotalBalance(): array
+    {
 
         return $this->executeRemainingTotalBalance($this->userId);
 
     }
 
 
-    public function getPendingApprovalMetrics() {
+    public function getPendingApprovalMetrics(): array
+    {
 
         return $this->executePendingApprovalMetrics($this->userId);
     }
 
-    public function getUsedDays() {
+    public function getUsedDays(): array
+    {
 
         return $this->executeUsedDays($this->userId);
 
@@ -58,11 +61,12 @@ class EmployeeLeaveService {
         return $monthlyLeaveConsumption;
     }
 
-    public function getTeamStatus($user_id, $role) {
+    public function getTeamAvailability($user_id, $role) {
 
         $teamStatus = $this->db->query("
             SELECT u.*,
-                lr.status AS leave_request_status,
+                CONCAT(u.first_name, ' ', u.last_name) AS name,   
+                lr.status AS leave_status,
                 COUNT(lr.id) as queued_leave_count
             FROM users u
             LEFT JOIN leave_requests lr ON u.id = lr.user_id AND lr.status = 'pending'
@@ -80,13 +84,16 @@ class EmployeeLeaveService {
 
         $recentActivity = $this->db->query("
             SELECT lr.*,
-                lt.name AS leave_type,
-                m.first_name AS manager_name,
-                lr.start_date AS start_date,
-                lr.end_date AS end_date,
-                lr.status AS leave_status
+                   CONCAT(u.first_name, ' ', u.last_name) AS employee_name,
+                   lt.name AS leave_type,
+                   m.first_name AS manager_name,
+                   lr.start_date AS start_date,
+                   lr.end_date AS end_date,
+                   lr.reason AS reason,
+                   lr.status AS leave_status
             FROM leave_requests lr
             LEFT JOIN users m ON lr.assigned_to = m.id
+            INNER JOIN users u ON lr.user_id = u.id    
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
             WHERE lr.user_id = :user_id
             ORDER BY lr.created_at ASC

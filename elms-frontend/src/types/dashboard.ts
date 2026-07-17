@@ -22,42 +22,30 @@ export type MonthlyLeaveConsumption = {
     month_name: string,
     total_used_days: number,
 }
-
-export type TeamStatus = {
-    first_name: string,
-    last_name: string,
-    role: string,
-    is_active: boolean,
-    leave_request_status: string,
-    queued_leave_count: number,
-}
-
-// export type RecentActivity = {
-//     id: number;
-//     leave_type_name: string;
-//     manager_name: string | null;
-//     request_date: string;
-//     return_date: string;
-//     total_days: number;
-//     request_status: 'pending' | 'approved' | 'rejected';
-//     created_at: string;
+//
+// export type TeamStatus = {
+//     first_name: string,
+//     last_name: string,
+//     role: string,
+//     is_active: boolean,
+//     leave_status: string,
+//     queued_leave_count: number,
 // }
-
 
 // Manager and Admin Dashboard Types
 
 export type TeamAvailability = {
     user_id: number;
-    employee_first_name: string;
-    employee_last_name: string;
-    user_position: string;
-    user_status: boolean;
+    name: string;
+    role: string;
     department: string;
     leave_type_id: number;
-    leave_type_name: string;
-    leave_request_status: string; // e.g., "approved"
-    start_date: string;           // e.g., "2026-07-05"
+    leave_type: string;
+    leave_status: string;
+    start_date: string;
     end_date: string;
+    is_active: boolean,
+    queued_leave_count: number,
 }
 
 export type MonthlyConsumption = {
@@ -108,35 +96,15 @@ export type EmployeeRecentActivity = {
     recent_activity: string;
 }
 
-// export type ManagerRecentActivityData = {
-//     id: number;
-//     employee_name: string;
-//     leave_type: string;
-//     start_date: string;
-//     end_date: string;
-//     leave_status: string;
-//     created_at: string;
-// }
-//
-// export type AdminRecentActivityData = {
-//     id: number;
-//     employee_name: string;
-//     employee_role: string;
-//     employee_department: string;
-//     leave_type: string;
-//     start_date: string;
-//     end_date: string;
-//     leave_status: string;
-//     created_at: string;
-// }
-
 export type LeaveActivityRecord = {
     id: number;
-    employee_name: string;
+    employee_name?: string;
     employee_role?: string;       // admin-only
     employee_department?: string; // admin-only
     manager_name?: string | null; // employee-only (who approved it)
     leave_type: string;
+    leave_status: string;
+    reason: string;
     start_date: string;
     end_date: string;
     total_days: number;

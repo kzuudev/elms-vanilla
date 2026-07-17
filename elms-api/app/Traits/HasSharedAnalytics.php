@@ -69,14 +69,12 @@ trait HasSharedAnalytics {
         $query = "
             SELECT
                 u.id as user_id,
-                u.first_name as employee_first_name,
-                u.last_name as employee_last_name,
-                u.role as user_position,
+                CONCAT(u.first_name, ' ', u.last_name) AS name,
+                u.role as role,
                 u.department as department,
-                u.is_active as user_status,
-                lr.leave_type_id as leave_type_id,
-                lt.name as leave_type_name,
-                lr.status as leave_request_status,
+                u.is_active as is_active,
+                lt.name as leave_type,
+                lr.status as leave_status,
                 lr.start_date as start_date,
                 lr.end_date as end_date
             FROM users u
@@ -86,7 +84,7 @@ trait HasSharedAnalytics {
                 AND lr.deleted_at IS NULL
                 AND CURRENT_DATE >= lr.start_date 
                 AND CURRENT_DATE <= lr.end_date
-            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id 
             WHERE u.id != :current_user_id
               AND u.is_active = 1 
         ";
@@ -195,8 +193,8 @@ trait HasSharedAnalytics {
                lr.end_date as end_date,
                lr.total_days as total_days,
                lr.leave_type_id as leave_type_id,
-               lr.status as leave_request_status,
-               lt.name as leave_type_name,
+               lr.status as leave_status,
+               lt.name as leave_type,
                lr.start_date as start_date,
                lr.end_date as end_date
             FROM leave_requests lr

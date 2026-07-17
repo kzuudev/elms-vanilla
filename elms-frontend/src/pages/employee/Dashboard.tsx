@@ -2,9 +2,9 @@
 
 import {useContext, useEffect, useState} from "react";
 import {api} from "@/lib/api.ts";
-import type {TotalRemainingBalance, TotalPendingRequest, TotalUsedDays, RecentActivity, TeamStatus, MonthlyLeaveConsumption} from "@/types/dashboard.ts";
+import type {TotalRemainingBalance, TotalPendingRequest, TotalUsedDays, LeaveActivityRecord, TeamAvailability, MonthlyLeaveConsumption} from "@/types/dashboard.ts";
 
-import {LeaveSummaryContext} from "@/features/context/analytics/LeaveSummaryContext.tsx";
+import {EmployeeAnalyticsContext} from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
 import {UserContext} from "@/features/context/UserContext.tsx";
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
@@ -25,8 +25,8 @@ export default function EmployeeDashboard() {
     const [totalPendingRequest, setTotalPendingRequest] = useState<TotalPendingRequest[]>();
     const [totalUsedDays, setTotalUsedDays] = useState<TotalUsedDays[]>();
     const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyLeaveConsumption  []>();
-    const [recentActivity, setRecentActivity] = useState<RecentActivity[]>();
-    const [teamStatus, setTeamStatus] = useState<TeamStatus[]>([]);
+    const [recentActivity, setRecentActivity] = useState<LeaveActivityRecord[]>();
+    const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
     const fetchEmployeeDashboard = async () => {
 
         try {
@@ -41,7 +41,7 @@ export default function EmployeeDashboard() {
             setTotalUsedDays(response.data.total_used_days);
             setMonthlyLeaveConsumption(response.data.monthly_leave_consumption);
             setRecentActivity(response.data.recent_activity);
-            setTeamStatus(response.data.team_status);
+            setTeamAvailability(response.data.team_availability);
         }catch (e) {
             setError(e.response.data.message);
 
@@ -58,7 +58,7 @@ export default function EmployeeDashboard() {
     return (
         <>
             <AppSidebar>
-                <LeaveSummaryContext.Provider value={{totalRemainingBalance, totalPendingRequest, totalUsedDays, recentActivity, teamStatus, monthlyLeaveConsumption}}>
+                <EmployeeAnalyticsContext.Provider value={{totalRemainingBalance, totalPendingRequest, totalUsedDays, recentActivity, teamAvailability, monthlyLeaveConsumption}}>
                    <div className="flex flex-col gap-4">
                        <div className="flex justify-between items-center">
                            <h1 className="text-lg text-black">Dashboard</h1>
@@ -77,7 +77,7 @@ export default function EmployeeDashboard() {
                             <RecentActivityTable/>
                        </div>
                    </div>
-                </LeaveSummaryContext.Provider>
+                </EmployeeAnalyticsContext.Provider>
 
                 {error && (
                     <div className="text-red-600">{error}</div>

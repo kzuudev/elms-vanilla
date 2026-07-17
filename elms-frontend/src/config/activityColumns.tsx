@@ -14,14 +14,14 @@ export const employeeColumns: ColumnConfig<LeaveActivityRecord>[] = [
 
 export const managerColumns: ColumnConfig<LeaveActivityRecord>[] = [
     { header: "Date", render: r => formatDate(r.created_at) },
-    { header: "Team Member", render: r => r.employee_name },
+    { header: "Team Member", render: r => r.employee_name},
     { header: "Recent Activity", render: r => buildActivityNarrative(r) },
 ];
 
 
 export const adminColumns: ColumnConfig<LeaveActivityRecord>[] = [
     { header: "Date Requested", render: row => formatDate(row.created_at) },
-    { header: "Team Member", render: row => row.employee_name },
+    { header: "Team Member", render: row => row.employee_name},
     { header: "Leave Type", render: row => row.leave_type },
     { header: "Duration", render: row => `${row.total_days} ${row.total_days > 1 ? "Days" : "Day"}` },
 ];

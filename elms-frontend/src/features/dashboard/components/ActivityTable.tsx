@@ -23,7 +23,7 @@ export function ActivityTable<T extends {id: number}>(
             <TableHeader className="bg-gray-50/50">
                 <TableRow className="border-b border-border hover:bg-transparent">
                     {columns.map((col) => (
-                        <TableHead key={col.header} className="text-gray-600 font-semibold py-3 h-auto">
+                        <TableHead key={col.header} className="text-gray-600 font-semibold py-2 h-auto">
                             {col.header}
                         </TableHead>
                     ))}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext } from "react";
-import { LeaveSummaryContext } from "@/features/context/analytics/LeaveSummaryContext.tsx";
+import { EmployeeAnalyticsContext } from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
 import { ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
 import {UserContext} from "@/features/context/UserContext.tsx";
@@ -18,7 +18,7 @@ export default function LeaveSummaryGrid() {
     const isManager = role === 'manager';
     const isAdmin = role === 'admin';
 
-    const leaveSummary = useContext(LeaveSummaryContext);
+    const leaveSummary = useContext(EmployeeAnalyticsContext);
     const managerDashboardAnalytics = useContext(ManagerAnalyticsContext);
     const adminDashboardAnalytics = useContext(AdminAnalyticsContext);
 

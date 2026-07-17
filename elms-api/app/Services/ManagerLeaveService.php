@@ -188,11 +188,11 @@ class ManagerLeaveService implements LeaveAnalyticsInterface
     public static function getActivityData($activity) : array {
 
         $employeeName = $activity['first_name'] . ' ' . $activity['last_name'];
-        $leaveType = $activity['leave_type_name'];
-        $startDate = $activity['request_date'];
-        $endDate = $activity['return_date'];
-        $status = $activity['request_status'];
-        $createdAt = $activity['request_created_at'];
+        $leaveType = $activity['leave_type_name'] ?? ['No leave type'];
+        $startDate = $activity['start_date'] ?? ['No start date'];
+        $endDate = $activity['end_date'] ?? ['No end date'];
+        $status = $activity['leave_status'] ?? ['No status'];
+        $createdAt = $activity['created_at'] ?? ['No date'];
 
         return [
             'employee_name' => $employeeName,
