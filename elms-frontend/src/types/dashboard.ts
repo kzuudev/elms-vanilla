@@ -35,7 +35,7 @@ export type MonthlyLeaveConsumption = {
 // Manager and Admin Dashboard Types
 
 export type TeamAvailability = {
-    user_id: number;
+    id: number;
     name: string;
     role: string;
     department: string;
@@ -103,11 +103,11 @@ export type LeaveActivityRecord = {
     employee_department?: string; // admin-only
     manager_name?: string | null; // employee-only (who approved it)
     leave_type: string;
-    leave_status: string;
+    leave_status: 'pending' | 'approved' | 'rejected';;
     reason: string;
     start_date: string;
     end_date: string;
     total_days: number;
-    status: 'pending' | 'approved' | 'rejected';
+    status: boolean;
     created_at: string;
 };

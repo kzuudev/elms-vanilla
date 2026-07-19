@@ -68,7 +68,7 @@ trait HasSharedAnalytics {
 
         $query = "
             SELECT
-                u.id as user_id,
+                u.id as id,
                 CONCAT(u.first_name, ' ', u.last_name) AS name,
                 u.role as role,
                 u.department as department,

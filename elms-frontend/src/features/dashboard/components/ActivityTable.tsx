@@ -12,11 +12,7 @@ import {
 
 import type {ActivityTableProps} from "@/types/table";
 
-export function ActivityTable<T extends {id: number}>(
-    {columns,
-    rows,
-    isLoading,
-    emptyMessage}: ActivityTableProps<T>) {
+export function ActivityTable<T extends {id: number}>({columns, rows, isLoading, emptyMessage}: ActivityTableProps<T>) {
 
     return (
         <Table>

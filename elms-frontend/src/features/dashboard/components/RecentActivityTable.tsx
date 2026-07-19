@@ -8,7 +8,7 @@ import {ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnaly
 import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
 import {UserContext} from "@/features/context/UserContext.tsx";
 
-import { employeeColumns, managerColumns, adminColumns } from "@/config/activityColumns";
+import { employeeColumns, managerColumns, adminColumns } from "@/config/activity-columns.tsx";
 
 
 import { Card } from "@/components/ui/card.tsx";
@@ -43,10 +43,7 @@ export default function RecentActivityTable() {
     };
 
     const columns = columnsByRole[currentRole] ?? employeeColumns;
-    const rows = dataByRole[currentRole];
-
-    console.log(rows);
-
+    const rows = dataByRole[currentRole]
     const isLoading = rows === undefined;
 
 

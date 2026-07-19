@@ -13,9 +13,9 @@ export const employeeColumns: ColumnConfig<LeaveActivityRecord>[] = [
 
 
 export const managerColumns: ColumnConfig<LeaveActivityRecord>[] = [
-    { header: "Date", render: r => formatDate(r.created_at) },
-    { header: "Team Member", render: r => r.employee_name},
-    { header: "Recent Activity", render: r => buildActivityNarrative(r) },
+    { header: "Date", render: row => formatDate(row.created_at) },
+    { header: "Team Member", render: row => row.employee_name},
+    { header: "Recent Activity", render: row => buildActivityNarrative(row) },
 ];
 
 
