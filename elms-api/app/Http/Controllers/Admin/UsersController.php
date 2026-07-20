@@ -36,6 +36,7 @@ class UsersController {
                    is_active, 
                    hired_date 
             FROM users
+            WHERE role != 'admin'
         ")->all();
 
 
@@ -67,7 +68,7 @@ class UsersController {
                    email, 
                    phone, 
                    role, 
-                   manager_id,
+                   assigned_to as manager_id,
                    department, 
                    is_active, 
                    hired_date,
@@ -131,6 +132,16 @@ class UsersController {
 
         $current_user_id = $currentUser['id'] ?? null;
 
+        $existingUser = $db->query("SELECT * FROM users WHERE id = :id", [
+            'id' => $id
+        ])->find();
+
+        if (!$existingUser) {
+            http_response_code(404);
+            echo json_encode(["error" => "User to edit not found"]);
+            exit;
+        }
+
         if(!$current_user_id) {
             http_response_code(404);
             echo json_encode(["error" => "Admin not found"]);
@@ -139,18 +150,22 @@ class UsersController {
 
         $input = json_decode(file_get_contents('php://input'), true);
 
-        $first_name = $input['first_name'] ?? '';
-        $last_name  = $input['last_name'] ?? '';
-        $email      = $input['email'] ?? '';
-        $phone      = $input['phone'] ?? '';
-        $role       = $input['role'] ?? '';
-        $department = $input['department'] ?? '';
-        $is_active  = isset($input['is_active']) ? (int)$input['is_active'] : 1;
-        $salary     = $input['salary'] ?? '';
-        $hired_date = $input['hired_date'] ?? null;
-        $manager_id = !empty($input['manager_id']) ? (int)$input['manager_id'] : null;
+        $first_name = array_key_exists('first_name', $input) ? $input['first_name'] : $existingUser['first_name'];
+        $last_name  = array_key_exists('last_name', $input)  ? $input['last_name']  : $existingUser['last_name'];
+        $email      = array_key_exists('email', $input)      ? $input['email']      : $existingUser['email'];
+        $phone      = array_key_exists('phone', $input)      ? $input['phone']      : $existingUser['phone'];
+        $role       = array_key_exists('role', $input)       ? $input['role']       : $existingUser['role'];
+        $department = array_key_exists('department', $input) ? $input['department'] : $existingUser['department'];
+        $salary     = array_key_exists('salary', $input)     ? $input['salary']     : $existingUser['salary'];
+        $hired_date = array_key_exists('hired_date', $input) ? $input['hired_date'] : $existingUser['hired_date'];
+        $is_active  = array_key_exists('is_active', $input)
+            ? (int)$input['is_active']
+            : (int)$existingUser['is_active'];
+        $manager_id = array_key_exists('manager_id', $input)
+            ? (!empty($input['manager_id']) ? (int)$input['manager_id'] : null)
+            : $existingUser['manager_id'];
 
-        $editUser = $db->query("
+        $db->query("
         UPDATE users 
         SET first_name = :first_name, 
             last_name = :last_name, 
@@ -158,7 +173,7 @@ class UsersController {
             phone = :phone, 
             role = :role, 
             department = :department, 
-            manager_id = :manager_id,
+            assigned_to = :assigned_to,
             is_active = :is_active, 
             hired_date = :hired_date, 
             salary = :salary 
@@ -171,14 +186,14 @@ class UsersController {
             'phone'       => $phone,
             'role'        => $role,
             'department'  => $department,
-            'manager_id'  => $manager_id, // binds this as null if no manager is chosen
+            'assigned_to'  => $manager_id,
             'is_active'   => $is_active,
             'hired_date' => empty($hired_date) ? null : $hired_date,
             'salary'      => empty($salary) ? null : $salary
-        ])->find();
+        ]);
 
         $editedUser = $db->query("
-        SELECT id, first_name, last_name, email, phone, role, department, manager_id, is_active, hired_date, salary 
+        SELECT id, first_name, last_name, email, phone, role, department, assigned_to, is_active, hired_date, salary 
         FROM users 
         WHERE id = :id
         ", ['id' => $id])->find();

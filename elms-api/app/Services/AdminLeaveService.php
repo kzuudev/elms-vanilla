@@ -132,7 +132,8 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
                    lr.start_date AS start_date,
                    lr.end_date AS end_date,
                    lr.status AS leave_status,
-                   lr.created_at AS created_at
+                   lr.created_at AS created_at,
+                   lr.total_days AS total_days
             FROM leave_requests lr
             INNER JOIN users u ON lr.user_id = u.id
             INNER JOIN leave_types lt ON lr.leave_type_id = lt.id

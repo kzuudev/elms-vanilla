@@ -108,7 +108,7 @@ export default function UsersListTable() {
                 last_name: userDetails.last_name || '',
                 email: userDetails.email || '',
                 phone: userDetails.phone || '',
-                role: userDetails.role || 'employee',
+                role: userDetails.role || '',
                 department: userDetails.department || '',
                 hired_date: userDetails.hired_date ? userDetails.hired_date.split(' ')[0] : '',
                 salary: userDetails.salary ? String(userDetails.salary) : '',
@@ -145,7 +145,6 @@ export default function UsersListTable() {
                     }
                 });
                 setUserDetails(response.data.user);
-                console.log(response.data.user);
             } catch (e) {
                 setError(e.response.data.message || "A network error occurred.");
             }
@@ -219,6 +218,14 @@ export default function UsersListTable() {
             }
         }
 
+        const options = [
+            {value: 'IT Support', label: 'IT Support'},
+            {value: 'UI/UX', label: 'UI/UX'},
+            {value: 'Marketing', label: 'Marketing'},
+            {value: 'Software Engineer', label: 'Software Engineer'},
+            {value: 'AI Engineer', label: 'AI Engineer'},
+            {value: 'Accountant', label: 'Accountant'}
+        ]
 
         return (
 
@@ -377,21 +384,23 @@ export default function UsersListTable() {
 
                                         {/* Role & Department */}
                                         <div className="flex gap-2">
-                                            <Controller name="role" control={form.control}
-                                                        render={({field, fieldState}) => (
-                                                            <Field data-invalid={fieldState.invalid} className="w-1/2">
-                                                                <FieldLabel htmlFor="role"
-                                                                            className="m-0">Role</FieldLabel>
-                                                                <select {...field} id="role"
-                                                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                                                                    <option value="employee">Employee</option>
-                                                                    <option value="manager">Manager</option>
-                                                                    <option value="admin">Admin</option>
-                                                                </select>
-                                                                {fieldState.invalid &&
-                                                                    <FieldError errors={[fieldState.error]}/>}
-                                                            </Field>
-                                                        )}/>
+                                                <Controller name="role" control={form.control}
+                                                            render={({field, fieldState}) => (
+                                                                <Field data-invalid={fieldState.invalid} className="w-1/2">
+                                                                    <FieldLabel htmlFor="role"
+                                                                                className="m-0">Role</FieldLabel>
+                                                                    <select {...field} id="role"
+                                                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                                                        {options.map((opt) => (
+                                                                            <option key={opt.value} value={opt.value}>
+                                                                                {opt.label}
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
+                                                                    {fieldState.invalid &&
+                                                                        <FieldError errors={[fieldState.error]}/>}
+                                                                </Field>
+                                                            )}/>
                                             <Controller name="department" control={form.control}
                                                         render={({field, fieldState}) => (
                                                             <Field data-invalid={fieldState.invalid} className="w-1/2">
@@ -538,6 +547,10 @@ export default function UsersListTable() {
                         </TableBody>
                     </Table>
                 </div>
+
+                {error && (
+                    <div className="text-red-500 text-sm mb-4 text-center">{error}</div>
+                )}
             </>
         );
 

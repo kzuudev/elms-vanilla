@@ -11,7 +11,6 @@ import CoverageWidget from "@/features/dashboard/components/CoverageWidget.tsx";
 import {employeeRow, managerRow, adminRow} from "@/utils/team-coverage-row.tsx";
 
 import {currentUserRole, type UserRole} from "@/utils/current-user-role.ts";
-import {isOnLeave} from "@/utils/on-leave.ts";
 import type { TeamAvailability} from "@/types/dashboard.ts";
 
 
