@@ -1,6 +1,7 @@
 "use client"
 
 import {useEffect, useState} from "react";
+
 import * as z from 'zod';
 import {api} from "@/lib/api.ts";
 import {type UserData, type UserProfile, type UserDetails} from "@/types/users.ts";
@@ -16,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import {Eye, Pencil, Trash} from "lucide-react";
 import {format} from "date-fns";
 
-
 export default function UsersListTable() {
 
     const tableHeaders = ["First Name", "Last Name", "Email", "Phone", "Role", "Department", "Status", "Actions"];
@@ -27,6 +27,9 @@ export default function UsersListTable() {
     const [users, setUsers] = useState<UserData[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile>({} as UserProfile);
     const [userDetails, setUserDetails] = useState<UserDetails>({} as UserDetails);
+
+
+
     const [error, setError] = useState<string | null>(null);
 
     // Define the validation rules for editing a user profile
@@ -82,8 +85,10 @@ export default function UsersListTable() {
             setUsers(response.data.users);
         } catch (e) {
             setError(e.response.data.message || "A network error occurred.");
+            setUsers([]);
         }
     }
+
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -135,7 +140,7 @@ export default function UsersListTable() {
         }
 
     }
-        const fetchUserDetails = async (id: number) => {
+    const fetchUserDetails = async (id: number) => {
 
             try {
                 const holder = localStorage.getItem("token");
@@ -149,14 +154,13 @@ export default function UsersListTable() {
                 setError(e.response.data.message || "A network error occurred.");
             }
         }
-
-        const handleEditUserForm = async (id: number) => {
+    const handleEditUserForm = async (id: number) => {
         setIsFormOpen(true);
         setActiveUserId(id);
         await fetchUserDetails(id);
     }
 
-        const fetchUpdateUser = async (id: number, data: EditUserDetailsFormData) => {
+    const fetchUpdateUser = async (id: number, data: EditUserDetailsFormData) => {
 
         form.setError("root", null);
 
@@ -179,7 +183,7 @@ export default function UsersListTable() {
         }
     }
 
-        const fetchDeleteUser = async (id: number) => {
+    const fetchDeleteUser = async (id: number) => {
             const holder = localStorage.getItem("token");
             try {
                 const response = await api.delete(`/users/${id}`, {
@@ -194,8 +198,7 @@ export default function UsersListTable() {
             }
         }
 
-
-        const handleEditSubmit = async (data: EditUserDetailsFormData) => {
+    const handleEditSubmit = async (data: EditUserDetailsFormData) => {
 
 
             const id = activeUserId;
@@ -208,24 +211,22 @@ export default function UsersListTable() {
             setIsFormOpen(false);
         }
 
+    const handleDeleteUser = async (id: number) => {
+        form.setError("root", null);
 
-
-        const handleDeleteUser = async (id: number) => {
-            form.setError("root", null);
-
-            if (window.confirm("Are you sure you want to delete this user?")) {
-                await fetchDeleteUser(id);
-            }
+        if (window.confirm("Are you sure you want to delete this user?")) {
+            await fetchDeleteUser(id);
         }
+    }
 
-        const options = [
+    const options = [
             {value: 'IT Support', label: 'IT Support'},
             {value: 'UI/UX', label: 'UI/UX'},
             {value: 'Marketing', label: 'Marketing'},
             {value: 'Software Engineer', label: 'Software Engineer'},
             {value: 'AI Engineer', label: 'AI Engineer'},
             {value: 'Accountant', label: 'Accountant'}
-        ]
+    ]
 
         return (
 
@@ -519,7 +520,7 @@ export default function UsersListTable() {
                         </TableHeader>
 
                         <TableBody>
-                            {users.map((user) => (
+                            {users?.map((user) => (
                                 <TableRow key={user.id}>
                                     <TableCell>{user.first_name}</TableCell>
                                     <TableCell>{user.last_name}</TableCell>

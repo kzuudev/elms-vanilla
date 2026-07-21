@@ -57,6 +57,8 @@ $router->get('/users/{id}', [UsersController::class, 'show'])->only('auth');
 $router->patch('/users/{id}', [UsersController::class, 'patch'])->only('auth');
 $router->delete('/users/{id}', [UsersController::class, 'destroy'])->only('auth');
 
+
+
 $router->get('/leave-requests/me', [LeaveRequestController::class, 'index'])->only('auth');
 $router->get('/leave-requests', [LeaveReviewController::class, 'index'])->only('auth');
 $router->get('/leave-requests/{id}', [LeaveRequestController::class, 'show'])->only('auth');

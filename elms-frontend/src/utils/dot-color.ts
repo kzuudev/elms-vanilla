@@ -1,4 +1,3 @@
-import type {TeamAvailability} from "@/types/dashboard.ts";
 
 
 export const dotColor = (team: boolean) => {

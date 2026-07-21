@@ -10,7 +10,7 @@ export default function Unauthorized() {
             <h1>403 - Access Denied</h1>
             <p>You do not have the required permissions to view this page.</p>
 
-            // send them back to the previous page
+            {/* send them back to the previous page */}
             <button onClick={() => navigate(-1)} style={{ padding: '10px 20px', cursor: 'pointer' }}>
                 Go Back
             </button>
