@@ -7,8 +7,8 @@ import {api} from "@/lib/api.ts";
 import {useNavigate} from "react-router-dom";
 import {useContext} from "react";
 import {LeaveType} from "@/types/leave.ts";
-import {LeaveContext} from "@/features/context/LeaveContext.tsx";
-import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
+import {LeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
+import {LeaveBalanceContext} from "@/features/context/leaves/LeaveBalanceContext.tsx";
 
 import {Button} from "@/components/ui/button.tsx";
 import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field.tsx";

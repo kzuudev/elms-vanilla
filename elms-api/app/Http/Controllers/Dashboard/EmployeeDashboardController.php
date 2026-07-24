@@ -4,7 +4,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Middleware\Auth;
-use App\Services\EmployeeLeaveService;
+use App\Services\leaves\EmployeeLeaveService;
 use Core\App;
 
 class EmployeeDashboardController {

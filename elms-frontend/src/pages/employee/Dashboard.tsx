@@ -5,7 +5,7 @@ import {api} from "@/lib/api.ts";
 import type {TotalRemainingBalance, TotalPendingRequest, TotalUsedDays, LeaveActivityRecord, TeamAvailability, MonthlyLeaveConsumption} from "@/types/dashboard.ts";
 
 import {EmployeeAnalyticsContext} from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
-import {UserContext} from "@/features/context/UserContext.tsx";
+import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import LeaveSummaryGrid from "@/features/dashboard/components/LeaveSummaryGrid.tsx";
@@ -19,7 +19,7 @@ import Search from "@/components/ui/search.tsx";
 export default function EmployeeDashboard() {
 
     const [error, setError] = useState<string | null>(null);
-    const { user } = useContext(UserContext)
+    const { user } = useContext(AuthContext)
 
     const [totalRemainingBalance, setTotalRemainingBalance] = useState<TotalRemainingBalance[]>();
     const [totalPendingRequest, setTotalPendingRequest] = useState<TotalPendingRequest[]>();

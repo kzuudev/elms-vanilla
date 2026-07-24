@@ -9,8 +9,8 @@ import Login from './pages/auth/login'
 import ManagerDashboard from './pages/manager/Dashboard'
 import EmployeeDashboard from './pages/employee/Dashboard'
 import AdminDashboard from './pages/admin/Dashboard.tsx'
-import {UserContext} from "@/features/context/UserContext.tsx";
-import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
+import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
+import {LeaveBalanceContext} from "@/features/context/leaves/LeaveBalanceContext.tsx";
 
 import { type Profile} from "@/types/leave.ts";
 import { type LeaveBalance} from "@/types/leave-balance.ts";
@@ -18,8 +18,8 @@ import { type LeaveBalance} from "@/types/leave-balance.ts";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute.tsx";
 import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
 import ManagerLeaveDashboard from "@/pages/manager/ManagerLeaveDashboard.tsx";
-import EmployeeListDashboard from "@/pages/manager/EmployeeListDashboard.tsx";
-import UsersDashboard from "@/pages/admin/UsersDashboard.tsx";
+
+import EmployeesDashboard from "@/features/employees/components/EmployeesDashboard.tsx";
 import AdminLeavesDashboard from "@/pages/admin/AdminLeavesDashboard.tsx";
 
 
@@ -31,7 +31,7 @@ function App() {
         return storedUser ? JSON.parse(storedUser) as Profile: null;
     });
 
-    const role = user?.role;
+    const role = user?.role === 'admin' ? 'admin' : user?.role === 'manager' ? 'manager' : '';
 
     const [leaveBalance, setLeaveBalance] = useState<LeaveBalance[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -86,7 +86,7 @@ function App() {
   return (
     <>
             <BrowserRouter>
-                <UserContext.Provider value={{user, setUser}}>
+                <AuthContext.Provider value={{user, setUser}}>
                     <LeaveBalanceContext.Provider value={{leaveBalance, setLeaveBalance, fetchLeaveBalance}}>
                         <Routes>
                             <Route path="/" element={<Login />}/>
@@ -132,11 +132,11 @@ function App() {
                             />
 
                             <Route
-                                path="/manager/employees-list"
+                                path="/manager/employees"
                                 element={
                                     // allowed 2 roles here because Managers and Admins are also employees!
                                     <ProtectedRoute allowedRoles={['manager', 'admin']}>
-                                        <EmployeeListDashboard />
+                                        <EmployeesDashboard role={role} />
                                     </ProtectedRoute>
                                 }
                             />
@@ -160,10 +160,10 @@ function App() {
                             />
 
                             <Route
-                                path="/admin/users"
+                                path="/admin/employees"
                                 element={
                                     <ProtectedRoute allowedRoles={['admin']}>
-                                        <UsersDashboard />
+                                        <EmployeesDashboard role={role} />
                                     </ProtectedRoute>
                                 }
                             />
@@ -180,7 +180,7 @@ function App() {
 
                         </Routes>
                     </LeaveBalanceContext.Provider>
-                </UserContext.Provider>
+                </AuthContext.Provider>
             </BrowserRouter>
 
         {error && (

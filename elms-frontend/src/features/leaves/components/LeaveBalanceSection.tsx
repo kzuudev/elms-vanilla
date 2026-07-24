@@ -2,7 +2,7 @@
 
 import {useState} from "react";
 import {useContext} from "react";
-import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
+import {LeaveBalanceContext} from "@/features/context/leaves/LeaveBalanceContext.tsx";
 
 
 import { Card } from '@/components/ui/card.tsx';

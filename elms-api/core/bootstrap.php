@@ -1,17 +1,15 @@
 <?php
 
-use Core\App;
-use Core\Database;
-use Core\Container;
-use App\Services\EmployeeLeaveService;
-use App\Services\ManagerLeaveService;
-use App\Services\AdminLeaveService;
-
-use App\Http\Middleware\Auth;
-
+    use App\Services\leaves\AdminLeaveService;
+    use App\Services\leaves\EmployeeLeaveService;
+    use App\Services\leaves\ManagerLeaveService;
+    use App\Services\employees\EmployeeSummaryService;
+    use Core\App;
+    use Core\Container;
+    use Core\Database;
 
 
-$container = new Container();
+    $container = new Container();
 
 $container->bind('Core\Database', function() {
 
@@ -20,17 +18,22 @@ $container->bind('Core\Database', function() {
     return new Database($config['database']);
 });
 
-$container->bind('App\Services\EmployeeLeaveService', function() {
+$container->bind('App\Services\leaves\EmployeeLeaveService', function() {
     return new EmployeeLeaveService();
 });
 
-$container->bind('App\Services\ManagerLeaveService', function() {
+$container->bind('App\Services\leaves\ManagerLeaveService', function() {
     return new ManagerLeaveService();
 });
 
-$container->bind('App\Services\AdminLeaveService', function() {
+$container->bind('App\Services\leaves\AdminLeaveService', function() {
     return new AdminLeaveService();
 });
+
+$container->bind('App\Services\employees\EmployeeSummaryService', function() {
+    return new EmployeeSummaryService;
+});
+
 
 
 

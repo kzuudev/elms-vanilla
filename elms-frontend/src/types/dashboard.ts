@@ -22,15 +22,7 @@ export type MonthlyLeaveConsumption = {
     month_name: string,
     total_used_days: number,
 }
-//
-// export type TeamStatus = {
-//     first_name: string,
-//     last_name: string,
-//     role: string,
-//     is_active: boolean,
-//     leave_status: string,
-//     queued_leave_count: number,
-// }
+
 
 // Manager and Admin Dashboard Types
 

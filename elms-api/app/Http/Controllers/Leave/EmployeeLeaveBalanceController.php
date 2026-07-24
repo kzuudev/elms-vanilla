@@ -7,7 +7,7 @@ use App\Http\Middleware\Auth;
 use Core\App;
 use Core\Database;
 
-class UserLeaveBalanceController {
+class EmployeeLeaveBalanceController {
 
 
     public function index () {
@@ -17,7 +17,7 @@ class UserLeaveBalanceController {
 
         $role = $currentUser['role'];
 
-        // only admin and managers are allowed to view at OTHER users balance
+        // only admin and managers are allowed to view at OTHER employees balance
 //        if($role !== 'admin' && $role !== 'manager') {
 //            http_response_code(403);
 //            echo json_encode(['error' => 'Forbidden: Only admins and managers can view leave balances']);

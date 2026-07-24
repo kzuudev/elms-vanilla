@@ -3,7 +3,7 @@ import { useState } from "react";
 import {Link, useNavigate} from "react-router-dom";
 
 import {useContext} from "react";
-import {UserContext} from "@/features/context/UserContext.tsx";
+import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
 
 import {
     Sidebar,
@@ -36,7 +36,7 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
 
-    const { user, setUser } = useContext(UserContext);
+    const { user, setUser } = useContext(AuthContext);
 
     const role = user?.role;
 
@@ -90,7 +90,7 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                           onClick={() => setOpen(!open)}
                                           className="hover:bg-gray-100 flex items-center justify-between w-full"
                                       >
-                                          <Link to="/manager/employees-list" className="flex items-center gap-2">
+                                          <Link to="/manager/employees" className="flex items-center gap-2">
                                               <Users />
                                               <span>Total Employees</span>
                                           </Link>
@@ -164,9 +164,9 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                           onClick={() => setOpen(!open)}
                                           className="hover:bg-gray-100 flex items-center justify-between w-full"
                                       >
-                                          <Link to="/admin/users" className="flex items-center gap-2">
+                                          <Link to="/admin/employees" className="flex items-center gap-2">
                                               <Users />
-                                              <span>Total Users</span>
+                                              <span>Total Employees</span>
                                           </Link>
                                       </SidebarMenuButton>
                                   </SidebarMenuItem>

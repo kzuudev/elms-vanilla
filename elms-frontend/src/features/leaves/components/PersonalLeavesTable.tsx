@@ -2,7 +2,7 @@
 
 
 import {useContext, useEffect, useState} from "react";
-import {LeaveContext} from "@/features/context/LeaveContext.tsx";
+import {LeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
 
 import LeaveRequestDetailsModal from "@/features/leaves/components/LeaveRequestDetailsModal.tsx";
 import LeaveBalanceSection from "@/features/leaves/components/LeaveBalanceSection.tsx";

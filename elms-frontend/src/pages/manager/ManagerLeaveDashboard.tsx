@@ -4,7 +4,7 @@ import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import UserProfile from "@/components/layout/UserProfile.tsx";
 import LeavesDashboard from "@/pages/manager/LeavesDashboard.tsx";
 import SearchInput from "@/components/ui/search.tsx";
-import LeaveStats from "@/features/leaves/components/LeaveStats.tsx";
+
 
 export default function ManagerLeaveDashboard() {
 
@@ -29,7 +29,6 @@ export default function ManagerLeaveDashboard() {
                             </div>
                         </div>
 
-                        <LeaveStats/>
                     </div>
 
                     <main>

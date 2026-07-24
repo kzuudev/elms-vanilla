@@ -4,14 +4,14 @@ import { useContext } from "react";
 import { EmployeeAnalyticsContext } from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
 import { ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
-import {UserContext} from "@/features/context/UserContext.tsx";
+import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
 
 import { Card } from '@/components/ui/card.tsx';
 import { Wallet, Hourglass, ClockCheck, Plane } from 'lucide-react';
 
 export default function LeaveSummaryGrid() {
 
-    const { user } = useContext(UserContext);
+    const { user } = useContext(AuthContext);
 
 
     const role = user.role || null;

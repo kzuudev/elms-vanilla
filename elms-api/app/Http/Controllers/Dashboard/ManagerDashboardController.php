@@ -2,38 +2,21 @@
 
 namespace App\Http\Controllers\Dashboard;
 
+use App\Contracts\LeaveAnalyticsInterface;
 use App\Http\Middleware\Auth;
-
-use App\Services\ManagerLeaveService;
+use App\Services\leaves\ManagerLeaveService;
 use Core\App;
 
 class ManagerDashboardController {
 
+    private LeaveAnalyticsInterface $leaveAnalyticsService;
 
-    private ManagerLeaveService $remainingLeaveService;
-    private ManagerLeaveService $pendingLeaveService;
-
-    private ManagerLeaveService $usedLeaveService;
-    private ManagerLeaveService $teamAvailabilityService;
-    private ManagerLeaveService $monthlyLeaveConsumptionService;
-    private ManagerLeaveService $leaveOverlapService;
-    private ManagerLeaveService $backlogRequestsService;
-
-    private ManagerLeaveService $totalUsersService;
-
-    private ManagerLeaveService $recentActivityService;
+    private ManagerLeaveService $managerLeaveService;
 
     public function __construct() {
 
-        $this->remainingLeaveService = App::resolve(ManagerLeaveService::class);
-        $this->pendingLeaveService = App::resolve(ManagerLeaveService::class);
-        $this->usedLeaveService = App::resolve(ManagerLeaveService::class);
-        $this->teamAvailabilityService = App::resolve(ManagerLeaveService::class);
-        $this->leaveOverlapService = App::resolve(ManagerLeaveService::class);
-        $this->monthlyLeaveConsumptionService = App::resolve(ManagerLeaveService::class);
-        $this->backlogRequestsService = App::resolve(ManagerLeaveService::class);
-        $this->totalUsersService = App::resolve(ManagerLeaveService::class);
-        $this->recentActivityService = App::resolve(ManagerLeaveService::class);
+        $this->leaveAnalyticsService = App::resolve(ManagerLeaveService::class);
+        $this->managerLeaveService = App::resolve(ManagerLeaveService::class);
 
     }
     public function index(): void {
@@ -42,15 +25,14 @@ class ManagerDashboardController {
 
         if($currentUser && $currentUser['role'] === 'manager') {
 
-            $remainingBalance = $this->remainingLeaveService->getRemainingTotalBalance();
-            $pendingRequest = $this->pendingLeaveService->getPendingApprovalMetrics();
-            $usedDays = $this->usedLeaveService->getUsedDays();
-            $teamAvailability = $this->teamAvailabilityService->getTeamAvailability();
-            $leaveOverlap = $this->leaveOverlapService->getTeamOverlap();
-            $monthlyLeaveConsumption = $this->monthlyLeaveConsumptionService->getMonthlyConsumption();
-            $backlogRequests = $this->backlogRequestsService->getBacklogRequests();
-            $totalUsers = $this->totalUsersService->getTotalUsers();
-            $recentActivity = $this->recentActivityService->getRecentActivity();
+            $remainingBalance = $this->managerLeaveService->getRemainingTotalBalance();
+            $pendingRequest = $this->managerLeaveService->getPendingApprovalMetrics();
+            $usedDays = $this->managerLeaveService->getUsedDays();
+            $teamAvailability = $this->leaveAnalyticsService->getTeamAvailability();
+            $leaveOverlap = $this->leaveAnalyticsService->getTeamOverlap();
+            $monthlyLeaveConsumption = $this->leaveAnalyticsService->getMonthlyConsumption();
+            $backlogRequests = $this->leaveAnalyticsService->getBacklogRequests();
+            $recentActivity = $this->leaveAnalyticsService->getRecentActivity();
 
             http_response_code(200);
             echo json_encode([
@@ -63,7 +45,6 @@ class ManagerDashboardController {
                 'leave_overlap' => $leaveOverlap,
                 'monthly_leave_consumption' => $monthlyLeaveConsumption,
                 'approval_backlogs' => $backlogRequests,
-                'total_users' => $totalUsers,
                 'recent_activity' => $recentActivity,
             ]);
             exit;

@@ -6,8 +6,8 @@ import { format } from 'date-fns';
 import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
 
-import { LeaveContext } from "@/features/context/LeaveContext.tsx";
-import { LeaveBalanceContext } from "@/features/context/LeaveBalanceContext.tsx";
+import { LeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
+import { LeaveBalanceContext } from "@/features/context/leaves/LeaveBalanceContext.tsx";
 import {leaveOptions} from "@/types/leave.ts";
 
 import {

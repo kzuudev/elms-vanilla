@@ -2,7 +2,7 @@
 
 
 import { useState } from "react";
-import { UsersContext } from "@/features/context/UsersContext.tsx";
+import { EmployeesContext } from "@/features/context/employees/EmployeesContext.tsx";
 import { useContext } from "react";
 import {formatE164} from "@/lib/utils.ts";
 
@@ -24,7 +24,7 @@ export default function EmployeeListTable() {
 
     const tableHeaders = ['First Name', 'Last Name', 'Email', 'Contact Number', 'Role', 'Actions']
 
-    const {employees, fetchEmployeeDetails, employeeDetails} = useContext(UsersContext);
+    const {employees, fetchEmployeeDetails, employeeDetails} = useContext(EmployeesContext);
 
     const handleViewEmployeeDetails = async (id: number) => {
         await fetchEmployeeDetails(id);

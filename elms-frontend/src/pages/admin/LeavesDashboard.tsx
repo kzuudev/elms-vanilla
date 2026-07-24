@@ -6,7 +6,7 @@ import AdminLeaveTable from "@/features/leaves/components/AdminLeaveTable.tsx";
 import {useEffect, useState} from "react";
 import type {LeaveRequest, ReviewerLeaveData} from "@/types/leave.ts";
 import {api} from "@/lib/api.ts";
-import { LeaveContext } from "@/features/context/LeaveContext";
+import { LeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
 import LeaveRequestForm from "@/features/leaves/components/LeaveRequestForm.tsx";
 
 import {

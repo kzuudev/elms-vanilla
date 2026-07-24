@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\leaves;
 
 use App\Http\Middleware\Auth;
 use App\Traits\HasSharedAnalytics;
@@ -15,11 +15,16 @@ class EmployeeLeaveService {
 
     private int $userId;
 
+    private string $userRole;
+    private string $userDepartment;
+
 
 
     public function __construct() {
         $this->db = App::resolve(Database::class);
         $this->userId = Auth::authenticate()['id'];
+        $this->userRole = Auth::authenticate()['role'];
+        $this->userDepartment = Auth::authenticate()['department'];
     }
 
     public function getRemainingTotalBalance(): array

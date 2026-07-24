@@ -6,8 +6,8 @@ import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 
 import {api} from "@/lib/api.ts";
-import {LeaveContext} from "@/features/context/LeaveContext.tsx";
-import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
+import {LeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
+import {LeaveBalanceContext} from "@/features/context/leaves/LeaveBalanceContext.tsx";
 import LeaveRequestDetailsModal from "@/features/leaves/components/LeaveRequestDetailsModal.tsx";
 
 import {

@@ -90,7 +90,7 @@
             ])->find();
 
             // validate the overlap (to check if the user already has a pending or approved request that covers the dates they just picked)
-            // and prevent users from submitting the EXACT SAME TYPE while one is already pending.
+            // and prevent employees from submitting the EXACT SAME TYPE while one is already pending.
             $overlap = $db->query("
                 SELECT id FROM leave_requests WHERE user_id = :user_id 
                 AND status IN ('pending', 'approved') 

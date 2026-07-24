@@ -1,11 +1,11 @@
 import {  Navigate } from "react-router-dom";
 import Unauthorized from "@/pages/unauthorized/Unauthorized.tsx";
-import { UserContext } from "@/features/context/UserContext";
+import { AuthContext } from "@/features/context/auth/AuthContext.tsx";
 import {useContext} from "react";
 
 export const ProtectedRoute = ({ children, allowedRoles}) => {
 
-    const { user } = useContext(UserContext);
+    const { user } = useContext(AuthContext);
 
     const token = localStorage.getItem('token');
     const currentRole = user?.role || localStorage.getItem("role");

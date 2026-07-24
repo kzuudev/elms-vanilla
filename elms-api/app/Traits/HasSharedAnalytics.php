@@ -144,8 +144,8 @@ trait HasSharedAnalytics {
     /**
      * Shared SQL query for the approval backlog counter
      */
-    protected function executeBacklogQuery(string $userRole, int $currentUserId): array {
-
+    protected function executeBacklogQuery(string $userRole, int $currentUserId): array
+    {
 
 
         $query = " 
@@ -172,8 +172,6 @@ trait HasSharedAnalytics {
 
 
     }
-
-
 
     /**
      * Determines if a specific leave request dates overlap with existing approved leaves
@@ -217,40 +215,6 @@ trait HasSharedAnalytics {
 
     }
 
-
-
-    protected function executeTotalUsers(string $department, string $role, int $currentUserId): array {
-
-        $query = "
-            SELECT
-                u.id,
-                u.first_name AS first_name,
-                u.last_name AS last_name,
-                u.role AS user_role,
-                u.department AS department,
-                u.is_active AS is_active,
-                COUNT(u.id) AS total_users
-            FROM users u
-            WHERE u.department = :department AND u.id != :current_user_id
-           
-            ";
-
-        $params = [
-            'current_user_id' => $currentUserId,
-            'department' => $department,
-        ];
-
-        if($role === 'manager') {
-            $query .= " AND u.assigned_to = :current_user_id";
-            $params['current_user_id'] = $currentUserId;
-        }
-
-        $query .= " GROUP BY u.id, u.first_name, u.last_name, u.role, u.department, u.is_active";
-
-        return $this->db->query($query, $params)->all();
-
-
-    }
 
     
 }

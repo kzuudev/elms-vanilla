@@ -6,8 +6,8 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Leave\LeaveRequestController;
 use App\Http\Controllers\Leave\LeaveReviewController;
 use App\Http\Controllers\Manager\EmployeeController;
-use App\Http\Controllers\Admin\UsersController;
-use App\Http\Controllers\Leave\UserLeaveBalanceController;
+use App\Http\Controllers\Admin\EmployeesController;
+use App\Http\Controllers\Leave\EmployeeLeaveBalanceController;
 use App\Http\Controllers\Dashboard\EmployeeDashboardController;
 use App\Http\Controllers\Dashboard\ManagerDashboardController;
 use App\Http\Controllers\Dashboard\AdminDashboardController;
@@ -15,13 +15,11 @@ use Core\Router;
 
 $router = new Router();
 
-
-
 $router->post('/', [LoginController::class, 'login'])->only('guest');
 $router->post('/leave-request', [LeaveRequestController::class, 'store'])->only('auth');
 
 // view leave balance
-$router->get('/leave-balance/me', [UserLeaveBalanceController::class, 'index'])->only('auth');
+$router->get('/leave-balance/me', [EmployeeLeaveBalanceController::class, 'index'])->only('auth');
 
 // employee
 $router->get('/leave-request', [LeaveRequestController::class, 'index'])->only('auth');
@@ -37,8 +35,8 @@ $router->get('/employee-dashboard', [EmployeeDashboardController::class, 'index'
 $router->get('/manager-dashboard', [ManagerDashboardController::class, 'index'])->only('auth');
 
 // manager
-$router->get('/employees-list', [EmployeeController::class, 'index'])->only('auth');
-$router->get('/employees-list/{id}', [EmployeeController::class, 'show'])->only('auth');
+//$router->get('/employees-list', [EmployeeController::class, 'index'])->only('auth');
+//$router->get('/employees-list/{id}', [EmployeeController::class, 'show'])->only('auth');
 
 $router->get('/leave-requests/me', [LeaveRequestController::class, 'index'])->only('auth');
 $router->get('/leave-requests', [LeaveReviewController::class, 'index'])->only('auth');
@@ -49,14 +47,14 @@ $router->get('/leave-requests/{id}/overlaps', [LeaveReviewController::class, 'ch
 $router->get('/manager-dashboard', [ManagerDashboardController::class, 'index'])->only('auth');
 
 
-// admin
-$router->get('/users', [UsersController::class, 'index'])->only('auth');
+// admin and manager
+$router->get('/employees', [EmployeesController::class, 'index'])->only('auth');
+$router->get('/employees/summary', [EmployeesController::class, 'summary'])->only('auth');
 $router->post('/register', [RegisteredUserController::class, 'store'])->only('auth');
-$router->get('/users/{id}/profile', [UsersController::class, 'profile'])->only('auth');
-$router->get('/users/{id}', [UsersController::class, 'show'])->only('auth');
-$router->patch('/users/{id}', [UsersController::class, 'patch'])->only('auth');
-$router->delete('/users/{id}', [UsersController::class, 'destroy'])->only('auth');
-
+$router->get('/employees/{id}/profile', [EmployeesController::class, 'profile'])->only('auth');
+$router->get('/employees/{id}', [EmployeesController::class, 'show'])->only('auth');
+$router->patch('/employees/{id}', [EmployeesController::class, 'patch'])->only('auth');
+$router->delete('/employees/{id}', [EmployeesController::class, 'destroy'])->only('auth');
 
 
 $router->get('/leave-requests/me', [LeaveRequestController::class, 'index'])->only('auth');
@@ -67,4 +65,4 @@ $router->patch('/leave-requests/{id}/review', [LeaveReviewController::class, 'pa
 $router->get('/admin-dashboard', [AdminDashboardController::class, 'index'])->only('auth');
 
 // return the router with existing routes inside it
-return $router;
+    return $router;

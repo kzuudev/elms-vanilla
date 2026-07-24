@@ -22,7 +22,7 @@ import type {
     MonthlyConsumption,
     TeamAvailability,
     TotalUsers,
-    ManagerRecentActivityData
+    LeaveActivityRecord
 } from "@/types/dashboard.ts";
 import Search from "@/components/ui/search.tsx";
 
@@ -41,7 +41,7 @@ export default function ManagerDashboard() {
     const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyConsumption[]>([]);
     const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
     const [totalUsers, setTotalUsers] = useState<TotalUsers[]>([]);
-    const [recentActivity, setRecentActivity] = useState<ManagerRecentActivityData[]>([]);
+    const [recentActivity, setRecentActivity] = useState<LeaveActivityRecord[]>([]);
 
 
     const fetchManagerDashboard = async () => {

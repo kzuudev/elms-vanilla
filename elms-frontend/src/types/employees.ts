@@ -1,6 +1,6 @@
 
 
-export type UserData = {
+export type EmployeeData = {
     id: number;
     first_name: string;
     last_name: string;
@@ -12,26 +12,7 @@ export type UserData = {
 }
 
 
-export type UserProfile = {
-    id: number;
-    first_name: string;
-    last_name: string;
-    email: string;
-    phone: string;
-    role: string;
-    department: string;
-    leave_balance:  [
-        {
-            leave_type_name: string,
-            remaining_balance: number,
-        },
-    ]
-    salary: string;
-    hired_date: string;
-    is_active: number;
-}
-
-export type UserDetails = {
+export type EmployeeDetails = {
     id: number;
     first_name: string;
     last_name: string;
@@ -39,12 +20,25 @@ export type UserDetails = {
     phone: string;
     role: string;
     manager_id: number | null;
-    managers: {
+    manager: {
         id: number;
         name: string;
     }[];
     department: string;
     salary: string;
+    leave_balance:  [
+        {
+            leave_type_name: string,
+            remaining_balance: number,
+        },
+    ]
     hired_date: string;
     is_active: number;
+}
+
+export type EmployeeSummary = {
+    total_employees: number;
+    total_active_employees: number;
+    total_inactive_employees: number;
+    total_on_leave_employees: number;
 }

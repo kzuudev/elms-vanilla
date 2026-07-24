@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { EmployeeAnalyticsContext } from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
 import { ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
-import {UserContext} from "@/features/context/UserContext.tsx";
+import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
 
 import { Card } from '@/components/ui/card.tsx';
 
@@ -13,7 +13,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 export default function MonthlyLeavesConsumption() {
 
-    const { user } = useContext(UserContext);
+    const { user } = useContext(AuthContext);
 
     const managerAnalytics = useContext(ManagerAnalyticsContext);
     const adminAnalytics = useContext(AdminAnalyticsContext);

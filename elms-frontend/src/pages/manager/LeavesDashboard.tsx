@@ -3,7 +3,7 @@
 import * as z from "zod";
 import {useState, useEffect} from "react";
 import {api} from "@/lib/api.ts";
-import { LeaveContext } from "@/features/context/LeaveContext.tsx";
+import { LeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
 import type {LeaveRequest} from "@/types/leave.ts";
 
 import ManagerLeaveTable from "@/features/leaves/components/ManagerLeaveTable.tsx";

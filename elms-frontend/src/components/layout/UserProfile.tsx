@@ -2,12 +2,12 @@
 
 
 import {useContext} from "react";
-import {UserContext} from "@/features/context/UserContext.tsx";
+import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
 
 export default function UserProfile() {
 
 
-    const {user} = useContext(UserContext);
+    const {user} = useContext(AuthContext);
 
     if (!user) return null;
 

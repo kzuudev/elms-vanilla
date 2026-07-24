@@ -2,7 +2,7 @@
 
 import {useContext } from "react";
 
-import {LeaveContext} from "@/features/context/LeaveContext.tsx";
+import {LeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
 
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog.tsx";
 import {Button} from "@/components/ui/button.tsx";

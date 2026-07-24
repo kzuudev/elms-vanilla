@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\leaves;
 
 use App\Contracts\LeaveAnalyticsInterface;
-use App\Traits\HasSharedAnalytics;
 use App\Http\Middleware\Auth;
-use Core\Database;
+use App\Traits\HasSharedAnalytics;
 use Core\App;
+use Core\Database;
 
 
 class AdminLeaveService implements LeaveAnalyticsInterface {
@@ -27,6 +27,22 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
         $this->userRole = Auth::authenticate()['role'];
         $this->userDepartment = Auth::authenticate()['department'];
 
+    }
+
+
+    public function getRemainingTotalBalance(): array
+    {
+        return $this->executeRemainingTotalBalance($this->adminId);
+    }
+
+    public function getPendingApprovalMetrics(): array
+    {
+        return $this->executePendingApprovalMetrics($this->adminId);
+    }
+
+    public function getUsedDays(): array
+    {
+        return $this->executeUsedDays($this->adminId);
     }
 
     public function getTeamAvailability(): array
@@ -93,36 +109,11 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
 
     }
 
-    public function getTotalUsers(): array {
-
-        $authenticatedUser = $this->db->query("
-            SELECT 
-                u.id,
-                u.first_name AS first_name,
-                u.last_name AS last_name,
-                u.role AS user_role,
-                u.department AS department,
-                u.is_active AS is_active
-                FROM users u
-            WHERE u.id = :admin_id AND u.role = :role
-        ", [
-         'admin_id' => $this->adminId,
-         'role' => $this->userRole
-        ])->all();
-
-        $users = [];
-
-        foreach ($authenticatedUser as $user) {
-            $users[] = $this->executeTotalUsers(
-                $user['department'],
-                $user['user_role'],
-                $this->adminId,
-            );
-        }
-
-        return $users;
-    }
-
+//    public function getTotalEmployees(): array {
+//
+//        return $this->executeTotalEmployees($this->userDepartment, $this->userRole, $this->adminId);
+//    }
+//
 
     public function getRecentActivity(): array {
         $recentActivity = $this->db->query("
@@ -147,4 +138,5 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
 
         return $recentActivity;
     }
+
 }

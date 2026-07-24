@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { EmployeeAnalyticsContext } from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
 import {ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
-import { UserContext } from "@/features/context/UserContext.tsx";
+import { AuthContext } from "@/features/context/auth/AuthContext.tsx";
 
 import type {RowConfig} from "@/types/card.ts";
 import CoverageWidget from "@/features/dashboard/components/CoverageWidget.tsx";
@@ -17,7 +17,7 @@ import type { TeamAvailability} from "@/types/dashboard.ts";
 export default function TeamCoverageWidget() {
 
 
-    const { user } = useContext(UserContext);
+    const { user } = useContext(AuthContext);
     const role = user.role || null;
 
     const employeeAnalytics = useContext(EmployeeAnalyticsContext);

@@ -1,7 +1,7 @@
 "use client"
 
 import {useContext} from "react";
-import {UserContext} from "@/features/context/UserContext.tsx";
+import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
 import {ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
 
@@ -10,7 +10,7 @@ import { ClipboardList, Users } from 'lucide-react';
 import {validateDate} from "@/utils/on-leave.ts";
 export default function TeamInsights() {
 
-    const {user} = useContext(UserContext);
+    const {user} = useContext(AuthContext);
     const role = user.role || "";
 
     const managerAnalytics = useContext(ManagerAnalyticsContext);

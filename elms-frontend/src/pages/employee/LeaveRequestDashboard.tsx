@@ -1,6 +1,6 @@
 import {useState, useEffect} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
-import { LeaveContext } from "@/features/context/LeaveContext.tsx";
+import { LeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
 import {api} from "@/lib/api.ts";
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";

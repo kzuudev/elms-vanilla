@@ -24,9 +24,38 @@ export default function UserFilterBar(props: UserFilterBarProps) {
         onSearchSubmit();
     }
 
+    const roleOptions = [
+        { value: '', label: 'All Roles' },
+        { value: 'manager', label: 'Manager' },
+        { value: 'it support', label: 'IT Support' },
+        { value: 'accountant', label: 'Accounting' },
+        { value: 'marketing', label: 'Marketing' },
+        { value: 'software engineer', label: 'Software Engineer' },
+        { value: 'ai engineer', label: 'AI Engineer' },
+        { value: 'ui/ux', label: 'UI/UX' },
+
+    ]
+
+    const departmentOptions = [
+        { value: '', label: 'All Departments' },
+        { value: 'it', label: 'IT' },
+        { value: 'marketing', label: 'Marketing' },
+        { value: 'finance', label: 'Finance' },
+        { value: 'accounting', label: 'Accounting' },
+    ]
+
+
+    const statusOptions = [
+        { value: '', label: 'All Status' },
+        { value: '1', label: 'Active' },
+        { value: '0', label: 'Inactive' },
+        { value: '2', label: 'Away' },
+
+    ]
+
     return (
         <>
-            <form method="GET" onSubmit={handleSearchSubmit} className="flex items-center gap-2" >
+            <form method="GET" onSubmit={handleSearchSubmit} className="flex items-center gap-4" >
 
                 {/* Search Bar Input*/}
                 <div className="flex items-center gap-2">
@@ -36,58 +65,61 @@ export default function UserFilterBar(props: UserFilterBarProps) {
                         placeholder="Search by name, email, or role"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2 w-full"
+                        className="border border-gray-300 rounded-md p-2 text-xs w-full"
                     />
                 </div>
 
                 {/* Status Filter Dropdown*/}
                 <div>
-                    <label htmlFor="status" className="mr-2">Status:</label>
                     <select
                         id="status"
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2"
+                        className="border border-gray-300 rounded-md p-2 text-xs"
                     >
-                        <option value="">All</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
+                        {statusOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
 
                 {/* Role Filter Dropdown*/}
                 <div>
-                    <label htmlFor="role" className="mr-2">Role:</label>
                     <select
                         id="role"
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2"
+                        className="border border-gray-300 rounded-md p-2 text-xs"
                     >
-                        <option value="">All</option>
-                        <option value="employee">Employee</option>
+                        {roleOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
 
                 {/* Department Filter Dropdown*/}
                 <div>
-                    <label htmlFor="department" className="mr-2">Department:</label>
                     <select
                         id="department"
                         value={departmentFilter}
                         onChange={(e) => setDepartmentFilter(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2"
+                        className="border border-gray-300 rounded-md p-2 text-xs"
                     >
-                        <option value="">All</option>
-                        <option value="HR">HR</option>
-                        <option value="Finance">Finance</option>
+                        {departmentOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
                 <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">Search</Button>
-
             </form>
         </>
     )

@@ -30,7 +30,7 @@ class RegisteredUserController {
                     'email' => $email
                 ])->find();
 
-                // return a message if users exist
+                // return a message if employees exist
                 if($user) {
                     http_response_code(422);
                     echo json_encode(['message' => 'User already exists']);

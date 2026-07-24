@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\leaves;
 
 use App\Contracts\LeaveAnalyticsInterface;
 use App\Http\Middleware\Auth;
-use Core\Database;
-use Core\App;
 use App\Traits\HasSharedAnalytics;
-
+use Core\App;
+use Core\Database;
 
 
 class ManagerLeaveService implements LeaveAnalyticsInterface
@@ -124,39 +123,39 @@ class ManagerLeaveService implements LeaveAnalyticsInterface
 
     }
 
-    public function getTotalUsers(): array
-    {
-
-        $authenticatedUser = $this->db->query("
-            SELECT 
-                u.id,
-                u.first_name AS first_name,
-                u.last_name AS last_name,
-                u.role AS user_role,
-                u.department AS department,
-                u.is_active AS is_active
-            FROM users u
-            WHERE u.id = :manager_id AND u.role = :role
-        ", [
-            'manager_id' => $this->managerId,
-            'role' => $this->userRole,
-        ])->all();
-
-        $users = [];
-
-        foreach ($authenticatedUser as $user) {
-
-            $users[] = $this->executeTotalUsers(
-                $user['department'],
-                $user['user_role'],
-                $this->managerId,
-            );
-
-
-        }
-
-        return $users;
-    }
+//    public function getTotalEmployees(): array
+//    {
+//
+//        $authenticatedUser = $this->db->query("
+//            SELECT
+//                u.id,
+//                u.first_name AS first_name,
+//                u.last_name AS last_name,
+//                u.role AS user_role,
+//                u.department AS department,
+//                u.is_active AS is_active
+//            FROM users u
+//            WHERE u.id = :manager_id AND u.role = :role
+//        ", [
+//            'manager_id' => $this->managerId,
+//            'role' => $this->userRole,
+//        ])->all();
+//
+//        $users = [];
+//
+//        foreach ($authenticatedUser as $user) {
+//
+//            $users[] = $this->executeTotalEmployees(
+//                $user['department'],
+//                $user['user_role'],
+//                $this->managerId,
+//            );
+//
+//
+//        }
+//
+//        return $users;
+//    }
 
 
     public function getRecentActivity(): array

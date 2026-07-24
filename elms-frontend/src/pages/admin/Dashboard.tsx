@@ -13,7 +13,7 @@ import TeamCoverageWidget from "@/features/dashboard/components/TeamCoverageWidg
 import RecentActivityTable from "@/features/dashboard/components/RecentActivityTable.tsx";
 
 import type {
-    AdminRecentActivityData,
+    LeaveActivityRecord,
     LeaveOverlap,
     MonthlyConsumption, TeamAvailability,
     TotalPendingRequest,
@@ -36,7 +36,7 @@ export default function AdminDashboard() {
     const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyConsumption[]>([]);
     const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
     const [totalUsers, setTotalUsers] = useState<TotalUsers[]>([]);
-    const [recentActivity, setRecentActivity] = useState<AdminRecentActivityData[]>([]);
+    const [recentActivity, setRecentActivity] = useState<LeaveActivityRecord[]>([]);
 
     const fetchAdminDashboard = async () => {
 

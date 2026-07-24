@@ -3,7 +3,6 @@
 
 
 namespace App\Contracts;
-
 interface LeaveAnalyticsInterface {
 
     public function getTeamAvailability(): array;
@@ -14,6 +13,4 @@ interface LeaveAnalyticsInterface {
 
     public function getTeamOverlap(): array;
 
-
-    public function getTotalUsers(): array;
 }

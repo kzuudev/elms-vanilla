@@ -3,31 +3,22 @@
 
 namespace App\Http\Controllers\Dashboard;
 
+use App\Contracts\LeaveAnalyticsInterface;
 use App\Http\Middleware\Auth;
-use App\Http\Middleware\Middleware;
-use App\Services\AdminLeaveService;
+use App\Services\leaves\AdminLeaveService;
 use Core\App;
 
 
 class AdminDashboardController {
 
-    private AdminLeaveService $usersAvailabilityService;
-    private AdminLeaveService $monthlyLeaveConsumptionService;
-    private AdminLeaveService $leaveOverlapService;
-    private AdminLeaveService $backlogRequestsService;
+    private LeaveAnalyticsInterface $leaveAnalyticsService;
 
-    private AdminLeaveService $totalUsersService;
-
-    private AdminLeaveService $recentActivityService;
+    private AdminLeaveService $adminLeaveService;
 
     public function __construct() {
 
-        $this->usersAvailabilityService = App::resolve(AdminLeaveService::class);
-        $this->leaveOverlapService = App::resolve(AdminLeaveService::class);
-        $this->monthlyLeaveConsumptionService = App::resolve(AdminLeaveService::class);
-        $this->backlogRequestsService = App::resolve(AdminLeaveService::class);
-        $this->totalUsersService = App::resolve(AdminLeaveService::class);
-        $this->recentActivityService = App::resolve(AdminLeaveService::class);
+        $this->leaveAnalyticsService = App::resolve(AdminLeaveService::class);
+        $this->adminLeaveService = App::resolve(AdminLeaveService::class);
     }
 
     public function index(): void {
@@ -36,23 +27,18 @@ class AdminDashboardController {
 
         if($currentUser && $currentUser['role'] === 'admin') {
 
-            $usersAvailability = $this->usersAvailabilityService->getTeamAvailability();
-            $leaveOverlap = $this->leaveOverlapService->getTeamOverlap();
-            $monthlyLeaveConsumption = $this->monthlyLeaveConsumptionService->getMonthlyConsumption();
-            $backlogRequests = $this->backlogRequestsService->getBacklogRequests();
-            $totalUsers = $this->totalUsersService->getTotalUsers();
-            $recentActivity = $this->recentActivityService->getRecentActivity();
-
             http_response_code(200);
             echo json_encode([
                 'success' => true,
                 'message' => 'Dashboard data fetched successfully',
-                'team_availability' => $usersAvailability,
-                'leave_overlap' => $leaveOverlap,
-                'monthly_leave_consumption' => $monthlyLeaveConsumption,
-                'approval_backlogs' => $backlogRequests,
-                'total_users' => $totalUsers,
-                'recent_activity' => $recentActivity,
+                'remaining_balance' => $this->adminLeaveService->getRemainingTotalBalance(),
+                'pending_request' => $this->adminLeaveService->getPendingApprovalMetrics(),
+                'total_used_days' => $this->adminLeaveService->getUsedDays(),
+                'team_availability' => $this->leaveAnalyticsService->getTeamAvailability(),
+                'leave_overlap' => $this->leaveAnalyticsService->getTeamOverlap(),
+                'monthly_leave_consumption' => $this->leaveAnalyticsService->getMonthlyConsumption(),
+                'approval_backlogs' => $this->leaveAnalyticsService->getBacklogRequests(),
+                'recent_activity' => $this->leaveAnalyticsService->getRecentActivity(),
             ]);
             exit;
 

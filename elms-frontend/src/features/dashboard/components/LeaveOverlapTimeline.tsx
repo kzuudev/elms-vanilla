@@ -6,7 +6,7 @@ import Chart from "react-apexcharts";
 
 import { ManagerAnalyticsContext } from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 import { AdminAnalyticsContext } from "@/features/context/analytics/AdminAnalyticsContext.tsx";
-import { UserContext } from "@/features/context/UserContext.tsx";
+import { AuthContext } from "@/features/context/auth/AuthContext.tsx";
 
 import type { LeaveOverlap } from "@/types/dashboard.ts";
 
@@ -14,7 +14,7 @@ import {Card} from "@/components/ui/card.tsx";
 
 export default function LeaveOverlapTimeline() {
 
-    const {user} = useContext(UserContext);
+    const {user} = useContext(AuthContext);
 
     const managerAnalytics = useContext(ManagerAnalyticsContext);
     const adminAnalytics = useContext(AdminAnalyticsContext);

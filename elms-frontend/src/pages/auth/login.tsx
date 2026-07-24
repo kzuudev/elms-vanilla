@@ -7,8 +7,8 @@ import { api } from "@/lib/api.ts";
 import {Controller, useForm} from "react-hook-form";
 import {useNavigate} from "react-router-dom";
 
-import {UserContext} from "@/features/context/UserContext.tsx";
-import {LeaveBalanceContext} from "@/features/context/LeaveBalanceContext.tsx";
+import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
+import {LeaveBalanceContext} from "@/features/context/leaves/LeaveBalanceContext.tsx";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -34,7 +34,7 @@ export default function Login() {
     const { setError, formState: { errors } } = useForm<LoginFormData>();
 
     const navigate = useNavigate();
-    const { user, setUser } = useContext(UserContext);
+    const { user, setUser } = useContext(AuthContext);
     const { fetchLeaveBalance } = useContext(LeaveBalanceContext);
 
     // Schema for a login form
