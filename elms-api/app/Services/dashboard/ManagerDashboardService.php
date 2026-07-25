@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\leaves;
+namespace App\Services\dashboard;
 
 use App\Contracts\LeaveAnalyticsInterface;
 use App\Http\Middleware\Auth;
@@ -9,7 +9,7 @@ use Core\App;
 use Core\Database;
 
 
-class ManagerLeaveService implements LeaveAnalyticsInterface
+class ManagerDashboardService implements LeaveAnalyticsInterface
 {
 
     use HasSharedAnalytics;

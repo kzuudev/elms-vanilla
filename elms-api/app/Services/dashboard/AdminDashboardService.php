@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\leaves;
+namespace App\Services\dashboard;
 
 use App\Contracts\LeaveAnalyticsInterface;
 use App\Http\Middleware\Auth;
@@ -9,7 +9,7 @@ use Core\App;
 use Core\Database;
 
 
-class AdminLeaveService implements LeaveAnalyticsInterface {
+class AdminDashboardService implements LeaveAnalyticsInterface {
 
 
     use HasSharedAnalytics;
@@ -108,12 +108,7 @@ class AdminLeaveService implements LeaveAnalyticsInterface {
         return $data;
 
     }
-
-//    public function getTotalEmployees(): array {
-//
-//        return $this->executeTotalEmployees($this->userDepartment, $this->userRole, $this->adminId);
-//    }
-//
+    
 
     public function getRecentActivity(): array {
         $recentActivity = $this->db->query("

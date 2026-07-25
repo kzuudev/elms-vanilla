@@ -4,19 +4,19 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Contracts\LeaveAnalyticsInterface;
 use App\Http\Middleware\Auth;
-use App\Services\leaves\ManagerLeaveService;
+use App\Services\dashboard\ManagerDashboardService;
 use Core\App;
 
 class ManagerDashboardController {
 
     private LeaveAnalyticsInterface $leaveAnalyticsService;
 
-    private ManagerLeaveService $managerLeaveService;
+    private ManagerDashboardService $managerDashboardService;
 
     public function __construct() {
 
-        $this->leaveAnalyticsService = App::resolve(ManagerLeaveService::class);
-        $this->managerLeaveService = App::resolve(ManagerLeaveService::class);
+        $this->leaveAnalyticsService = App::resolve(ManagerDashboardService::class);
+        $this->managerDashboardService = App::resolve(ManagerDashboardService::class);
 
     }
     public function index(): void {
@@ -26,9 +26,9 @@ class ManagerDashboardController {
         
         if($currentUserRole === 'manager') {
 
-            $remainingBalance = $this->managerLeaveService->getRemainingTotalBalance();
-            $pendingRequest = $this->managerLeaveService->getPendingApprovalMetrics();
-            $usedDays = $this->managerLeaveService->getUsedDays();
+            $remainingBalance = $this->managerDashboardService->getRemainingTotalBalance();
+            $pendingRequest = $this->managerDashboardService->getPendingApprovalMetrics();
+            $usedDays = $this->managerDashboardService->getUsedDays();
             $teamAvailability = $this->leaveAnalyticsService->getTeamAvailability();
             $leaveOverlap = $this->leaveAnalyticsService->getTeamOverlap();
             $monthlyLeaveConsumption = $this->leaveAnalyticsService->getMonthlyConsumption();

@@ -1,5 +1,6 @@
 import {useState, useEffect} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
+import axios from "axios";
 import { LeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
 import {api} from "@/lib/api.ts";
 
@@ -13,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,} from 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {Button} from "@/components/ui/button";
 import { CheckCircle2Icon } from "lucide-react";
-import type {LeaveRequest} from "@/types/leave.ts";
+import type {LeaveRequest, TableData} from "@/types/leave.ts";
 
 export default function LeaveRequestDashboard() {
 
@@ -23,8 +24,8 @@ export default function LeaveRequestDashboard() {
     const isSuccessfullySubmitted = location.state?.successfullySubmitted;
     const [successAlert, setSuccessAlert] = useState(false);
 
-    const [leaveRequests, setLeaveRequests] = useState([]);
-    const [leaveRequestDetails, setLeaveRequestDetails] = useState<LeaveRequest>({} as LeaveRequest);
+    const [leaveRequests, setLeaveRequests] = useState<TableData[]>([]);
+    const [leaveRequestDetails, setLeaveRequestDetails] = useState<LeaveRequest | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
@@ -34,15 +35,17 @@ export default function LeaveRequestDashboard() {
         try {
             const holder = localStorage.getItem("token");
             const response = await api.get("/leave-request", {
-                // this is a verification for the bearer (holder) of the token has permission to access this account and do action
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 },
             });
             setLeaveRequests(response.data.leave_requests.data);
         }catch (e) {
-
-            setError(e.response.data.message);
+            if (axios.isAxiosError(e)) {
+                setError(e.response?.data?.message ?? "Failed to fetch leave requests");
+            } else {
+                setError("Failed to fetch leave requests");
+            }
         }
     }
 
@@ -58,7 +61,11 @@ export default function LeaveRequestDashboard() {
             setLeaveRequestDetails(response.data.leave_request);
             console.log(response.data.leave_request);
         }catch (e) {
-            setError(e.response.data.message);
+            if (axios.isAxiosError(e)) {
+                setError(e.response?.data?.message ?? "Failed to fetch leave request details");
+            } else {
+                setError("Failed to fetch leave request details");
+            }
         }
     }
 
@@ -75,7 +82,6 @@ export default function LeaveRequestDashboard() {
                 setSuccessAlert(false);
             }, 3000);
 
-            //  Instantly clear the history cache so it's clean on refresh
             navigate(location.pathname, { replace: true, state: {} });
 
             return () => clearTimeout(timer);
@@ -107,6 +113,12 @@ export default function LeaveRequestDashboard() {
                                     <AlertDescription>
                                         Your leave has been applied. We'll review your application and get back to you.
                                     </AlertDescription>
+                                </Alert>
+                            )}
+                            {error && (
+                                <Alert className="bg-red-100 border-red-400 text-red-700 mb-6">
+                                    <AlertTitle>Error</AlertTitle>
+                                    <AlertDescription>{error}</AlertDescription>
                                 </Alert>
                             )}
                         </div>

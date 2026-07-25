@@ -1,9 +1,9 @@
 <?php
 
-    use App\Services\leaves\AdminLeaveService;
-    use App\Services\leaves\EmployeeLeaveService;
-    use App\Services\leaves\ManagerLeaveService;
-    use App\Services\employees\EmployeeSummaryService;
+    use App\Services\dashboard\AdminDashboardService;
+    use App\Services\dashboard\EmployeeDashboardService;
+    use App\Services\dashboard\ManagerDashboardService;
+    use App\Services\Employees\EmployeeSummaryService;
     use Core\App;
     use Core\Container;
     use Core\Database;
@@ -18,19 +18,19 @@ $container->bind('Core\Database', function() {
     return new Database($config['database']);
 });
 
-$container->bind('App\Services\leaves\EmployeeLeaveService', function() {
-    return new EmployeeLeaveService();
+$container->bind(EmployeeDashboardService::class, function() {
+    return new EmployeeDashboardService();
 });
 
-$container->bind('App\Services\leaves\ManagerLeaveService', function() {
-    return new ManagerLeaveService();
+$container->bind(ManagerDashboardService::class, function() {
+    return new ManagerDashboardService();
 });
 
-$container->bind('App\Services\leaves\AdminLeaveService', function() {
-    return new AdminLeaveService();
+$container->bind(AdminDashboardService::class, function() {
+    return new AdminDashboardService();
 });
 
-$container->bind('App\Services\employees\EmployeeSummaryService', function() {
+$container->bind(EmployeeSummaryService::class, function() {
     return new EmployeeSummaryService;
 });
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\leaves;
+namespace App\Services\dashboard;
 
 use App\Http\Middleware\Auth;
 use App\Traits\HasSharedAnalytics;
@@ -8,7 +8,7 @@ use Core\App;
 use Core\Database;
 
 
-class EmployeeLeaveService {
+class EmployeeDashboardService {
 
     use HasSharedAnalytics;
     private $db;
@@ -17,7 +17,6 @@ class EmployeeLeaveService {
 
     private string $userRole;
     private string $userDepartment;
-
 
 
     public function __construct() {

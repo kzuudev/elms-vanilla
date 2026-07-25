@@ -1,27 +1,30 @@
-import {  Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import Unauthorized from "@/pages/unauthorized/Unauthorized.tsx";
 import { AuthContext } from "@/features/context/auth/AuthContext.tsx";
-import {useContext} from "react";
+import { useContext } from "react";
 
-export const ProtectedRoute = ({ children, allowedRoles}) => {
-
+/**
+ * Auth gate:
+ * - Always requires a token (every company user gets one on login).
+ * - If allowedRoles is passed (manager/admin pages), role must be in that list.
+ * - If allowedRoles is omitted (employee pages), any logged-in user can enter
+ *   (IT, Marketing, Accounting, manager, admin, etc.).
+ */
+export const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user } = useContext(AuthContext);
 
-    const token = localStorage.getItem('token');
-    const currentRole = user?.role || localStorage.getItem("role");
+    const token = localStorage.getItem("token");
+    const currentRole = user?.role || localStorage.getItem("role") || "";
 
-    // if they're not logged in at all
-    if(!token && !currentRole) {
+    // No token → not logged in (this is what blocks guests, not role)
+    if (!token) {
         return <Navigate to="/" replace />;
     }
 
-    // if user logged in but don't have the right role
-    if(allowedRoles && !allowedRoles.includes(currentRole)) {
-        return <Unauthorized />
+    // Manager/admin-only routes
+    if (allowedRoles && !allowedRoles.includes(currentRole)) {
+        return <Unauthorized />;
     }
 
-
-    // if they have a token and right user role, return the dashboard component
-    return children
-
-}
+    return children;
+};

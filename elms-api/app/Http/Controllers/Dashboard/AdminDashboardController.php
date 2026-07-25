@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Contracts\LeaveAnalyticsInterface;
 use App\Http\Middleware\Auth;
-use App\Services\leaves\AdminLeaveService;
+use App\Services\dashboard\AdminDashboardService;
 use Core\App;
 
 
@@ -13,16 +13,16 @@ class AdminDashboardController {
 
     private LeaveAnalyticsInterface $leaveAnalyticsService;
 
-    private AdminLeaveService $adminLeaveService;
+    private AdminDashboardService $adminDashboardService;
 
     public function __construct() {
 
-        $this->leaveAnalyticsService = App::resolve(AdminLeaveService::class);
-        $this->adminLeaveService = App::resolve(AdminLeaveService::class);
+        $this->leaveAnalyticsService = App::resolve(AdminDashboardService::class);
+        $this->adminDashboardService = App::resolve(AdminDashboardService::class);
     }
 
     public function index(): void {
-        
+
         $currentUser = Auth::user() ?? null;
         $currentUserRole = $currentUser['role'] ?? null;
         
@@ -32,9 +32,9 @@ class AdminDashboardController {
             echo json_encode([
                 'success' => true,
                 'message' => 'Dashboard data fetched successfully',
-                'remaining_balance' => $this->adminLeaveService->getRemainingTotalBalance(),
-                'pending_request' => $this->adminLeaveService->getPendingApprovalMetrics(),
-                'total_used_days' => $this->adminLeaveService->getUsedDays(),
+                'remaining_balance' => $this->adminDashboardService->getRemainingTotalBalance(),
+                'pending_request' => $this->adminDashboardService->getPendingApprovalMetrics(),
+                'total_used_days' => $this->adminDashboardService->getUsedDays(),
                 'team_availability' => $this->leaveAnalyticsService->getTeamAvailability(),
                 'leave_overlap' => $this->leaveAnalyticsService->getTeamOverlap(),
                 'monthly_leave_consumption' => $this->leaveAnalyticsService->getMonthlyConsumption(),

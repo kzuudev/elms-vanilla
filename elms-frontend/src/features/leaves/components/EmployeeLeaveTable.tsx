@@ -1,13 +1,13 @@
 'use client'
 
-import {useState, useContext, useEffect} from "react";
+import { useState, useEffect } from "react";
 import * as z from 'zod';
 import { format } from 'date-fns';
 import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
 
-import { LeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
-import { LeaveBalanceContext } from "@/features/context/leaves/LeaveBalanceContext.tsx";
+import { useLeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
+import { useLeaveBalanceContext } from "@/features/context/leaves/LeaveBalanceContext.tsx";
 import {leaveOptions} from "@/types/leave.ts";
 
 import {
@@ -38,8 +38,8 @@ export default function EmployeeLeaveTable() {
     const [isEditMode, setIsEditMode] = useState(false);
 
     // get the leave request list directly from the Leave Context
-    const { leaveRequests, fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequestDetails } = useContext(LeaveContext);
-    const { fetchLeaveBalance } = useContext(LeaveBalanceContext);
+    const { leaveRequests, fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequestDetails } = useLeaveContext();
+    const { fetchLeaveBalance } = useLeaveBalanceContext();
 
     const schema = z.object({
         leave_type: z.string().min(1, {message: "Leave Type is required"}),
@@ -97,7 +97,7 @@ export default function EmployeeLeaveTable() {
             });
             console.log(response.data.message);
             return response;
-        }catch (e) {
+        }catch (e: any) {
             form.setError("root", {
                 type: "server",
                 message: e.response.data.message
@@ -119,8 +119,11 @@ export default function EmployeeLeaveTable() {
 
     // handle for the leave request edit form submission
     const handleLeaveRequestEditSubmit = async (data: LeaveRequestFormData) => {
-        form.setError("root", null);
-        await fetchLeaveRequestEdit(leaveRequestDetails.id, data);
+        form.setError("root", {
+            type: "server",
+            message: "Server error"
+        });
+        await fetchLeaveRequestEdit(leaveRequestDetails?.id ?? 0, data);
         setIsEditMode(false);
         form.reset(data)
         fetchLeaveRequests();
@@ -129,7 +132,10 @@ export default function EmployeeLeaveTable() {
 
     // handle delete of leave request
     const handleDeleteLeaveRequests = async (id: number) => {
-        form.setError("root", null);
+        form.setError("root", {
+            type: "server",
+            message: "Server error"
+        });
 
         if(window.confirm("Are you sure you want to delete this leave request?")){
             await fetchLeaveRequestDelete(id);
@@ -184,7 +190,7 @@ export default function EmployeeLeaveTable() {
                             <div className="w-full flex flex-col gap-2">
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Leave Type:</span>
-                                    <span>{leaveRequestDetails.leave_type}</span>
+                                    <span>{leaveRequestDetails?.leave_type}</span>
                                 </div>
 
                                 <div className="flex justify-between">
@@ -207,32 +213,32 @@ export default function EmployeeLeaveTable() {
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Total Days:</span>
-                                    <span>{leaveRequestDetails.total_days}</span>
+                                    <span>{leaveRequestDetails?.total_days}</span>
                                 </div>
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Leave Reason:</span>
-                                    <span>{leaveRequestDetails.reason}</span>
+                                    <span>{leaveRequestDetails?.reason}</span>
                                 </div>
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Assigned to:</span>
-                                    <span>{leaveRequestDetails.manager_name}</span>
+                                    <span>{leaveRequestDetails?.manager_name}</span>
                                 </div>
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Created At:</span>
-                                    <span>{leaveRequestDetails.created_at}</span>
+                                    <span>{leaveRequestDetails?.created_at}</span>
                                 </div>
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Status:</span>
-                                    {leaveRequestDetails.status === "pending" ? (
+                                    {leaveRequestDetails?.status === "pending" ? (
                                         <span className="bg-orange-50 text-orange-700 border border-orange-200/60 px-2 py-1 rounded-md">{leaveRequestDetails.status}</span>
-                                    ) : leaveRequestDetails.status === "approved" ? (
-                                        <span className="bg-green-50 text-green-700 border border-green-200/60 px-2 py-1 rounded-md">{leaveRequestDetails.status}</span>
+                                    ) : leaveRequestDetails?.status === "approved" ? (
+                                        <span className="bg-green-50 text-green-700 border border-green-200/60 px-2 py-1 rounded-md">{leaveRequestDetails?.status}</span>
                                     ) : (
-                                        <span className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-md">{leaveRequestDetails.status}</span>
+                                        <span className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-md">{leaveRequestDetails?.status}</span>
                                     )}
                                 </div>
 
@@ -398,7 +404,7 @@ export default function EmployeeLeaveTable() {
                     </TableHeader>
 
                     <TableBody>
-                        {leaveRequests.map((leave) => (
+                        {(leaveRequests ?? []).map((leave) => (
                             <TableRow key={leave.id}>
                                 <TableCell>{leave.leave_type_name}</TableCell>
                                 <TableCell>{format(leave.start_date, 'MMMM dd, yyyy')}</TableCell>

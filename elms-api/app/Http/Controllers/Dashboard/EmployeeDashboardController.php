@@ -4,28 +4,17 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Middleware\Auth;
-use App\Services\leaves\EmployeeLeaveService;
+use App\Services\dashboard\EmployeeDashboardService;
 use Core\App;
+
 
 class EmployeeDashboardController {
 
-    // Declare the property so that the whole class can use it
-    private EmployeeLeaveService $employeeLeaveService;
-    private EmployeeLeaveService $pendingLeaveService;
-    private EmployeeLeaveService $usedLeaveService;
-    private EmployeeLeaveService $recentLeaveService;
-
-    private EmployeeLeaveService $teamAvailabilityLeaveService;
-    private EmployeeLeaveService $monthlyLeaveConsumptionService;
+    private EmployeeDashboardService $employeeDashboardService;
 
     public function __construct() {
 
-        $this->employeeLeaveService = App::resolve(EmployeeLeaveService::class);
-        $this->pendingLeaveService = App::resolve(EmployeeLeaveService::class);
-        $this->usedLeaveService = App::resolve(EmployeeLeaveService::class);
-        $this->recentLeaveService = App::resolve(EmployeeLeaveService::class);
-        $this->teamAvailabilityLeaveService = App::resolve(EmployeeLeaveService::class);
-        $this->monthlyLeaveConsumptionService = App::resolve(EmployeeLeaveService::class);
+        $this->employeeDashboardService = App::resolve(EmployeeDashboardService::class);
 
     }
 
@@ -34,15 +23,15 @@ class EmployeeDashboardController {
 
         $currentUser = Auth::user() ?? null;
 
-        $currentUserId = $currentUser['id'] ?? null;;
+        $currentUserId = $currentUser['id'] ?? null;
         $currentUserRole = $currentUser['role'] ?? null;
 
-        $totalRemainingBalance = $this->employeeLeaveService->getRemainingTotalBalance();
-        $totalPendingRequest = $this->pendingLeaveService->getPendingApprovalMetrics();
-        $totalUsedDays = $this->usedLeaveService->getUsedDays();
-        $recentActivity = $this->recentLeaveService->getRecentActivity($currentUserId);
-        $teamAvailability = $this->teamAvailabilityLeaveService->getTeamAvailability($currentUserId, $currentUserRole);
-        $monthlyLeaveConsumption = $this->monthlyLeaveConsumptionService->getMonthlyLeaveConsumption($currentUserId);
+        $totalRemainingBalance = $this->employeeDashboardService->getRemainingTotalBalance();
+        $totalPendingRequest = $this->employeeDashboardService->getPendingApprovalMetrics();
+        $totalUsedDays = $this->employeeDashboardService->getUsedDays();
+        $recentActivity = $this->employeeDashboardService->getRecentActivity($currentUserId);
+        $teamAvailability = $this->employeeDashboardService->getTeamAvailability($currentUserId, $currentUserRole);
+        $monthlyLeaveConsumption = $this->employeeDashboardService->getMonthlyLeaveConsumption($currentUserId);
 
         http_response_code(200);
         echo json_encode([

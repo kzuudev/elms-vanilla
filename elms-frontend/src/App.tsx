@@ -31,7 +31,8 @@ function App() {
         return storedUser ? JSON.parse(storedUser) as Profile: null;
     });
 
-    const role = user?.role === 'admin' ? 'admin' : user?.role === 'manager' ? 'manager' : '';
+    // Real DB role value (e.g. "IT", "Marketing", "manager", "admin")
+    const role = user?.role ?? '';
 
     const [leaveBalance, setLeaveBalance] = useState<LeaveBalance[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -94,8 +95,8 @@ function App() {
                             <Route
                                 path="/employee/dashboard"
                                 element={
-                                    // allowed 3 roles here because Managers and Admins are also employees!
-                                    <ProtectedRoute allowedRoles={[role]}>
+                                    // Token-only: staff roles are IT/Marketing/etc., not the string "employee"
+                                    <ProtectedRoute allowedRoles={role}>
                                         <EmployeeDashboard />
                                     </ProtectedRoute>
                                 }
@@ -104,7 +105,7 @@ function App() {
                             <Route
                                 path="/employee/leave-request"
                                 element={
-                                    <ProtectedRoute allowedRoles={[role]}>
+                                    <ProtectedRoute allowedRoles={role}>
                                         <LeaveRequestDashboard />
                                     </ProtectedRoute>
                                 }

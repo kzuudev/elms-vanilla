@@ -14,8 +14,6 @@ class Guest {
 
         // Check if the header exists and contains bearer token
         if($authHeader && str_starts_with($authHeader, 'Bearer ')) {
-
-
             http_response_code(403);
             echo json_encode([
                 'success' => false,
