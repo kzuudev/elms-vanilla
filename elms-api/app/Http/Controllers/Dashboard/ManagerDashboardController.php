@@ -21,9 +21,10 @@ class ManagerDashboardController {
     }
     public function index(): void {
 
-        $currentUser = Auth::authenticate();
-
-        if($currentUser && $currentUser['role'] === 'manager') {
+        $currentUser = Auth::user() ?? null;
+        $currentUserRole = $currentUser['role'] ?? null;
+        
+        if($currentUserRole === 'manager') {
 
             $remainingBalance = $this->managerLeaveService->getRemainingTotalBalance();
             $pendingRequest = $this->managerLeaveService->getPendingApprovalMetrics();

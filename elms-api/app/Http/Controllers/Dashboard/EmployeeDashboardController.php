@@ -32,17 +32,17 @@ class EmployeeDashboardController {
     public function index(): void
     {
 
-        $currentUser = Auth::authenticate();
+        $currentUser = Auth::user() ?? null;
 
-        $current_user_id = $currentUser['id'] ?? null;;
-        $current_user_role = $currentUser['role'] ?? null;
+        $currentUserId = $currentUser['id'] ?? null;;
+        $currentUserRole = $currentUser['role'] ?? null;
 
         $totalRemainingBalance = $this->employeeLeaveService->getRemainingTotalBalance();
         $totalPendingRequest = $this->pendingLeaveService->getPendingApprovalMetrics();
         $totalUsedDays = $this->usedLeaveService->getUsedDays();
-        $recentActivity = $this->recentLeaveService->getRecentActivity($current_user_id);
-        $teamAvailability = $this->teamAvailabilityLeaveService->getTeamAvailability($current_user_id, $current_user_role);
-        $monthlyLeaveConsumption = $this->monthlyLeaveConsumptionService->getMonthlyLeaveConsumption($current_user_id);
+        $recentActivity = $this->recentLeaveService->getRecentActivity($currentUserId);
+        $teamAvailability = $this->teamAvailabilityLeaveService->getTeamAvailability($currentUserId, $currentUserRole);
+        $monthlyLeaveConsumption = $this->monthlyLeaveConsumptionService->getMonthlyLeaveConsumption($currentUserId);
 
         http_response_code(200);
         echo json_encode([

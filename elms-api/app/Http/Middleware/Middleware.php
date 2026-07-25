@@ -20,12 +20,12 @@ class Middleware {
     public static function resolve($key) {
 
         // if the route has no middleware, just do nothing
-        if($key) {
+        if(!$key) {
             return;
         }
 
         // Find the class (middleware) in the map
-        $middleware = static::MAP[$key];
+        $middleware = static::MAP[$key] ?? null;
 
         // check if the middleware exists in MAP
         if(!$middleware) {

@@ -22,10 +22,11 @@ class AdminDashboardController {
     }
 
     public function index(): void {
-
-        $currentUser = Auth::authenticate();
-
-        if($currentUser && $currentUser['role'] === 'admin') {
+        
+        $currentUser = Auth::user() ?? null;
+        $currentUserRole = $currentUser['role'] ?? null;
+        
+        if($currentUserRole === 'admin') {
 
             http_response_code(200);
             echo json_encode([
