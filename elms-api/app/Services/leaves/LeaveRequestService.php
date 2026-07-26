@@ -25,6 +25,17 @@ class LeaveRequestService implements LeaveRequestInterface {
 
     $leaveRequestForm = new LeaveRequestForm();
 
+    $assigned_to = $this->db->query(
+        "SELECT 
+            assigned_to AS approver_id, 
+            CONCAT(first_name, ' ', last_name) AS approver_name, 
+            role AS approver_role
+            FROM users 
+            WHERE id = :id"
+    , [
+        'id' => $user_id
+    ])->find();
+
     $leave_type = $input['leave_type'] ?? '';
     $start_date = $input['start_date'] ?? '';
     $end_date = $input['end_date'] ?? '';
@@ -105,13 +116,14 @@ class LeaveRequestService implements LeaveRequestInterface {
     }
 
     // insert the leave request into the database
-    $this->db->query("INSERT INTO leave_requests (user_id, leave_type_id, start_date, end_date, total_days, reason, status) VALUES (:user_id, :leave_type_id, :start_date, :end_date, :total_days, :reason, 'pending')", [
+    $this->db->query("INSERT INTO leave_requests (user_id, leave_type_id, start_date, end_date, total_days, reason, status, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date, :total_days, :reason, 'pending', :assigned_to)", [
         'user_id' => $user_id,
         'leave_type_id' => $leave_type_id,
         'start_date' => $start_date,
         'end_date' => $end_date,
         'total_days' => $days_requested,
         'reason' => $reason,
+        'assigned_to' => $assigned_to['approver_id'] ?? null,
     ]);
 
     http_response_code(200);
@@ -126,22 +138,30 @@ class LeaveRequestService implements LeaveRequestInterface {
        
         $leave_requests = $this->db->query("SELECT 
                 lr.*, 
-                m.first_name AS assigned_manager, 
-                lt.name AS leave_type_name 
+                CONCAT(m.first_name, ' ', m.last_name) AS assigned_name, 
+                m.id AS assigned_to,
+                lt.name AS leave_type 
             FROM leave_requests lr
             LEFT JOIN users m ON lr.assigned_to = m.id 
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id 
+            LEFT JOIN users u ON lr.user_id = u.id
             WHERE lr.deleted_at IS NULL
-            AND lr.user_id = :user_id 
+            AND (lr.user_id = :user_id
+            OR lr.assigned_to = :user_id)
             ORDER BY lr.created_at DESC
         ", [
-            'user_id' => $user_id
+            'user_id' => $user_id,
+            'assigned_to' => $user_id
         ])->all();
 
         http_response_code(200);
-        echo json_encode(['success' => 'Leave requests fetched successfully', 'leave_requests' => $leave_requests]);
+        echo json_encode([
+            'success' => 'Leave requests fetched successfully',
+            'leave_requests' => [
+                'data' => $leave_requests,
+            ],
+        ]);
         return;
-        exit;
     }else {
         http_response_code(403);
         echo json_encode(['error' => 'You are not authorized to fetch leave requests.']);
@@ -153,14 +173,38 @@ class LeaveRequestService implements LeaveRequestInterface {
     public function show($id, $user_id, $role): void {
 
         if ($id && $user_id && $role) {
-            $this->db->query(
-                "SELECT * FROM leave_requests WHERE id = :id AND user_id = :user_id", [
+            $leave_request = $this->db->query(
+                "SELECT 
+                lr.*, 
+                CONCAT(m.first_name, ' ', m.last_name) AS assigned_name, 
+                lt.name AS leave_type
+                FROM leave_requests lr
+                LEFT JOIN users m ON lr.assigned_to = m.id 
+                LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id 
+                WHERE lr.id = :id AND lr.user_id = :user_id", [
                     'id' => $id,
                     'user_id' => $user_id
                 ])->find();
 
+            if (!$leave_request) {
+                http_response_code(404);
+                echo json_encode(['error' => 'Leave request not found.']);
+                return;
+            }
+
+            // validate if the user is the owner of the leave request or the assigned to the leave request
+            if ((int) $leave_request['user_id'] !== (int) $user_id
+                && (int) ($leave_request['assigned_to'] ?? 0) !== (int) $user_id) {
+                http_response_code(403);
+                echo json_encode(['error' => 'You are not authorized to fetch this leave request.']);
+                return;
+            }
+
             http_response_code(200);
-            echo json_encode(['success' => 'Leave request fetched successfully', 'leave_request' => $leave_request]);
+            echo json_encode([
+                'success' => 'Leave request fetched successfully',
+                'leave_request' => $leave_request,
+            ]);
             return;
             exit;
         }else {

@@ -31,7 +31,7 @@ function App() {
         return storedUser ? JSON.parse(storedUser) as Profile: null;
     });
 
-    // Real DB role value (e.g. "IT", "Marketing", "manager", "admin")
+    // Real DB role (e.g. "IT", "Marketing", "manager", "admin") — for props only
     const role = user?.role ?? '';
 
     const [leaveBalance, setLeaveBalance] = useState<LeaveBalance[]>([]);
@@ -95,17 +95,17 @@ function App() {
                             <Route
                                 path="/employee/dashboard"
                                 element={
-                                    // Token-only: staff roles are IT/Marketing/etc., not the string "employee"
-                                    <ProtectedRoute allowedRoles={role}>
+                                    // Token only — staff roles are IT/Marketing/etc.
+                                    <ProtectedRoute>
                                         <EmployeeDashboard />
                                     </ProtectedRoute>
                                 }
-                            />
+                        />
 
                             <Route
                                 path="/employee/leave-request"
                                 element={
-                                    <ProtectedRoute allowedRoles={role}>
+                                    <ProtectedRoute>
                                         <LeaveRequestDashboard />
                                     </ProtectedRoute>
                                 }

@@ -5,6 +5,8 @@ import {Link, useNavigate} from "react-router-dom";
 import {useContext} from "react";
 import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
 
+import type { Profile } from "@/types/leave";
+
 import {
     Sidebar,
     SidebarContent,
@@ -31,12 +33,13 @@ import {Input} from "@/components/ui/input.tsx";
 interface DashboardLayoutProps {
     children: React.ReactNode;
 }
+
 export default function AppSidebar({ children } : DashboardLayoutProps) {
 
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
 
-    const { user, setUser } = useContext(AuthContext);
+    const { user, setUser } = useContext(AuthContext) as { user: Profile, setUser: (user: Profile | null) => void };
 
     const role = user?.role;
 

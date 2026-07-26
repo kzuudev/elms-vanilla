@@ -17,7 +17,6 @@ export enum LeaveType {
 
 
 export type TableData = {
-    leave_type_name: string;
     id: number;
     user_id: number;
     leave_type: string;
@@ -26,6 +25,7 @@ export type TableData = {
     reason: string;
     status: string;
     assigned_name: string;
+    assigned_to: number | null;
 };
 
 export type EmployeeDataTable = {
@@ -57,15 +57,24 @@ export type EmployeeDetails = {
 }
 
 
+export type LeaveRequestFormData = {
+    leave_type: string;
+    start_date: string;
+    end_date: string;
+    reason: string;
+}
+
 export type LeaveRequest = {
     id: number;
+    user_id: number;
     leave_type: string;
     start_date: string;
     end_date: string;
     total_days: number;
-    reason: string;
+    reason: string | null;
     status: string;
-    manager_name: string;
+    assigned_to: number | null;
+    assigned_name: string;
     created_at: string;
     updated_at: string;
 }

@@ -5,10 +5,11 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
 import {useNavigate} from "react-router-dom";
-import {useContext} from "react";
+import {useContext, useEffect} from "react";
 import {LeaveType} from "@/types/leave.ts";
-import {LeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
-import {LeaveBalanceContext} from "@/features/context/leaves/LeaveBalanceContext.tsx";
+import type { LeaveRequestFormData } from "@/types/leave.ts";
+import {LeaveContext, type LeaveContextType} from "@/features/context/leaves/LeaveContext.tsx";
+import {LeaveBalanceContext, type LeaveBalanceContextType} from "@/features/context/leaves/LeaveBalanceContext.tsx";
 
 import {Button} from "@/components/ui/button.tsx";
 import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field.tsx";
@@ -19,15 +20,17 @@ import { AlertCircle } from "lucide-react";
 
 interface LeaveRequestFormProps {
     closeDialog: () => void;
+    /** When provided (edit flow), submit uses this. Otherwise create uses internal onSubmit. */
+    handleSubmit?: (data: LeaveRequestFormData) => void | Promise<void>;
 }
 
-export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) {
+export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveRequestFormProps) {
 
     const leaveContext = useContext(LeaveContext);
     const leaveBalanceContext = useContext(LeaveBalanceContext);
 
-    const { fetchLeaveRequests } = leaveContext;
-    const { fetchLeaveBalance } = leaveBalanceContext;
+    const { fetchLeaveRequests, leaveRequestDetails } = leaveContext as LeaveContextType;
+    const { fetchLeaveBalance } = leaveBalanceContext as LeaveBalanceContextType;
 
     const navigate = useNavigate();
 
@@ -52,6 +55,22 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
     });
 
     const {setError, formState: {errors}} = form;
+
+    // Edit flow: after fetchLeaveRequestDetails updates context, fill THIS form
+    useEffect(() => {
+        if (!handleSubmit || !leaveRequestDetails?.id) {
+            return;
+        }
+
+        const toDateInput = (value: string) => value.slice(0, 10); // "YYYY-MM-DD HH:mm:ss" → date input
+
+        form.reset({
+            leave_type: leaveRequestDetails.leave_type ?? '',
+            start_date: leaveRequestDetails.start_date ? toDateInput(leaveRequestDetails.start_date) : '',
+            end_date: leaveRequestDetails.end_date ? toDateInput(leaveRequestDetails.end_date) : '',
+            reason: leaveRequestDetails.reason ?? '',
+        });
+    }, [leaveRequestDetails, handleSubmit, form]);
 
     const leaveOptions: { label: string; value: LeaveType }[] = [
         {label: "Annual Leave", value: LeaveType.Annual},
@@ -121,7 +140,11 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
     return (
         <>
             <div className="flex w-full items-center">
-                <form id="leave-request" onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+                <form
+                    id="leave-request"
+                    onSubmit={form.handleSubmit(handleSubmit ?? onSubmit)}
+                    className="w-full"
+                >
                     <FieldGroup className="mb-8">
                         <div className="flex flex-col w-full">
                             <Controller name="leave_type" control={form.control} render={({field, fieldState}) => (
@@ -130,7 +153,7 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
                                         Leave Type
                                     </FieldLabel>
 
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value || undefined}>
                                         <SelectTrigger className="w-[280px]">
                                             <SelectValue placeholder="Select Leave Type"/>
                                         </SelectTrigger>
@@ -160,7 +183,7 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
 
                                     <Input
                                         {...field}
-                                        id="start-date"
+                                        id="start_date"
                                         type="date"
                                         aria-invalid={fieldState.invalid}
                                         autoComplete="off"
@@ -182,7 +205,7 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
 
                                     <Input
                                         {...field}
-                                        id="end-date"
+                                        id="end_date"
                                         type="date"
                                         aria-invalid={fieldState.invalid}
                                         autoComplete="off"
@@ -211,7 +234,7 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
                                                 <Textarea
                                                     {...field}
                                                     className="h-[140px]"
-                                                    id="leave-reson"
+                                                    id="reason"
                                                     aria-invalid={fieldState.invalid}
                                                     autoComplete="off"
 
@@ -237,8 +260,11 @@ export default function LeaveRequestForm({closeDialog}: LeaveRequestFormProps ) 
                     )}
 
                     <div className="flex w-full">
-                        <Button type="submit" className="w-full p-4 rounded-md text-sm bg-black text-white text-center"
-                                variant="outline">
+                        <Button
+                            type="submit"
+                            className="w-full p-4 rounded-md text-sm bg-black text-white text-center"
+                            variant="outline"
+                        >
                             Submit Leave
                         </Button>
                     </div>

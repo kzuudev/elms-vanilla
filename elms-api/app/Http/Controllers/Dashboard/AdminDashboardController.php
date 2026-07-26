@@ -11,6 +11,7 @@ use Core\App;
 
 class AdminDashboardController {
 
+    
     private LeaveAnalyticsInterface $leaveAnalyticsService;
 
     private AdminDashboardService $adminDashboardService;

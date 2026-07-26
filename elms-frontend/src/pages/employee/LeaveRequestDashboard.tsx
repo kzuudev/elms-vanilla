@@ -39,7 +39,11 @@ export default function LeaveRequestDashboard() {
                     Authorization: `Bearer ${holder}`,
                 },
             });
-            setLeaveRequests(response.data.leave_requests.data);
+            setLeaveRequests(
+                Array.isArray(response.data.leave_requests)
+                    ? response.data.leave_requests
+                    : response.data.leave_requests?.data ?? []
+            );
         }catch (e) {
             if (axios.isAxiosError(e)) {
                 setError(e.response?.data?.message ?? "Failed to fetch leave requests");
@@ -58,8 +62,10 @@ export default function LeaveRequestDashboard() {
                     Authorization: `Bearer ${holder}`,
                 }
             });
-            setLeaveRequestDetails(response.data.leave_request);
-            console.log(response.data.leave_request);
+            // Support flat leave_request OR legacy { data: leave_request }
+            const payload = response.data.leave_request;
+            setLeaveRequestDetails(payload?.data ?? payload ?? null);
+            console.log(payload);
         }catch (e) {
             if (axios.isAxiosError(e)) {
                 setError(e.response?.data?.message ?? "Failed to fetch leave request details");
