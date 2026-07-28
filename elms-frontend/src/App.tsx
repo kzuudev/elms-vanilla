@@ -22,6 +22,8 @@ import ManagerLeaveDashboard from "@/pages/manager/ManagerLeaveDashboard.tsx";
 import EmployeesDashboard from "@/features/employees/components/EmployeesDashboard.tsx";
 import AdminLeavesDashboard from "@/pages/admin/AdminLeavesDashboard.tsx";
 
+import VerifyEmail from "@/pages/auth/verify-email.tsx";
+
 
 function App() {
 
@@ -149,6 +151,11 @@ function App() {
                                         <Register closeDialog={() => setIsOpenForm(false)} />
                                     </ProtectedRoute>
                                 }
+                            />
+
+                            <Route
+                                path="/verify-email"
+                                element={<VerifyEmail />}
                             />
 
                             <Route

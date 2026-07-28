@@ -56,7 +56,7 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
 
     const {setError, formState: {errors}} = form;
 
-    // Edit flow: after fetchLeaveRequestDetails updates context, fill THIS form
+    // after fetchLeaveRequestDetails updates context, fill THIS form
     useEffect(() => {
         if (!handleSubmit || !leaveRequestDetails?.id) {
             return;

@@ -3,7 +3,7 @@
     use App\Services\dashboard\AdminDashboardService;
     use App\Services\dashboard\EmployeeDashboardService;
     use App\Services\dashboard\ManagerDashboardService;
-    use App\Services\Employees\EmployeeSummaryService;
+    use App\Services\employees\EmployeeSummaryService;
     use Core\App;
     use Core\Container;
     use Core\Database;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import * as z from 'zod';
 import axios from 'axios';
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -16,6 +17,9 @@ import {
     FieldLabel,
 } from "@/components/ui/field"
 import {Input} from "@/components/ui/input"
+import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem} from "@/components/ui/select"
+
+
 
 interface RegisterFormProps {
     closeDialog: () => void;
@@ -23,38 +27,87 @@ interface RegisterFormProps {
 
 export default function Register({closeDialog}: RegisterFormProps) {
 
+    const roleOptions: {value: string, label: string}[] = [
+        { value: 'Software Engineer', label: 'Software Engineer' },
+        { value: 'Marketing', label: 'Marketing' },
+        { value: 'Accounting', label: 'Accounting' },
+        { value: 'IT Support', label: 'IT Support' },
+        { value: 'manager', label: 'Manager' },
+        { value: 'admin', label: 'Admin' },
+    ];
+
+    const [managers, setManagers] = useState<{value: string, label: string}[]>([]);
+    const [managersError, setManagersError] = useState<string | null>(null);
+
     // rules for registration form
     const schema = z.object({
         first_name: z.string().min(1, {message: "First Name is required"}),
         last_name: z.string().min(1, {message: "Last Name is required"}),
         email: z.string().email("Please enter a valid email address"),
         phone: z.string().min(1, {message: "Phone number is required"}),
-        password: z.string().min(1, {message: "Password is required"}),
-        password_confirmation: z.string().min(1, {message: "Confirm Password is required"}),
-        remember: z.boolean().optional(),
-    }).refine((data) => data.password === data.password_confirmation, {
-        message: "Passwords do not match",
-        path: ["password_confirmation"],
+        role: z.string().min(1, {message: "Role is required"}),
+        assigned_to: z.string().min(1, {message: "Assigned manager is required"}),
     })
 
-    type LoginFormData = z.infer<typeof schema>;
+    type RegisterFormData = z.infer<typeof schema>;
 
     // Set up the form with zod
-    const form = useForm<LoginFormData>({
+    const form = useForm<RegisterFormData>({
         resolver: zodResolver(schema),
         defaultValues: {
             first_name: "",
             last_name: "",
             email: "",
-            phone: undefined,
-            password: "",
-            password_confirmation: "",
+            phone: "",
+            role: "",
+            assigned_to: "",
         }
     })
 
     const {setError, formState: {errors}} = form;
 
-    const onSubmit = async (data: LoginFormData) => {
+    // Fetch managers — EmployeesController@managers
+    useEffect(() => {
+        const controller = new AbortController();
+
+        const fetchManagers = async () => {
+            try {
+                const holder = localStorage.getItem("token");
+                const response = await api.get("/employees/managers", {
+                    headers: { Authorization: `Bearer ${holder}` },
+                    signal: controller.signal,
+                });
+
+                setManagers(
+                    (response.data.managers ?? []).map(
+                        (manager: { id: number; first_name: string; last_name: string }) => ({
+                            value: String(manager.id),
+                            label: `${manager.first_name} ${manager.last_name}`,
+                        })
+                    )
+                );
+                setManagersError(null);
+            } catch (e) {
+                if (axios.isCancel(e)) return;
+                setManagers([]);
+                if (axios.isAxiosError(e)) {
+                    setManagersError(
+                        e.response?.data?.error ||
+                        e.response?.data?.message ||
+                        "Failed to load managers from the server"
+                    );
+                } else {
+                    setManagersError("Failed to load managers from the server");
+                }
+            }
+        };
+
+        fetchManagers();
+
+        return () => controller.abort();
+    }, []);
+
+    const onSubmit = async (data: RegisterFormData) => {
 
         const token = localStorage.getItem("token");
 
@@ -90,7 +143,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
                 </div>
                 <form id="login" onSubmit={form.handleSubmit(onSubmit)}>
                     <FieldGroup className="mb-8">
-                        <div className="flex gap-2">
+                        <div className="flex flex-col gap-2">
                             <Controller name="first_name" control={form.control}
                                         render={({field, fieldState}) => (
                                             <Field data-invalid={fieldState.invalid}>
@@ -146,7 +199,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
 
                                     <Input
                                         {...field}
-                                        id="password"
+                                        id="email"
                                         aria-invalid={fieldState.invalid}
                                         autoComplete="off"
 
@@ -160,7 +213,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
                             />
                         </div>
 
-                        <div className="flex flex-col gap-2">
+                        <div className="">
                             <Controller
                                 name="phone"
                                 control={form.control}
@@ -170,20 +223,12 @@ export default function Register({closeDialog}: RegisterFormProps) {
                                             Contact No.
                                         </FieldLabel>
 
-                                        {/*<Input*/}
-                                        {/*    {...field}*/}
-                                        {/*    id="phone"*/}
-                                        {/*    type="tel"*/}
-                                        {/*    placeholder="e.g., +63 917 123 4567"*/}
-                                        {/*    aria-invalid={fieldState.invalid}*/}
-                                        {/*    autoComplete="tel"*/}
-                                        {/*/>*/}
-
                                         <PhoneInput
+                                            className="w-full border-gray-300 rounded-md p-2"
+                                            {...field}
                                             id="phone"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                            onBlur={field.onBlur}
+                                            aria-invalid={fieldState.invalid}
+                                            autoComplete="tel"
                                             placeholder="e.g., +63 917 123 4567"
                                             defaultCountry="PH"
                                         />
@@ -195,57 +240,78 @@ export default function Register({closeDialog}: RegisterFormProps) {
                                 )}
                             />
                         </div>
+                        
+                        <div className='flex flex-col gap-2'>
 
-                        <div className="flex flex-col gap-2">
-                            <Controller name="password" control={form.control}
-                                        render={({field, fieldState}) => (
-                                            <Field data-invalid={fieldState.invalid}>
-                                                <FieldLabel htmlFor="password">
-                                                    Password
-                                                </FieldLabel>
+                            <Controller name="role" control={form.control} render={({field, fieldState}) => (
+                                    <Field data-invalid={fieldState.invalid}>
+                                        <FieldLabel htmlFor="role">
+                                            Role
+                                        </FieldLabel>
 
-                                                <Input
-                                                    {...field}
-                                                    id="password"
-                                                    type="password"
-                                                    aria-invalid={fieldState.invalid}
-                                                    autoComplete="off"
+                                        <Select
+                                            value={field.value}
+                                            onValueChange={field.onChange}
+                                        >
+                                            <SelectTrigger id="role" aria-invalid={fieldState.invalid}>
+                                                <SelectValue placeholder="Select a role" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {roleOptions.map((role) => (
+                                                    <SelectItem key={role.value} value={role.value}>
+                                                        {role.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
 
-                                                />
-
-                                                {fieldState.invalid && (
-                                                    <FieldError errors={[fieldState.error]}/>
-                                                )}
-                                            </Field>
-
+                                        {fieldState.invalid && (
+                                            <FieldError errors={[fieldState.error]} />
                                         )}
-                            />
+                                    </Field>
+                                )}
+                                />
                         </div>
 
-                        <div className="flex flex-col gap-2">
-                            <Controller name="password_confirmation" control={form.control}
-                                        render={({field, fieldState}) => (
-                                            <Field data-invalid={fieldState.invalid}>
-                                                <FieldLabel htmlFor="password_confirmation">
-                                                    Confirm Password
-                                                </FieldLabel>
+                        <div className='flex flex-col gap-2'>
+                            <Controller name="assigned_to" control={form.control} render={({field, fieldState}) => (
+                                        <Field data-invalid={fieldState.invalid}>
+                                            <FieldLabel htmlFor="assigned_to">
+                                                Assigned Manager
+                                            </FieldLabel>
 
-                                                <Input
-                                                    {...field}
-                                                    id="confirm-password"
-                                                    type="password"
-                                                    aria-invalid={fieldState.invalid}
-                                                    autoComplete="off"
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                disabled={managers.length === 0}
+                                            >
+                                                <SelectTrigger id="assigned_to" aria-invalid={fieldState.invalid}>
+                                                    <SelectValue placeholder={
+                                                        managers.length === 0
+                                                            ? "No managers found"
+                                                            : "Select a manager"
+                                                    } />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {managers.map((manager) => (
+                                                        <SelectItem key={manager.value} value={manager.value}>
+                                                            {manager.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
 
-                                                />
+                                            {managersError && (
+                                                <p className="text-red-500 text-sm">{managersError}</p>
+                                            )}
 
-                                                {fieldState.invalid && (
-                                                    <FieldError errors={[fieldState.error]}/>
-                                                )}
-                                            </Field>
-                                        )}
-                            />
-                        </div>
+                                            {fieldState.invalid && (
+                                                <FieldError errors={[fieldState.error]} />
+                                            )}
+                                        </Field>
+                                    )}
+                                    />
+                            </div>
                     </FieldGroup>
 
                     {errors.root && (

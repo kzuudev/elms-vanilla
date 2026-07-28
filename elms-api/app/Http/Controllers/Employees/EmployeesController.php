@@ -23,10 +23,11 @@ class EmployeesController {
         $this->employeeSummaryService = App::resolve(EmployeeSummaryService::class);
 
         $this->db = App::resolve(Database::class);
-        $this->currentUser = Auth::user() ?? null;
-        $this->currentUserId = Auth::user()['id'] ?? null;
-        $this->currentUserRole = Auth::user()['role'] ?? null;
-        $this->currentUserDepartment = Auth::user()['department'] ?? null;
+        $user = Auth::user();
+        $this->currentUser = $user;
+        $this->currentUserId = (int) ($user['id'] ?? 0);
+        $this->currentUserRole = (string) ($user['role'] ?? '');
+        $this->currentUserDepartment = (string) ($user['department'] ?? '');
     }
 
     public function index() {
@@ -60,7 +61,7 @@ class EmployeesController {
 
         if($this->currentUserRole === 'manager') {
             $query .= " AND assigned_to = :current_user_id ";
-            $params = ['current_user_id' => $current_user_id];
+            $params = ['current_user_id' => $this->currentUserId];
         }else if ($this->currentUserRole === 'admin') {
             $query .= " AND department = :department AND role != 'super admin'";
             $params = [
@@ -89,21 +90,56 @@ class EmployeesController {
 
         $employees = $this->db->query($query, $params)->all();
 
-        if(!$employees) {
-            http_response_code(404);
-            echo json_encode(["error" => "No employees found"]);
-            exit;
-        }
-
-
         http_response_code(200);
         echo json_encode([
              'success' => true,
              'message' => 'Employee List fetched successfully',
              'id' => $this->currentUserId,
-             'employees' => $employees,
+             'employees' => $employees ?: [],
              'search' => $search
          ]);
+    }
+
+    /**
+     * Managers for the invite form (department-scoped for department admins).
+     */
+    public function managers() {
+        if (!$this->currentUserId) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        if (!in_array($this->currentUserRole, ['admin', 'super admin'], true)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Only admins can list managers']);
+            return;
+        }
+
+        $query = "
+            SELECT id, first_name, last_name, email, role, department
+            FROM users
+            WHERE role = 'manager'
+              AND is_active = 1
+        ";
+        $params = [];
+
+        // Department admin only sees managers in their department
+        if ($this->currentUserRole === 'admin') {
+            $query .= " AND department = :department";
+            $params['department'] = $this->currentUserDepartment;
+        }
+
+        $query .= " ORDER BY first_name, last_name";
+
+        $managers = $this->db->query($query, $params)->all();
+
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Managers fetched successfully',
+            'managers' => $managers ?: [],
+        ]);
     }
 
     public function show($id) {

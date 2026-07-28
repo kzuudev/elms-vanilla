@@ -11,7 +11,7 @@ class RegisterForm {
     protected $errors;
 
 
-    public function validate($first_name, $last_name, $email, $phone, $password) {
+    public function validate($first_name, $last_name, $email, $phone, $role, $assigned_to) {
 
         if(!Validator::string($first_name, 3, 20)) {
 
@@ -34,15 +34,16 @@ class RegisterForm {
             $this->errors['email'] = 'Email is required must be between 3 and 20 characters';
         }
 
-        if(!Validator::string($password, 3, 20)) {
+        if(!Validator::string($role, 1, 50)) {
 
-            $this->errors['password'] = 'password is required must be between 3 and 20 characters';
+            $this->errors['role'] = 'Role is required';
 
         }
 
-        if(!Validator::password($password)) {
+        // assigned_to is a users.id (manager), not a long string label
+        if($assigned_to === '' || $assigned_to === null || !ctype_digit((string) $assigned_to)) {
 
-            $this->errors['password'] = 'password should be matched with the confirm password';
+            $this->errors['assigned_to'] = 'Assigned manager is required';
         }
 
 

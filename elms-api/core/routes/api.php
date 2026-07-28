@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Leave\LeaveRequestController;
 use App\Http\Controllers\Leave\LeaveReviewController;
 use App\Http\Controllers\Manager\EmployeeController;
@@ -16,6 +17,7 @@ use Core\Router;
 $router = new Router();
 
 $router->post('/', [LoginController::class, 'login'])->only('guest');
+$router->post('/verify-email', [VerifyEmailController::class, 'verifyEmail']);
 $router->post('/leave-request', [LeaveRequestController::class, 'store'])->only('auth');
 
 // view leave balance
@@ -50,6 +52,7 @@ $router->get('/manager-dashboard', [ManagerDashboardController::class, 'index'])
 // admin and manager
 $router->get('/employees', [EmployeesController::class, 'index'])->only('auth');
 $router->get('/employees/summary', [EmployeesController::class, 'summary'])->only('auth');
+$router->get('/employees/managers', [EmployeesController::class, 'managers'])->only('auth');
 $router->post('/register', [RegisteredUserController::class, 'store'])->only('auth');
 $router->get('/employees/{id}/profile', [EmployeesController::class, 'profile'])->only('auth');
 $router->get('/employees/{id}', [EmployeesController::class, 'show'])->only('auth');

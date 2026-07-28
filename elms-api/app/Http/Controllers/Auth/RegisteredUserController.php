@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Forms\RegisterForm;
+use App\Http\Middleware\Auth;
+use App\Services\Auth\EmailVerificationService;
 use Core\App;
 use Core\Database;
 
@@ -16,50 +18,90 @@ class RegisteredUserController {
 
             $register = new RegisterForm();
             $db = App::resolve(Database::class);
+            $admin = Auth::user();
 
             $first_name = $input['first_name'] ?? '';
             $last_name = $input['last_name'] ?? '';
             $email = $input['email'] ?? '';
             $phone = $input['phone'] ?? '';
-            $password = $input['password'] ?? '';
+            $role = $input['role'] ?? '';
+            $assigned_to = $input['assigned_to'] ?? '';
 
-            if($register->validate($first_name, $last_name, $email, $phone, $password)) {
+            if(!$register->validate($first_name, $last_name, $email, $phone, $role, $assigned_to)) {
+                http_response_code(422);
+                echo json_encode($register->errors());
+                return;
+            }
 
-                // check if email exists
-                $user = $db->query("SELECT * FROM users WHERE email = :email", [
-                    'email' => $email
-                ])->find();
+            // check if email exists
+            $user = $db->query("SELECT * FROM users WHERE email = :email", [
+                'email' => $email
+            ])->find();
 
-                // return a message if employees exist
-                if($user) {
-                    http_response_code(422);
-                    echo json_encode(['message' => 'User already exists']);
-                    return;
-                }
+            if($user) {
+                http_response_code(422);
+                echo json_encode(['message' => 'User already exists']);
+                return;
+            }
 
-                // Insert the new user
-                $registerUser = $db->query("INSERT INTO users (first_name, last_name, email, phone, password) VALUES (:first_name, :last_name, :email, :phone, :password)", [
-                    'first_name' => $first_name,
-                    'last_name' => $last_name,
-                    'email' => $email,
-                    'phone' => $phone,
-                    'password' => password_hash($password, PASSWORD_DEFAULT)
-                ]);
+            // Department comes from the logged-in admin (department-scoped invite)
+            $department = $admin['department'] ?? null;
 
-                http_response_code(201);
+            $db->query("INSERT INTO users (first_name, last_name, email, phone, password, role, department, assigned_to) VALUES (:first_name, :last_name, :email, :phone, :password, :role, :department, :assigned_to)", [
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'email' => $email,
+                'phone' => $phone,
+                'password' => null,
+                'role' => $role,
+                'department' => $department,
+                'assigned_to' => (int) $assigned_to,
+            ]);
+
+            $userId = (int) $db->lastInsertId();
+
+            // create a verification token for email verification of the user
+            $verification_token = bin2hex(random_bytes(32));
+
+            // set the expiration time to 24 hours from now
+            $expiresAt = (new \DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
+
+            $db->query("INSERT INTO email_verification_token (token, user_id, expires_at) VALUES (:token, :user_id, :expires_at)", [
+                'token' => $verification_token,
+                'user_id' => $userId,
+                'expires_at' => $expiresAt,
+            ]);
+
+            $emailVerificationService = new EmailVerificationService();
+            $name = $first_name . ' ' . $last_name;
+
+            try {
+                $emailVerificationService->sendVerificationEmail($name, $email, $token);
+            } catch (\Exception $e) {
+                http_response_code(500);
                 echo json_encode([
-                    'success' => true,
-                    'message' => 'User created successfully',
-                    'user' => $registerUser
+                    'success' => false,
+                    'message' => 'User created but failed to send verification email',
+                    'error' => $e->getMessage(),
                 ]);
                 return;
             }
 
-            // Return validation errors
-            http_response_code(422);
-            echo json_encode($register->errors());
+            http_response_code(201);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Registration successful! Please verify your email to activate your account.',
+                'user' => [
+                    'id' => $userId,
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'email' => $email,
+                    'role' => $role,
+                    'department' => $department,
+                    'assigned_to' => (int) $assigned_to,
+                ],
+            ]);
             return;
-
         }
 
         http_response_code(400);
@@ -67,7 +109,5 @@ class RegisteredUserController {
             'success' => false,
             'message' => 'Invalid Registration Request'
         ]);
-
-
     }
 }
