@@ -12,6 +12,7 @@ use App\Http\Controllers\Leave\EmployeeLeaveBalanceController;
 use App\Http\Controllers\Dashboard\EmployeeDashboardController;
 use App\Http\Controllers\Dashboard\ManagerDashboardController;
 use App\Http\Controllers\Dashboard\AdminDashboardController;
+use App\Http\Controllers\Notification\NotificationController;
 use Core\Router;
 
 $router = new Router();
@@ -37,9 +38,6 @@ $router->get('/employee-dashboard', [EmployeeDashboardController::class, 'index'
 $router->get('/manager-dashboard', [ManagerDashboardController::class, 'index'])->only('auth');
 
 // manager
-//$router->get('/employees-list', [EmployeeController::class, 'index'])->only('auth');
-//$router->get('/employees-list/{id}', [EmployeeController::class, 'show'])->only('auth');
-
 $router->get('/leave-requests/me', [LeaveRequestController::class, 'index'])->only('auth');
 $router->get('/leave-requests', [LeaveReviewController::class, 'index'])->only('auth');
 $router->get('/leave-requests/{id}', [LeaveRequestController::class, 'show'])->only('auth');
@@ -67,5 +65,9 @@ $router->patch('/leave-requests/{id}/review', [LeaveReviewController::class, 'pa
 
 $router->get('/admin-dashboard', [AdminDashboardController::class, 'index'])->only('auth');
 
+// notifications
+$router->get('/notifications', [NotificationController::class, 'index'])->only('auth');
+$router->patch('/notifications/{id}', [NotificationController::class, 'patch'])->only('auth');
+
 // return the router with existing routes inside it
-    return $router;
+return $router;

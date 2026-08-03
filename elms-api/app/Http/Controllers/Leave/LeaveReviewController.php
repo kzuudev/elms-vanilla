@@ -6,14 +6,19 @@ namespace App\Http\Controllers\Leave;
 use App\Http\Middleware\Auth;
 use Core\App;
 use Core\Database;
+use App\Services\notifications\NotificationService;
 
 
 class LeaveReviewController {
 
     private Database $db;
+    private Auth $auth;
+    private NotificationService $notificationService;
 
     public function __construct() {
         $this->db = App::resolve(Database::class);
+        $this->auth = App::resolve(Auth::class);
+        $this->notificationService = App::resolve(NotificationService::class);
     }
 
     /**
@@ -21,10 +26,9 @@ class LeaveReviewController {
      */
     public function index() {
 
-        $db = App::resolve(Database::class);
-        $currentUser = Auth::authenticate();
+        $current_user = $this->auth->authenticate();
 
-        $current_user_id = $currentUser['id'] ?? null;
+        $current_user_id = $current_user['id'] ?? null;
 
         if (!$current_user_id) {
             http_response_code(404);
@@ -32,11 +36,7 @@ class LeaveReviewController {
             exit;
         }
 
-        $currentUser = $db->query("SELECT role FROM users WHERE id = :id", [
-            'id' => $current_user_id
-        ])->find();
-
-        $role = $currentUser['role'];
+        $role = $current_user['role'];
         $params = [];
 
         $sql = "
@@ -69,7 +69,7 @@ class LeaveReviewController {
             exit;
         }
 
-        $leavesList = $db->query($sql, $params)->all();
+        $leavesList = $this->db->query($sql, $params)->all();
 
         echo json_encode([
             'success' => true,
@@ -83,22 +83,17 @@ class LeaveReviewController {
 
     public function patch($id) {
 
-        $db = App::resolve(Database::class);
-        $currentUser = Auth::authenticate();
+        $current_user = $this->auth->authenticate();
 
-        $current_user_id = $currentUser['id'] ?? null;
+        $current_user_id = $current_user['id'] ?? null;
 
         if (!$current_user_id) {
             http_response_code(404);
             echo json_encode(["error" => "User not found"]);
             exit;
         }
-
-        $currentUser = $db->query("SELECT role FROM users WHERE id = :id", [
-            'id' => $current_user_id
-        ])->find();
-
-        $role = $currentUser['role'] ?? null;
+        
+        $role = $current_user['role'] ?? null;
         $params = ['id' => $id];
 
 
@@ -125,7 +120,8 @@ class LeaveReviewController {
             exit;
         }
 
-        $authorizedUser = $db->query($sql, $params)->find();
+        // capture the authorized user
+        $authorizedUser = $this->db->query($sql, $params)->find();
 
         // capture the new value
         $input = json_decode(file_get_contents('php://input'), true);
@@ -151,30 +147,60 @@ class LeaveReviewController {
             exit;
         }
 
-        $db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
+        $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
             'id'               => $id,
             'status'           => $status,
             'rejection_reason' => $rejectionReason
         ]);
 
-        $rejected = $db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
+        $rejected = $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
             'id' => $id,
             'status' => $status,
             'rejection_reason' => $rejectionReason
         ]);
 
-        $leaveRequest = $db->query("SELECT * FROM leave_requests WHERE id = :id", [
+        $leaveRequest = $this->db->query("SELECT * FROM leave_requests WHERE id = :id", [
             'id' => $id,
         ])->find();
 
         if($status == 'rejected') {
-            $db->query("UPDATE leave_balance SET remaining_balance = remaining_balance + :used_days, used_days = used_days - :used_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
+            $this->db->query("UPDATE leave_balance SET remaining_balance = remaining_balance + :used_days, used_days = used_days - :used_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
+                'employee_id' => $leaveRequest['user_id'],
+                'used_days' => $leaveRequest['total_days'],
+                'leave_type_id' => $leaveRequest['leave_type_id'],
+            ]);
+        }else if($status == 'approved') {
+            $this->db->query("UPDATE leave_balance SET remaining_balance = remaining_balance - :used_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
                 'employee_id' => $leaveRequest['user_id'],
                 'used_days' => $leaveRequest['total_days'],
                 'leave_type_id' => $leaveRequest['leave_type_id'],
             ]);
         }
 
+
+        if($status == 'approved') {
+            $this->notificationService->store($leaveRequest['user_id'], 
+            'Leave Request Approved', 
+            'leave_request_approved', 
+            'Your Leave Request has been approved', 
+            'false',
+            [
+                'leave_request_id' => $id,
+            ]
+            );
+        } else if($status == 'rejected') {
+            $this->notificationService->store($leaveRequest['user_id'], 
+            'Leave Request Rejected', 
+            'leave_request_rejected', 
+            'Your Leave Request has been rejected', 
+            'false',
+            [
+                'leave_request_id' => $id,
+            ]
+            );
+        }
+
+        
 
         http_response_code(200);
         echo json_encode([
@@ -184,8 +210,6 @@ class LeaveReviewController {
             'authorized_user' => $authorizedUser,
             'rejected' => $rejected,
         ]);
-
-
 
 
 

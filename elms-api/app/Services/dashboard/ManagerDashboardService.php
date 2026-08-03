@@ -123,40 +123,6 @@ class ManagerDashboardService implements LeaveAnalyticsInterface
 
     }
 
-//    public function getTotalEmployees(): array
-//    {
-//
-//        $authenticatedUser = $this->db->query("
-//            SELECT
-//                u.id,
-//                u.first_name AS first_name,
-//                u.last_name AS last_name,
-//                u.role AS user_role,
-//                u.department AS department,
-//                u.is_active AS is_active
-//            FROM users u
-//            WHERE u.id = :manager_id AND u.role = :role
-//        ", [
-//            'manager_id' => $this->managerId,
-//            'role' => $this->userRole,
-//        ])->all();
-//
-//        $users = [];
-//
-//        foreach ($authenticatedUser as $user) {
-//
-//            $users[] = $this->executeTotalEmployees(
-//                $user['department'],
-//                $user['user_role'],
-//                $this->managerId,
-//            );
-//
-//
-//        }
-//
-//        return $users;
-//    }
-
 
     public function getRecentActivity(): array
     {

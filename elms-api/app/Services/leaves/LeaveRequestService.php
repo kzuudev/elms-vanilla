@@ -7,6 +7,7 @@ use Core\App;
 use Core\Database;
 use App\Contracts\LeaveRequestInterface;
 use App\Http\Forms\LeaveRequestForm;
+use App\Services\notifications\NotificationService;
 use DateTime;
 use DateInterval;
 use DatePeriod;
@@ -116,15 +117,26 @@ class LeaveRequestService implements LeaveRequestInterface {
     }
 
     // insert the leave request into the database
-    $this->db->query("INSERT INTO leave_requests (user_id, leave_type_id, start_date, end_date, total_days, reason, status, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date, :total_days, :reason, 'pending', :assigned_to)", [
+    $this->db->query("INSERT INTO leave_requests (user_id, leave_type_id, start_date, end_date, total_days, reason, status, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date, :total_days, :reason, :status, :assigned_to)", [
         'user_id' => $user_id,
         'leave_type_id' => $leave_type_id,
         'start_date' => $start_date,
         'end_date' => $end_date,
         'total_days' => $days_requested,
         'reason' => $reason,
-        'assigned_to' => $assigned_to['approver_id'] ?? null,
+        'status' => 'pending',
+        'assigned_to' => $assigned_to['approver_id'] ?? null
     ]);
+
+    $notificationService = new NotificationService();
+    $notificationService->store(
+       $assigned_to['approver_id'],
+       'New Leave Request Submitted',
+       'leave_request_submitted',
+       'A new leave request has been submitted for your approval. Please review it and take appropriate action.',
+       false,
+       ['leave_request_id' => $this->db->lastInsertId()]
+    );
 
     http_response_code(200);
     echo json_encode(['success' => 'Leave request submitted successfully']);
@@ -147,7 +159,7 @@ class LeaveRequestService implements LeaveRequestInterface {
             LEFT JOIN users u ON lr.user_id = u.id
             WHERE lr.deleted_at IS NULL
             AND (lr.user_id = :user_id
-            OR lr.assigned_to = :user_id)
+            OR lr.assigned_to = :assigned_to)
             ORDER BY lr.created_at DESC
         ", [
             'user_id' => $user_id,
