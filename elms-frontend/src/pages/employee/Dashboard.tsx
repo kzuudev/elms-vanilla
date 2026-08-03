@@ -13,7 +13,8 @@ import MonthlyLeavesConsumption from "@/features/dashboard/components/MonthlyLea
 import BalanceBreakDownChart from "@/features/dashboard/components/BalanceBreakDownChart.tsx";
 import TeamCoverageWidget from "@/features/dashboard/components/TeamCoverageWidget.tsx";
 import RecentActivityTable from "@/features/dashboard/components/RecentActivityTable.tsx";
-import Search from "@/components/ui/search.tsx";
+import Notifications from "@/components/layout/Notifications.tsx";
+import UserProfile from "@/components/layout/UserProfile";
 
 
 export default function EmployeeDashboard() {
@@ -62,8 +63,14 @@ export default function EmployeeDashboard() {
                    <div className="flex flex-col gap-4">
                        <div className="flex justify-between items-center">
                            <h1 className="text-lg text-black">Dashboard</h1>
-                           <Search />
+
+                           <div className="flex items-center gap-4">
+                                <Notifications />
+                                <UserProfile />
+                           </div>
                        </div>
+
+
 
                        <LeaveSummaryGrid/>
 

@@ -14,8 +14,14 @@ export default function UserProfile() {
     return (
         <>
             <div>
-                <p className="text-sm text-black">{user?.name || "Manager"}</p>
-                <p className="text-sm text-gray-500">{user?.email} </p>
+                <div>
+                    
+                </div>
+
+                <div>
+                    <p className="text-sm text-black">{user?.name || "Manager"}</p>
+                    <p className="text-sm text-gray-500">{user?.email} </p>
+                </div>
             </div>
         </>
     )

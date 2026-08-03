@@ -95,7 +95,7 @@ export type LeaveActivityRecord = {
     employee_department?: string; // admin-only
     manager_name?: string | null; // employee-only (who approved it)
     leave_type: string;
-    leave_status: 'pending' | 'approved' | 'rejected';;
+    leave_status: 'pending' | 'approved' | 'rejected';
     reason: string;
     start_date: string;
     end_date: string;

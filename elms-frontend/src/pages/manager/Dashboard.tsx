@@ -3,6 +3,8 @@
 import {useEffect, useState} from "react";
 import {api} from "@/lib/api.ts";
 
+import {ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
+
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import UserProfile from "@/components/layout/UserProfile.tsx";
 import LeaveSummaryGrid from "@/features/dashboard/components/LeaveSummaryGrid.tsx";
@@ -11,8 +13,8 @@ import MonthlyLeavesConsumption from "@/features/dashboard/components/MonthlyLea
 import TeamCoverageWidget from "@/features/dashboard/components/TeamCoverageWidget.tsx";
 import TeamInsights from "@/features/dashboard/components/TeamInsights.tsx";
 import RecentActivityTable from "@/features/dashboard/components/RecentActivityTable.tsx";
+import Notifications from "@/components/layout/Notifications.tsx";
 
-import {ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 
 import type {
     TotalPendingRequest,
@@ -61,8 +63,8 @@ export default function ManagerDashboard() {
             setTeamAvailability(response.data.team_availability);
             setTotalUsers(response.data.total_users);
             setRecentActivity(response.data.recent_activity);
-        }catch (e) {
-            setError(e.response.data.message);
+        }catch (e: any) {
+            setError(e.response?.data?.message || "An error occurred while fetching manager dashboard");
         }
     }
 
@@ -87,7 +89,10 @@ export default function ManagerDashboard() {
                               </div>
                           </div>
 
-                          <UserProfile />
+                          <div className="flex items-center gap-2">
+                            <Notifications />
+                            <UserProfile />
+                          </div>
                       </div>
 
                       <LeaveSummaryGrid/>

@@ -10,7 +10,6 @@ import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
 
 import { employeeColumns, managerColumns, adminColumns } from "@/config/activity-columns.tsx";
 
-
 import { Card } from "@/components/ui/card.tsx";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import type {ColumnConfig} from "@/types/table.ts";
@@ -37,9 +36,9 @@ export default function RecentActivityTable() {
     };
 
     const dataByRole: Record<UserRole, LeaveActivityRecord[] | undefined> = {
-        employee: employeeAnalytics?.recentActivity,
-        manager: managerAnalytics?.recentActivity,
-        admin: adminAnalytics?.recentActivity,
+        employee: employeeAnalytics?.recentActivity ?? [],
+        manager: managerAnalytics?.recentActivity ?? [],
+        admin: adminAnalytics?.recentActivity ?? [],
     };
 
     const columns = columnsByRole[currentRole] ?? employeeColumns;
