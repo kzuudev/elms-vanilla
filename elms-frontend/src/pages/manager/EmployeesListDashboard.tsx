@@ -2,6 +2,8 @@
 
 import {useState, useEffect, useRef} from "react";
 import {api} from "@/lib/api.ts";
+import axios from "axios";
+
 import { EmployeesContext } from "@/features/context/employees/EmployeesContext.tsx";
 
 import { type EmployeeDetails} from "@/types/leave.ts";
@@ -12,6 +14,7 @@ import UserProfile from "@/components/layout/UserProfile.tsx";
 
 import EmployeeSummaryGrid from "@/features/dashboard/components/EmployeeSummaryGrid.tsx";
 import UserFilterBar from "@/features/employees/components/UserFilterBar.tsx";
+
 
 
 export default function EmployeesListDashboard() {
@@ -30,20 +33,28 @@ export default function EmployeesListDashboard() {
     const holder = localStorage.getItem("token");
 
     const employeesControllerRef = useRef<AbortController | null>(null);
+    employeesControllerRef.current = new AbortController();
 
     const fetchEmployees = async () => {
-        const controller = new AbortController();
         employeesControllerRef.current?.abort();
-        employeesControllerRef.current = controller;
 
-        const holder = localStorage.getItem("token");
+       try{
+            const holder = localStorage.getItem("token");
 
-        const response = await api.get("/employees-list", {
-            headers: {
-                Authorization: `Bearer ${holder}`,
+            const response = await api.get("/employees-list", {
+                headers: {
+                    Authorization: `Bearer ${holder}`,
+                },
+                signal: employeesControllerRef.current?.signal
+            });
+            setEmployees(response.data.employee_list);
+       }catch (e) {
+            if (axios.isAxiosError(e)) {
+                setError(e.response?.data?.message ?? "Failed to fetch employees");
+            } else {
+                setError("Failed to fetch employees");
             }
-        });
-        setEmployees(response.data.employee_list);
+       }
     }
 
     useEffect(() => {
@@ -100,6 +111,10 @@ export default function EmployeesListDashboard() {
                               setDepartmentFilter={setDepartmentFilter}
                               onSearchSubmit={fetchEmployees}
                           />
+                      </div>
+
+                      <div className="mt-4">
+                          <EmployeeListTable/>
                       </div>
                   </div>
 

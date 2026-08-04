@@ -12,7 +12,6 @@ interface UserFilterBarProps {
     departmentFilter: string;
     setDepartmentFilter: (department: string) => void;
     onSearchSubmit: () => void;
-
 }
 
 export default function UserFilterBar(props: UserFilterBarProps) {

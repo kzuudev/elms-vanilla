@@ -16,8 +16,10 @@ type NotificationListProps = {
 export default function NotificationList({ notifications, markAsRead }: NotificationListProps) {
     const [selectedTab, setSelectedTab] = useState<"all" | "unread">("all");
 
+    // filter the notifications based on the selected tab
     const filtered = useMemo(() => {
         if (selectedTab === "unread") {
+            // filter the notifications to only show the unread ones
             return notifications.filter((n) => !n.read_at);
         }
         return notifications;

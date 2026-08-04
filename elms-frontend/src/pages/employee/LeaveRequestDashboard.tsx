@@ -1,20 +1,28 @@
-import {useState, useEffect} from "react";
+import {useState, useEffect, useRef} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
 import axios from "axios";
 import { LeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
 import {api} from "@/lib/api.ts";
+
+import type {LeaveRequest, TableData} from "@/types/leave.ts";
+import { buildQueryString } from "@/utils/query-string.ts";
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import Header from "@/components/layout/Header.tsx";
 import LeaveRequestForm from "@/features/leaves/components/LeaveRequestForm.tsx";
 import LeaveBalanceSection from "@/features/leaves/components/LeaveBalanceSection.tsx";
 import EmployeeLeaveTable from "@/features/leaves/components/EmployeeLeaveTable.tsx";
+import Notifications from "@/components/layout/Notifications";
+import UserProfile from "@/components/layout/UserProfile.tsx";
+import LeaveFilterBar from "@/features/leaves/components/LeavesFilterBar.tsx";
+
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {Button} from "@/components/ui/button";
+
 import { CheckCircle2Icon } from "lucide-react";
-import type {LeaveRequest, TableData} from "@/types/leave.ts";
+
 
 export default function LeaveRequestDashboard() {
 
@@ -29,15 +37,32 @@ export default function LeaveRequestDashboard() {
     const [error, setError] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
+    const [leaveTypeQuery, setLeaveTypeQuery] = useState<string>('');
+    const [statusQuery, setStatusQuery] = useState<string>('');
+    const [startDateQuery, setStartDateQuery] = useState<string>('');
+    const [endDateQuery, setEndDateQuery] = useState<string>('');
+
+    const leaveRequestsControllerRef = useRef<AbortController | null>(null);
 
     const fetchLeaveRequests = async () => {
 
+        const controller = new AbortController(); // create a new controller
+        leaveRequestsControllerRef.current?.abort(); // cancel the previous request
+        leaveRequestsControllerRef.current = controller; // assign the controller to the ref
+
         try {
             const holder = localStorage.getItem("token");
-            const response = await api.get("/leave-request", {
+            const queryString = buildQueryString({
+                leaveType: leaveTypeQuery,
+                status: statusQuery,
+                startDate: startDateQuery,
+                endDate: endDateQuery,
+            });
+            const response = await api.get(`/leave-request${queryString}`, {
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 },
+                signal: controller.signal,
             });
             setLeaveRequests(
                 Array.isArray(response.data.leave_requests)
@@ -45,10 +70,13 @@ export default function LeaveRequestDashboard() {
                     : response.data.leave_requests?.data ?? []
             );
         }catch (e) {
+            if (axios.isCancel(e)) return;
             if (axios.isAxiosError(e)) {
                 setError(e.response?.data?.message ?? "Failed to fetch leave requests");
+                setLeaveRequests([]);
             } else {
                 setError("Failed to fetch leave requests");
+                setLeaveRequests([]);
             }
         }
     }
@@ -131,19 +159,10 @@ export default function LeaveRequestDashboard() {
 
                         <div className="flex justify-between items-center w-full">
                             <Header/>
-                            <Dialog open={open} onOpenChange={setOpen}>
-                                <DialogTrigger asChild>
-                                    <Button className="text-sm rounded-md bg-black text-white px-4 py-2">
-                                        Apply for Leave
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[430px]">
-                                    <DialogHeader className="text-lg font-bold">
-                                        <DialogTitle>Apply for Leave</DialogTitle>
-                                    </DialogHeader>
-                                    <LeaveRequestForm closeDialog={() => setOpen(false)} />
-                                </DialogContent>
-                            </Dialog>
+                            <div className="flex items-center gap-4">
+                                <Notifications />
+                                <UserProfile />
+                            </div>
                         </div>
                     </div>
 
@@ -151,7 +170,37 @@ export default function LeaveRequestDashboard() {
                         <LeaveBalanceSection/>
 
                         <div className="mt-8">
-                            <h1>Leave Request History</h1>
+                            <div className="flex items-center justify-between">
+                                <h1>Leave Request History</h1>
+
+                                <Dialog open={open} onOpenChange={setOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button className="text-sm rounded-md bg-black text-white px-4 py-2">
+                                            Apply for Leave
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[430px]">
+                                        <DialogHeader className="text-lg font-bold">
+                                            <DialogTitle>Apply for Leave</DialogTitle>
+                                        </DialogHeader>
+                                        <LeaveRequestForm closeDialog={() => setOpen(false)} />
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+
+                            <div className="mt-4">
+                                <LeaveFilterBar
+                                    leaveTypeQuery={leaveTypeQuery}
+                                    setLeaveTypeQuery={setLeaveTypeQuery}
+                                    statusQuery={statusQuery}
+                                    setStatusQuery={setStatusQuery}
+                                    startDateQuery={startDateQuery}
+                                    setStartDateQuery={setStartDateQuery}
+                                    endDateQuery={endDateQuery}
+                                    setEndDateQuery={setEndDateQuery}
+                                    onSearchSubmit={fetchLeaveRequests}
+                                />
+                            </div>
 
                             <div className="mt-4">
                                 <EmployeeLeaveTable/>

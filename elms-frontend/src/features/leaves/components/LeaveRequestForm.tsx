@@ -103,9 +103,11 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
                     type: "server",
                     message: "",
                 });
+
                 fetchLeaveRequests();
                 fetchLeaveBalance();
                 closeDialog();
+
                 if(role === "admin") {
                     navigate("/admin/leaves", {
                         state: {
@@ -114,7 +116,9 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
                     });
                 }else if (role === "manager") {
                     navigate("/manager/leaves", {
-                        state: {}
+                        state: {
+                            successfullySubmitted: true,
+                        }
                     })
                 }else {
                     navigate("/employee/leave-request", {

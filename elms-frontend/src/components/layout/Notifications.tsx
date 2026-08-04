@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 import { api } from "@/lib/api";
 import axios from "axios";
@@ -10,8 +10,11 @@ import type { Notification } from "@/types/notification";
 
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
 
 import { Bell } from "lucide-react";
+
 
 export default function Notifications() {
 
@@ -30,7 +33,7 @@ export default function Notifications() {
         controllerRef.current = controller;
 
         const holder = localStorage.getItem("token");
-        try {
+        try {   
             const response = await api.get("/notifications", {
                 headers: {
                     Authorization: `Bearer ${holder}`
@@ -58,20 +61,13 @@ export default function Notifications() {
 
        try{
             const response = await api.patch(
-                `/notifications/${id}`,
-                {},
+                `/notifications/${id}`, {notifications: {read_at: new Date().toISOString()}},
                 {
                     headers: {
                         Authorization: `Bearer ${holder}`
                     },
                     signal: controller.signal
                 }
-            );
-            // Optimistic local update so the row flips to read without full reload flicker
-            setNotifications((prev) =>
-                prev.map((n) =>
-                    n.id === id ? { ...n, read_at: new Date().toISOString() } : n
-                )
             );
             return response.data.mark_as_read;
        }catch (error: any) {
@@ -87,12 +83,24 @@ export default function Notifications() {
         fetchNotifications();
     }, []);
 
+    const totalNotifications = useMemo(() => {
+        if(notifications.length > 0) {
+            return notifications.filter((n) => !n.read_at).length;
+        }
+
+        return 0;
+    }, [notifications])
+
     return (
         <div>
             <Dialog>
                 <DialogTrigger> 
-                    <Button variant="ghost" size="icon">
-                        <Bell />
+                    <Button className="relative" variant="ghost" size="icon">
+                        <Bell className="w-4 h-4" />
+
+                        <Badge className="absolute w-4 h-4 flex items-center justify-center text-white bg-red-500 border-none text-xs rounded-full -top-1 -right-1" variant="destructive">
+                            {totalNotifications}
+                        </Badge>
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden">

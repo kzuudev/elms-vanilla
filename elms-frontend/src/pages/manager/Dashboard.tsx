@@ -83,10 +83,6 @@ export default function ManagerDashboard() {
                           <div className="">
                               <h1 className="text-gray-600">Dashboard</h1>
                               <h2 className="text-sm text-gray-500">Track employee activities, stats, and updates</h2>
-
-                              <div>
-                                  <Search />
-                              </div>
                           </div>
 
                           <div className="flex items-center gap-2">

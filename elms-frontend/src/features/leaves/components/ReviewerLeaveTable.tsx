@@ -84,9 +84,9 @@ export default function ReviewerLeaveTable() {
 
     }
 
+    // Validates overlaps for a leave request
     const validateOverlaps = async (id: number) => {
         setError(null);
-
 
         try {
             const holder = localStorage.getItem("token");
@@ -97,7 +97,6 @@ export default function ReviewerLeaveTable() {
             });
             if(response.data.success) {
                 setOverlaps(response.data.overlapping_employees || []);
-                console.log(overlaps);
                 return response.data
             }
         }catch (e) {

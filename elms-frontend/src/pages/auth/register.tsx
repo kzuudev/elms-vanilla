@@ -98,6 +98,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
                     );
                 } else {
                     setManagersError("Failed to load managers from the server");
+                    setManagers([]);
                 }
             }
         };

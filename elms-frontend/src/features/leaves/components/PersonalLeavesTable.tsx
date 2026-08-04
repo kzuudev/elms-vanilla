@@ -99,7 +99,7 @@ export default function PersonalLeavesTable() {
                         ) : (
                             personalLeaveRequests.map((leave) => (
                                 <TableRow key={leave.id}>
-                                    <TableCell>{leave.leave_type_name}</TableCell>
+                                    <TableCell>{leave.leave_type}</TableCell>
                                     <TableCell>{format(new Date(leave.start_date), 'MMMM dd, yyyy')}</TableCell>
                                     <TableCell>{format(new Date(leave.end_date), 'MMMM dd, yyyy')}</TableCell>
                                     <TableCell>{leave.reason}</TableCell>

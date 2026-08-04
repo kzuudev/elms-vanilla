@@ -12,3 +12,4 @@ export function formatE164(number: string) {
   const phoneNumber = parsePhoneNumberFromString(number, 'PH');
   return phoneNumber && phoneNumber.isValid() ? phoneNumber.number : null;
 }
+

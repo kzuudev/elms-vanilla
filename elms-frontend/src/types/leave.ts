@@ -98,7 +98,7 @@ export type ReviewerLeaveData = {
 export type PersonalLeaveRequest = {
     id: number;
     user_id: number;
-    leave_type_name: string;
+    leave_type: string;
     reason: string;
     start_date: string;
     end_date: string;
