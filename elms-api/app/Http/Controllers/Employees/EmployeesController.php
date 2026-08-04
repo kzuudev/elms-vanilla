@@ -100,47 +100,7 @@ class EmployeesController {
          ]);
     }
 
-    /**
-     * Managers for the invite form (department-scoped for department admins).
-     */
-    public function managers() {
-        if (!$this->currentUserId) {
-            http_response_code(401);
-            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-            return;
-        }
-
-        if (!in_array($this->currentUserRole, ['admin', 'super admin'], true)) {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'error' => 'Only admins can list managers']);
-            return;
-        }
-
-        $query = "
-            SELECT id, first_name, last_name, email, role, department
-            FROM users
-            WHERE role = 'manager'
-              AND is_active = 1
-        ";
-        $params = [];
-
-        // Department admin only sees managers in their department
-        if ($this->currentUserRole === 'admin') {
-            $query .= " AND department = :department";
-            $params['department'] = $this->currentUserDepartment;
-        }
-
-        $query .= " ORDER BY first_name, last_name";
-
-        $managers = $this->db->query($query, $params)->all();
-
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Managers fetched successfully',
-            'managers' => $managers ?: [],
-        ]);
-    }
+    
 
     public function show($id) {
       
@@ -181,23 +141,6 @@ class EmployeesController {
             FROM users 
             WHERE role = 'manager' AND is_active = 1
         ")->all();
-
-
-//
-//        $userDetails = [
-//            'id' => $user['id'],
-//            'first_name' => $user['first_name'],
-//            'last_name' => $user['last_name'],
-//            'email' => $user['email'],
-//            'phone' => $user['phone'],
-//            'role' => $user['role'],
-//            'manager_id' => $user['manager_id'],
-//            'department' => $user['department'],
-//            'is_active' => $user['is_active'],
-//            'hired_date' => $user['hired_date'],
-//            'salary' => $user['salary'],
-//            'managers' => $managers
-//        ];
 
         if(!$managers) {
             http_response_code(404);
@@ -418,6 +361,48 @@ class EmployeesController {
         ]);
     }
 
+    /**
+     * Managers for the invite form (department-scoped for department admins).
+     */
+    public function managers() {
+        if (!$this->currentUserId) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        if (!in_array($this->currentUserRole, ['admin', 'super admin'], true)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Only admins can list managers']);
+            return;
+        }
+
+        $query = "
+            SELECT id, first_name, last_name, email, role, department
+            FROM users
+            WHERE role = 'manager'
+            AND is_active = 1
+        ";
+        $params = [];
+
+        // Department admin only sees managers in their department
+        if ($this->currentUserRole === 'admin') {
+            $query .= " AND department = :department";
+            $params['department'] = $this->currentUserDepartment;
+        }
+
+        $query .= " ORDER BY first_name, last_name";
+
+        $managers = $this->db->query($query, $params)->all();
+
+        http_response_code(200);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Managers fetched successfully',
+            'managers' => $managers ?: [],
+        ]);
+        return;
+    }
 
 
 

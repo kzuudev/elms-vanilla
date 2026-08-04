@@ -7,7 +7,7 @@ interface LeaveRequestInterface {
 
     public function store(array $input, int $user_id, string $role): void;
 
-    public function index(int $user_id, string $role): void;
+    public function index(int $user_id, string $role, ?string $department): void;
 
     public function show(int $id, int $user_id, string $role): void;
 

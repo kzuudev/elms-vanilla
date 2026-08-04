@@ -20,6 +20,7 @@ $router = new Router();
 $router->post('/', [LoginController::class, 'login'])->only('guest');
 $router->post('/verify-email', [VerifyEmailController::class, 'verifyEmail']);
 $router->post('/leave-request', [LeaveRequestController::class, 'store'])->only('auth');
+$router->get('/leave-types', [LeaveRequestController::class, 'leaveTypes'])->only('auth');
 
 // view leave balance
 $router->get('/leave-balance/me', [EmployeeLeaveBalanceController::class, 'index'])->only('auth');

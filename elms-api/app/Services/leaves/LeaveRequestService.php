@@ -144,42 +144,75 @@ class LeaveRequestService implements LeaveRequestInterface {
 
     }
 
-    public function index($user_id, $role): void {
+    public function index($user_id, $role, $department): void {
 
-    if ($user_id && $role) {
-       
-        $leave_requests = $this->db->query("SELECT 
-                lr.*, 
-                CONCAT(m.first_name, ' ', m.last_name) AS assigned_name, 
-                m.id AS assigned_to,
-                lt.name AS leave_type 
-            FROM leave_requests lr
-            LEFT JOIN users m ON lr.assigned_to = m.id 
-            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id 
-            LEFT JOIN users u ON lr.user_id = u.id
-            WHERE lr.deleted_at IS NULL
-            AND (lr.user_id = :user_id
-            OR lr.assigned_to = :assigned_to)
-            ORDER BY lr.created_at DESC
-        ", [
-            'user_id' => $user_id,
-            'assigned_to' => $user_id
-        ])->all();
+        if ($user_id && $role) {
+            $query = "
+                SELECT 
+                    lr.*,
+                    CONCAT(m.first_name, ' ', m.last_name) AS assigned_name,
+                    lt.name as leave_type
+                FROM leave_requests lr
+                LEFT JOIN users u ON lr.user_id = u.id
+                LEFT JOIN users m ON lr.assigned_to = m.id
+                LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+                WHERE lr.user_id = :user_id
+            ";
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => 'Leave requests fetched successfully',
-            'leave_requests' => [
-                'data' => $leave_requests,
-            ],
-        ]);
-        return;
-    }else {
-        http_response_code(403);
-        echo json_encode(['error' => 'You are not authorized to fetch leave requests.']);
-        return;
-        exit;
-    }
+            $params = [
+                'user_id' => $user_id,
+            ];
+
+            $search_type = $_GET['search_type'] ?? "";
+            $start_date = $_GET['start_date'] ?? "";
+            $end_date = $_GET['end_date'] ?? "";
+            $status = $_GET['status'] ?? "";
+
+
+            if (!empty($search_type)) {
+                $query .= " AND lt.name = :leave_type";
+                $params['leave_type'] = $search_type;
+            }
+
+            if (!empty($start_date)) {
+                $query .= " AND lr.start_date = :start_date AND lr.start_date >= :start_date";
+                $params['start_date'] = $start_date;
+            }
+
+            if (!empty($end_date)) {
+                $query .= " AND lr.end_date = :end_date AND lr.end_date <= :end_date";
+                $params['end_date'] = $end_date;
+            }
+
+            if (!empty($status)) {
+                $query .= " AND lr.status = :status";
+                $params['status'] = $status;
+            }
+
+            $query .= " ORDER BY lr.created_at DESC";
+            $leave_requests = $this->db->query($query, $params)->all();
+
+
+            if (empty($leave_requests)) {
+                http_response_code(404);
+                echo json_encode(['error' => 'No leave requests found.']);
+                exit;
+            }
+
+            http_response_code(200);
+            echo json_encode([
+                'success' => 'Leave requests fetched successfully',
+                'leave_requests' => [
+                    'data' => $leave_requests,
+                ],
+            ]);
+            return;
+        }else {
+            http_response_code(403);
+            echo json_encode(['error' => 'You are not authorized to fetch leave requests.']);
+            return;
+            exit;
+        }
     }
 
     public function show($id, $user_id, $role): void {
