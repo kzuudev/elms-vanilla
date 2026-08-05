@@ -65,7 +65,11 @@ class LeaveRequestController
 
         if (!$this->user_id) {
             http_response_code(401);
-            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Unauthorized',
+                'user_id' => $this->user_id
+            ]);
             return;
         }
 

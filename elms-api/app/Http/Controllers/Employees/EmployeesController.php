@@ -33,7 +33,7 @@ class EmployeesController {
     public function index() {
         
         if(!$this->currentUserId) {
-            http_response_code(404);
+            http_response_code(401);
             echo json_encode(["error" => "Admin not found"]);
             exit;
         }
@@ -105,7 +105,7 @@ class EmployeesController {
     public function show($id) {
       
         if(!$this->currentUserId) {
-            http_response_code(404);
+            http_response_code(401);
             echo json_encode(["error" => "Admin not found"]);
             exit;
         }
@@ -142,13 +142,6 @@ class EmployeesController {
             WHERE role = 'manager' AND is_active = 1
         ")->all();
 
-        if(!$managers) {
-            http_response_code(404);
-            echo json_encode(["error" => "Manager not found"]);
-            exit;
-        }
-
-
         http_response_code(200);
         echo json_encode([
             'success' => true,
@@ -172,7 +165,7 @@ class EmployeesController {
         }
 
         if(!$current_user_id) {
-            http_response_code(404);
+            http_response_code(401);
             echo json_encode(["error" => "Admin not found"]);
             exit;
         }
@@ -246,7 +239,7 @@ class EmployeesController {
     public function destroy($id) {
 
         if(!$this->currentUserId) {
-            http_response_code(404);
+            http_response_code(401);
             echo json_encode(["error" => "Admin not found"]);
             exit;
         }
@@ -345,7 +338,7 @@ class EmployeesController {
     public function summary() {
 
         if(!$this->currentUserId) {
-            http_response_code(404);
+            http_response_code(401);
             echo json_encode(["error" => "Admin not found"]);
             exit;
         }

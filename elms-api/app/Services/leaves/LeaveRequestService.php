@@ -48,7 +48,11 @@ class LeaveRequestService implements LeaveRequestInterface {
         // validate the inputs
         if (!$leaveRequestForm->validate($leave_type, $start_date, $end_date, $reason)) {
             http_response_code(422);
-            echo json_encode($leaveRequestForm->errors());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid inputs.',
+                'errors' => $leaveRequestForm->errors()
+            ]);
             return;
         }
 
@@ -71,7 +75,11 @@ class LeaveRequestService implements LeaveRequestInterface {
 
         if (!$leaveTypeRecord) {
             http_response_code(422);
-            echo json_encode(['error' => 'Invalid leave type.']);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid leave type.',
+                'leave_type_id' => $leave_type_id
+            ]);
             return;
         }
 
@@ -100,19 +108,31 @@ class LeaveRequestService implements LeaveRequestInterface {
 
         if ($overlap) {
             http_response_code(422);
-            echo json_encode(['error' => 'You already have a pending or approved request for this leave type during the selected dates.']);
+            echo json_encode([
+                'success' => false,
+                'message' => 'You already have a pending or approved request for this leave type during the selected dates.',
+                'leave_request_id' => $overlap['id']
+            ]);
             return;
         }
 
         if (!$remaining_balance || $remaining_balance['remaining_balance'] < $days_requested) {
             http_response_code(422);
-            echo json_encode(['error' => 'Insufficient leave balance for this leave type.']);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Insufficient leave balance for this leave type.',
+                'leave_request_id' => $remaining_balance['id']
+            ]);
             return;
         }
 
         if (!$role) {
-            http_response_code(403);
-            echo json_encode(['error' => 'You are not authorized to submit a leave request.']);
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'message' => 'You are not authorized to submit a leave request.',
+                'leave_request_id' => $user_id
+            ]);
             return;
         }
 
@@ -138,8 +158,12 @@ class LeaveRequestService implements LeaveRequestInterface {
         ['leave_request_id' => $this->db->lastInsertId()]
         );
 
-        http_response_code(200);
-        echo json_encode(['success' => 'Leave request submitted successfully']);
+        http_response_code(201);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Leave request submitted successfully',
+            'leave_request_id' => $this->db->lastInsertId()
+            ]);
         return;
 
     }
@@ -193,25 +217,19 @@ class LeaveRequestService implements LeaveRequestInterface {
             $leave_requests = $this->db->query($query, $params)->all();
 
 
-            if (empty($leave_requests)) {
-                http_response_code(404);
-                echo json_encode(['error' => 'No leave requests found.']);
-                exit;
-            }
-
             http_response_code(200);
             echo json_encode([
-                'success' => 'Leave requests fetched successfully',
+                'success' => true,
+                'message' => 'Leave requests fetched successfully',
                 'leave_requests' => [
                     'data' => $leave_requests,
                 ],
             ]);
             return;
         }else {
-            http_response_code(403);
+            http_response_code(401);
             echo json_encode(['error' => 'You are not authorized to fetch leave requests.']);
             return;
-            exit;
         }
     }
 
@@ -233,30 +251,41 @@ class LeaveRequestService implements LeaveRequestInterface {
 
             if (!$leave_request) {
                 http_response_code(404);
-                echo json_encode(['error' => 'Leave request not found.']);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Leave request not found.',
+                    'leave_request_id' => $id
+                ]);
                 return;
             }
 
             // validate if the user is the owner of the leave request or the assigned to the leave request
             if ((int) $leave_request['user_id'] !== (int) $user_id
                 && (int) ($leave_request['assigned_to'] ?? 0) !== (int) $user_id) {
-                http_response_code(403);
-                echo json_encode(['error' => 'You are not authorized to fetch this leave request.']);
+                http_response_code(401);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'You are not authorized to fetch this leave request.',
+                    'leave_request_id' => $id
+                ]);
                 return;
             }
 
             http_response_code(200);
             echo json_encode([
-                'success' => 'Leave request fetched successfully',
+                'success' => true,
+                'message' => 'Leave request fetched successfully',
                 'leave_request' => $leave_request,
             ]);
             return;
-            exit;
         }else {
-            http_response_code(403);
-            echo json_encode(['error' => 'You are not authorized to fetch this leave request.']);
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'message' => 'You are not authorized to fetch this leave request.',
+                'leave_request_id' => $id
+            ]);
             return;
-            exit;
         }
     }
 
@@ -276,32 +305,44 @@ class LeaveRequestService implements LeaveRequestInterface {
 
             if (!$existingLeaveRequest) {
                 http_response_code(404);
-                echo json_encode(['error' => 'Leave request not found.']);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Leave request not found.',
+                    'leave_request_id' => $id
+                ]);
                 return;
-                exit;
             }
 
             if(!$existingLeaveRequest['user_id'] == $user_id) {
-                http_response_code(403);
-                echo json_encode(['error' => 'You are not authorized to update this leave request.']);
+                http_response_code(401);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'You are not authorized to update this leave request.',
+                    'leave_request_id' => $id
+                ]);
                 return;
-                exit;
             }
 
             $current_status = $existingLeaveRequest['status'];
 
             if($current_status === 'approved') {
                 http_response_code(422);
-                echo json_encode(['error' => 'You cannot update an approved leave request.']);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'You cannot update an approved leave request.',
+                    'leave_request_id' => $id
+                ]);
                 return;
-                exit;
             }
 
             if($current_status === 'rejected') {
                 http_response_code(422);
-                echo json_encode(['error' => 'You cannot update a rejected leave request.']);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'You cannot update a rejected leave request.',
+                    'leave_request_id' => $id
+                ]);
                 return;
-                exit;
             }
 
             if (!empty($input['leave_type'] || $input['start_date'] || $input['end_date'] || $input['reason'])) {
@@ -342,9 +383,12 @@ class LeaveRequestService implements LeaveRequestInterface {
 
             if ($overlapRequest) {
                 http_response_code(422);
-                echo json_encode(['error' => 'You already have a pending or approved request for this leave type during the selected dates.']);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'You already have a pending or approved request for this leave type during the selected dates.',
+                    'leave_request_id' => $id
+                ]);
                 return;
-                exit;
             }
 
 
@@ -357,9 +401,12 @@ class LeaveRequestService implements LeaveRequestInterface {
             ])->find();
             
             http_response_code(200);
-            echo json_encode(['success' => 'Leave request updated successfully']);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Leave request updated successfully',
+                'leave_request_id' => $id
+            ]);
             return;
-            exit;
 
             
         }
@@ -375,14 +422,20 @@ class LeaveRequestService implements LeaveRequestInterface {
         ])->find();
 
         http_response_code(200);
-        echo json_encode(['success' => 'Leave request deleted successfully']);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Leave request deleted successfully',
+            'leave_request_id' => $id
+        ]);
         return;
-        exit;
     }else {
-        http_response_code(403);
-        echo json_encode(['error' => 'You are not authorized to delete this leave request.']);
+        http_response_code(401);
+        echo json_encode([
+            'success' => false,
+            'message' => 'You are not authorized to delete this leave request.',
+            'leave_request_id' => $id
+        ]);
         return;
-        exit;
     }
 
 

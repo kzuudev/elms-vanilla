@@ -5,6 +5,8 @@ use App\Services\dashboard\EmployeeDashboardService;
 use App\Services\dashboard\ManagerDashboardService;
 use App\Services\employees\EmployeeSummaryService;
 use App\Services\notifications\NotificationService;
+use App\Services\leaves\LeaveReviewService;
+
 use Core\App;
 use Core\Container;
 use Core\Database;
@@ -44,8 +46,9 @@ $container->bind(EmployeeSummaryService::class, function() {
     return new EmployeeSummaryService;
 });
 
-
-
+$container->bind(LeaveReviewService::class, function() {
+    return new LeaveReviewService();
+});
 
 App::setContainer($container);
 

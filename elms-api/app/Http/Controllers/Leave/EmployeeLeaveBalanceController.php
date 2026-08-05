@@ -25,8 +25,9 @@ class EmployeeLeaveBalanceController {
 //        }
 
         if(!$role) {
-            http_response_code(404);
+            http_response_code(401);
             echo json_encode(['error' => 'Forbidden: User not found']);
+            exit;
         }
 
         $balances = $db->query("

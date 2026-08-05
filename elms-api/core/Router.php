@@ -89,8 +89,12 @@ class Router {
 
 
 
-    protected function abort($code = 404) {
+    protected function abort($code = 404, $message = 'Not Found') {
         http_response_code($code);
+        echo json_encode([
+            'success' => false,
+            'error' => $message,
+        ]);
         die();
     }
 }
