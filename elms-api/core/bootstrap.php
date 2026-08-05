@@ -17,7 +17,7 @@ $container->bind('Core\Database', function() {
 
     $config = require 'config.php';
 
-    return new Database($config['database']);
+    return new Database($config['database'], $config['user'], $config['pass']);
 });
 
 $container->bind(Auth::class, function() {

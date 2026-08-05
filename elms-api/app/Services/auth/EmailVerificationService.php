@@ -29,13 +29,12 @@ class EmailVerificationService {
 
         $phpmailer = new PHPMailer();
         $phpmailer->isSMTP();
-        $phpmailer->Host = 'sandbox.smtp.mailtrap.io';
+        $phpmailer->Host = $_ENV['MAIL_HOST'];
         $phpmailer->SMTPAuth = true;
-        $phpmailer->Port = 2525;
-        $phpmailer->Username = '349ceb0e7b12dc';
-        $phpmailer->Password = '2c46a93e575dab';
+        $phpmailer->Username = $_ENV['MAIL_USER'];
+        $phpmailer->Password = $_ENV['MAIL_PASS'];
         $phpmailer->SMTPSecure = "tls";
-        $phpmailer->Port = 587;
+        $phpmailer->Port = (int) $_ENV['MAIL_PORT'];
         $phpmailer->setFrom("your-email@gmail.com", $name);
         $phpmailer->addAddress($email);
 

@@ -146,33 +146,38 @@ class LeaveReviewController {
             echo json_encode(["error" => "Self-approval is strictly prohibited."]);
             exit;
         }
-
-        $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
-            'id'               => $id,
-            'status'           => $status,
-            'rejection_reason' => $rejectionReason
-        ]);
-
-        $rejected = $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
-            'id' => $id,
-            'status' => $status,
-            'rejection_reason' => $rejectionReason
-        ]);
-
+   
         $leaveRequest = $this->db->query("SELECT * FROM leave_requests WHERE id = :id", [
             'id' => $id,
         ])->find();
 
         if($status == 'rejected') {
-            $this->db->query("UPDATE leave_balance SET remaining_balance = remaining_balance + :used_days, used_days = used_days - :used_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
+            // reject the leave request status
+            $rejected = $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
+                'id' => $id,
+                'status' => $status,
+                'rejection_reason' => $rejectionReason
+            ]);
+
+            // update the leave balance
+            $this->db->query("UPDATE leave_balance SET remaining_balance = remaining_balance, total_days = total_days - :total_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
                 'employee_id' => $leaveRequest['user_id'],
-                'used_days' => $leaveRequest['total_days'],
+                'total_days' => $leaveRequest['total_days'],
                 'leave_type_id' => $leaveRequest['leave_type_id'],
             ]);
         }else if($status == 'approved') {
-            $this->db->query("UPDATE leave_balance SET remaining_balance = remaining_balance - :used_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
+
+            // approved the leave request status
+            $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
+                'id'               => $id,
+                'status'           => $status,
+                'rejection_reason' => $rejectionReason
+            ]);
+
+            // update the leave balance
+            $this->db->query("UPDATE leave_balance SET remaining_balance = remaining_balance - :total_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
                 'employee_id' => $leaveRequest['user_id'],
-                'used_days' => $leaveRequest['total_days'],
+                'total_days' => $leaveRequest['total_days'],
                 'leave_type_id' => $leaveRequest['leave_type_id'],
             ]);
         }

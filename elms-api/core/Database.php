@@ -3,19 +3,26 @@
 namespace Core;
 
 use PDO;
+use PDOException;
 
 class Database {
 
     public $connection;
     public $statement;
 
-    public function __construct($config, $username = 'root', $password = '') {
+    public function __construct(array $config, string $username = 'root', string $password = '') {
 
-        $dsn = 'mysql:' . http_build_query($config, '', ';');
+        try {
 
-        $this->connection = new PDO($dsn, $username, $password, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        ]);
+            $dsn = 'mysql:' . http_build_query($config, '', ';');
+
+            $this->connection = new PDO($dsn, $username, $password, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ]);
+        } catch (PDOException $e) {
+            self::abort(500, 'Failed to connect to the database: ' . $e->getMessage());
+        }
+
     }
 
     // Prepare the SQL statement to prevent SQL injection

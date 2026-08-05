@@ -4,9 +4,16 @@ const BASE_PATH = __DIR__ . '/../';
 
 require BASE_PATH . 'core/functions.php';
 
+// load the environment variables
+require base_path('core/Env.php');
+\Core\Env::load(base_path('.env'));
+
+// load the autoloader
 require base_path('vendor/autoload.php');
+// load the bootstrap file
 require base_path('core/bootstrap.php');
 
+// set the API headers
 \Core\Header::setApiHeaders();
 
 $raw_uri = $_SERVER['REQUEST_URI'];
@@ -17,7 +24,6 @@ $headers = getallheaders();
 
 // capture the existing route from api
 $router = require base_path('core/routes/api.php');;
-
 
 try {
     $router->route($uri, $method);
