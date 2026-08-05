@@ -5,8 +5,8 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {Controller, useForm} from "react-hook-form";
 import {api} from "@/lib/api.ts";
 import {useNavigate} from "react-router-dom";
-import {useContext, useEffect} from "react";
-import {LeaveType} from "@/types/leave.ts";
+import {useContext, useEffect, useState} from "react";
+import type {LeaveType} from "@/types/leave.ts";
 import type { LeaveRequestFormData } from "@/types/leave.ts";
 import {LeaveContext, type LeaveContextType} from "@/features/context/leaves/LeaveContext.tsx";
 import {LeaveBalanceContext, type LeaveBalanceContextType} from "@/features/context/leaves/LeaveBalanceContext.tsx";
@@ -32,14 +32,37 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
     const { fetchLeaveRequests, leaveRequestDetails } = leaveContext as LeaveContextType;
     const { fetchLeaveBalance } = leaveBalanceContext as LeaveBalanceContextType;
 
+    const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
+    const [leaveTypeError, setLeaveTypeError] = useState<string | null>(null);
+
     const navigate = useNavigate();
 
 
+    const fetchLeaveTypes = async () => {
+        try{
+            const response = await api.get("/leave-types", {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                }
+            });
+    
+            if(response.data.success) {
+                setLeaveTypes(response.data.leave_types ?? []);
+            }else {
+                setLeaveTypeError(response.data.message);
+            }
+        }catch(e) {
+            setLeaveTypeError(e.response.data.message);
+        }
+    }
+
+    const leaveTypeValues = leaveTypes.map((t) => t.name) as [string, ...string[]] ?? [];
+
     const schema = z.object({
-        leave_type: z.string().min(1, {message: "Leave Type is required"}),
-        start_date: z.string().min(1, {message: "Start Date is required"}),
-        end_date: z.string().min(1, {message: "End Date is required"}),
-        reason: z.string().min(1, {message: "Reason is required"}),
+        leave_type: z.enum(leaveTypeValues as [string, ...string[]]),
+        start_date: z.string().min(1, {message: "Start Date is required"}).regex(/^\d{4}-\d{2}-\d{2}$/, {message: "Start Date must be in the format YYYY-MM-DD."}),
+        end_date: z.string().min(1, {message: "End Date is required"}).regex(/^\d{4}-\d{2}-\d{2}$/, {message: "End Date must be in the format YYYY-MM-DD."}),
+        reason: z.string().min(1, {message: "Reason is required"}).max(100, {message: "Reason must be less than 100 characters."}),
     })
 
     type LeaveRequestFormData = z.infer<typeof schema>;
@@ -56,6 +79,11 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
 
     const {setError, formState: {errors}} = form;
 
+
+    useEffect(() => {
+        fetchLeaveTypes();
+    }, []);
+
     // after fetchLeaveRequestDetails updates context, fill THIS form
     useEffect(() => {
         if (!handleSubmit || !leaveRequestDetails?.id) {
@@ -65,26 +93,12 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
         const toDateInput = (value: string) => value.slice(0, 10); // "YYYY-MM-DD HH:mm:ss" → date input
 
         form.reset({
-            leave_type: leaveRequestDetails.leave_type ?? '',
-            start_date: leaveRequestDetails.start_date ? toDateInput(leaveRequestDetails.start_date) : '',
-            end_date: leaveRequestDetails.end_date ? toDateInput(leaveRequestDetails.end_date) : '',
+            leave_type: leaveRequestDetails.leave_type ?? undefined,
+            start_date: leaveRequestDetails.start_date ? toDateInput(leaveRequestDetails.start_date) : undefined,
+            end_date: leaveRequestDetails.end_date ? toDateInput(leaveRequestDetails.end_date) : undefined,
             reason: leaveRequestDetails.reason ?? '',
         });
     }, [leaveRequestDetails, handleSubmit, form]);
-
-    const leaveOptions: { label: string; value: LeaveType }[] = [
-        {label: "Annual Leave", value: LeaveType.Annual},
-        {label: "Maternity Leave", value: LeaveType.Maternity},
-        {label: "Sick Leave", value: LeaveType.Sick},
-        {label: "Paternity Leave", value: LeaveType.Paternity},
-        {label: "Bereavement Leave", value: LeaveType.Beareavement},
-        {label: "Public Holidays", value: LeaveType.Public},
-        {label: "Court Leave", value: LeaveType.Court},
-        {label: "Compensatory Off Leave", value: LeaveType.Compoff},
-        {label: "Sabbatical Leave", value: LeaveType.Sabbatical},
-        {label: "Extended Medical Leave", value: LeaveType.Extended},
-    ];
-
 
 
     const onSubmit = async (data: LeaveRequestFormData) => {
@@ -98,7 +112,7 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
                     Authorization: `Bearer ${holder}`,
                 },
             });
-            if(response.data.success) {
+            if(response.data.success ) {
                 setError("root", {
                     type: "server",
                     message: "",
@@ -162,9 +176,9 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
                                             <SelectValue placeholder="Select Leave Type"/>
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {leaveOptions.map((opt) => (
-                                                <SelectItem key={opt.value} value={opt.label}>
-                                                    {opt.label}
+                                            {leaveTypes.length > 0 && leaveTypes?.map((type) => (
+                                                <SelectItem key={type.id} value={type.name}>
+                                                    {type.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -250,6 +264,16 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
                                             </Field>
                                         )}
                             />
+
+                            {leaveTypeError && (
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-2 flex items-start gap-3 my-4">
+                                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                                    <div>
+                                        <h3 className="text-xs font-medium text-red-800">Error</h3>
+                                        <p className="text-xs text-red-700 mt-1">{leaveTypeError}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </FieldGroup>
 

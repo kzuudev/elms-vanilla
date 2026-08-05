@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { api } from "@/lib/api";
 import axios from "axios";
 
+import type { LeaveType } from "@/types/leave";
+
 import {Button} from "@/components/ui/button.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
@@ -27,7 +29,7 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
     const {leaveTypeQuery, setLeaveTypeQuery, startDateQuery, setStartDateQuery, endDateQuery, setEndDateQuery, statusQuery, setStatusQuery, onSearchSubmit} = props;
     const [error, setError] = useState<string | null>(null);
 
-    const [leaveTypes, setLeaveTypes] = useState<{value: string, label: string}[]>([]);
+    const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
 
     const leaveTypesControllerRef = useRef<AbortController | null>(null);
 
@@ -46,12 +48,7 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
                 },
                 signal: controller.signal
             })
-            setLeaveTypes((response.data.leave_types ??  []).map((types: { id: number; name: string }) => {
-                return {
-                    value: String(types.id),
-                    label: types.name,
-                }
-            }));
+            setLeaveTypes(response.data.leave_types ?? []);
             console.log(leaveTypes);
         }catch (e) {
             if (axios.isAxiosError(e)) {
@@ -92,8 +89,8 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
                     </SelectTrigger>
                     <SelectContent>
                         {leaveTypes.map((leave) => (
-                            <SelectItem key={leave.value} value={leave.value}>
-                                {leave.label}
+                            <SelectItem key={leave.id} value={leave.name}>
+                                {leave.name}
                             </SelectItem>
                         ))}
                     </SelectContent>

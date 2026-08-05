@@ -1,18 +1,8 @@
 
 
-// @ts-ignore
-export enum LeaveType {
-    Sick = "Sick Leave",
-    Annual = "Annual Leave",
-    Paternity = "Paternity Leave",
-    Maternity = "Maternity Leave",
-    Beareavement = "Bereavement Leave",
-    Public = "Public Holidays",
-    Court = "Court Leave",
-    Compoff = "Compensatory Off Leave",
-    Sabbatical = "Sabbatical Leave",
-    Extended = "Extended Medical Leave",
-
+export type LeaveType = {
+    id: number;
+    name: string;
 }
 
 
@@ -114,17 +104,3 @@ export type Profile = {
     email: string;
     role: string;
 }
-
-
-export const leaveOptions: { label: string; value: LeaveType }[] = [
-    {label: "Annual Leave", value: LeaveType.Annual},
-    {label: "Maternity Leave", value: LeaveType.Maternity},
-    {label: "Sick Leave", value: LeaveType.Sick},
-    {label: "Paternity Leave", value: LeaveType.Paternity},
-    {label: "Bereavement Leave", value: LeaveType.Beareavement},
-    {label: "Public Holidays", value: LeaveType.Public},
-    {label: "Court Leave", value: LeaveType.Court},
-    {label: "Compensatory Off Leave", value: LeaveType.Compoff},
-    {label: "Sabbatical Leave", value: LeaveType.Sabbatical},
-    {label: "Extended Medical Leave", value: LeaveType.Extended},
-];
