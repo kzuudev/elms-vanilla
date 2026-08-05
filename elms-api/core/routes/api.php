@@ -13,6 +13,8 @@ use App\Http\Controllers\Dashboard\EmployeeDashboardController;
 use App\Http\Controllers\Dashboard\ManagerDashboardController;
 use App\Http\Controllers\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Notification\NotificationController;
+use App\Http\Controllers\Leave\LeaveTypesController;
+
 use Core\Router;
 
 $router = new Router();
@@ -20,7 +22,7 @@ $router = new Router();
 $router->post('/', [LoginController::class, 'login'])->only('guest');
 $router->post('/verify-email', [VerifyEmailController::class, 'verifyEmail']);
 $router->post('/leave-request', [LeaveRequestController::class, 'store'])->only('auth');
-$router->get('/leave-types', [LeaveRequestController::class, 'leaveTypes'])->only('auth');
+
 
 // view leave balance
 $router->get('/leave-balance/me', [EmployeeLeaveBalanceController::class, 'index'])->only('auth');
@@ -65,6 +67,9 @@ $router->get('/leave-requests/{id}', [LeaveRequestController::class, 'show'])->o
 $router->patch('/leave-requests/{id}/review', [LeaveReviewController::class, 'patch'])->only('auth');
 
 $router->get('/admin-dashboard', [AdminDashboardController::class, 'index'])->only('auth');
+
+// leave types
+$router->get('/leave-types', [LeaveTypesController::class, 'index'])->only('auth');
 
 // notifications
 $router->get('/notifications', [NotificationController::class, 'index'])->only('auth');

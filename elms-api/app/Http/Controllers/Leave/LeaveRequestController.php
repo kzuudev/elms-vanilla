@@ -57,33 +57,4 @@ class LeaveRequestController
     }
 
     
-    /**
-     * Leave types for the filter bar
-     */
-
-    public function leaveTypes(): void {
-
-        if (!$this->user_id) {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false, 
-                'message' => 'Unauthorized',
-                'user_id' => $this->user_id
-            ]);
-            return;
-        }
-
-        $leave_types = $this->db->query(
-        "SELECT id, name FROM leave_types WHERE default_allocated_days > 0")->all();
-
-
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Leave types fetched successfully',
-            'leave_types' => $leave_types ?: [],
-        ]);
-        return;
-
-    }   
 }

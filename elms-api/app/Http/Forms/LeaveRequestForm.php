@@ -6,24 +6,44 @@ namespace App\Http\Forms;
 
 
 use Core\Validator;
+use Core\App;
+use Core\Database;
 
 
 class LeaveRequestForm {
 
     protected $errors;
 
+    private Database $db;
+
+    public function __construct() {
+        $this->db = App::resolve(Database::class);
+    }
+
     public function validate($type, $start_date, $end_date, $reason) {
 
-        if(!Validator::type($type)) {
-            $this->errors['leave_type'] = 'Leave type is required and must a valid leave type from the list';
+        $this->errors = [];
+
+        $row = $this->db->query("SELECT name FROM leave_types")->all();
+
+        $allowed_types = array_column($rows, 'name');
+
+        if($type === '') {
+            $this->errors['leave_type'] = 'Leave type is required';
+        }else if(!in_array($type, $allowed_types)) {
+            $this->errors['leave_type'] = 'Leave type must be a valid leave type from the list.';
         }
 
         if (!Validator::date($start_date, 'Y-m-d')) {
-            $this->errors['start_date'] = 'Start date is required and must be in the format mm/dd/yyyy';
+            $this->errors['start_date'] = 'Start date is required and must be in the format YYYY-MM-DD.';
         }
 
         if (!Validator::date($end_date, 'Y-m-d')) {
-            $this->errors['end_date'] = 'End date is required and must be in the format mm/dd/yyyy';
+            $this->errors['end_date'] = 'End date is required and must be in the format YYYY-MM-DD.';
+        }
+
+        if(!isset($start_date) || !isset($end_date) && $start_date > $end_date) {
+            $this->errors['end_date'] = 'End date must be on or after start date.';
         }
 
         if(!Validator::string($reason, 1, 100)) {

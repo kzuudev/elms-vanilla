@@ -37,14 +37,13 @@ class LeaveRequestService implements LeaveRequestInterface {
             'id' => $user_id
         ])->find();
 
+
         $leave_type = $input['leave_type'] ?? '';
         $start_date = $input['start_date'] ?? '';
         $end_date = $input['end_date'] ?? '';
         $reason = $input['reason'] ?? '';
 
-        $start_date_obj = new DateTime($start_date);
-        $end_date_obj = new DateTime($end_date);
-
+        
         // validate the inputs
         if (!$leaveRequestForm->validate($leave_type, $start_date, $end_date, $reason)) {
             http_response_code(422);
@@ -55,6 +54,12 @@ class LeaveRequestService implements LeaveRequestInterface {
             ]);
             return;
         }
+
+    
+        $start_date_obj = new DateTime($start_date);
+        $end_date_obj = new DateTime($end_date);
+
+
 
         // count for days requested (weekdays)
         $days_requested = 0;
