@@ -1,86 +1,52 @@
 <?php
 
-
 namespace App\Http\Forms;
 
 use Core\Validator;
 
-class RegisterForm {
+class RegisterForm
+{
+    protected array $errors = [];
 
+    public function validate($first_name, $last_name, $email, $phone, $role, $assigned_to): bool
+    {
+        $this->errors = [];
 
-    protected $errors;
-
-
-    public function validate($first_name, $last_name, $email, $phone, $role, $department, $salary, $assigned_to, $is_active, $hired_date) {
-
-        if(!Validator::string($first_name, 3, 20)) {
-
-            $this->errors['first_name'] = 'First Name is required and  must be between 3 and 20 characters';
+        if (!Validator::string($first_name, 3, 20)) {
+            $this->errors['first_name'] = 'First Name is required and must be between 3 and 20 characters';
         }
 
-        if(!Validator::string($last_name, 3, 20)) {
-
-            $this->errors['last_name'] = 'Last Name is required and  must be between 3 and 20 characters';
+        if (!Validator::string($last_name, 3, 20)) {
+            $this->errors['last_name'] = 'Last Name is required and must be between 3 and 20 characters';
         }
 
-        if(!Validator::phone($phone)) {
-
+        if (!Validator::phone($phone)) {
             $this->errors['phone'] = 'Phone number is required and must be a valid phone number';
         }
 
-
-        if(!Validator::string($email, 3, 20)) {
-
-            $this->errors['email'] = 'Email is required must be between 3 and 20 characters';
+        if (!Validator::email($email) || !Validator::string($email, 3, 100)) {
+            $this->errors['email'] = 'Email is required and must be a valid email address';
         }
 
-        if(!Validator::string($role, 1, 50)) {
-
+        if (!Validator::string($role, 1, 50)) {
             $this->errors['role'] = 'Role is required';
-
         }
 
-        if(!Validator::string($department, 1, 50)) {
-
-            $this->errors['department'] = 'Department is required';
-
+        // Optional for some roles; if provided must be numeric id
+        if ($assigned_to !== '' && $assigned_to !== null && !is_numeric($assigned_to)) {
+            $this->errors['assigned_to'] = 'Assigned manager must be a valid manager id';
         }
 
-        if(!Validator::number($salary)) {
-
-            $this->errors['salary'] = 'Salary is required and must be a valid number';
-
-        }
-
-        // assigned_to is a users.id (manager), not a long string label
-        if($assigned_to === '' || $assigned_to === null || !ctype_digit((string) $assigned_to)) {
-
-            $this->errors['assigned_to'] = 'Assigned manager is required';
-        }
-
-        if(!Validator::date($hired_date)) {
-
-            $this->errors['hired_date'] = 'Hired date is required and must be a valid date';
-        }
-
-        if(!Validator::number($is_active)) {
-
-            $this->errors['is_active'] = 'Is active is required and must be a valid number';
-
-        }
-
-        
         return empty($this->errors);
-
     }
 
-    public function errors() {
-
+    public function errors(): array
+    {
         return $this->errors;
     }
 
-    public function hasErrors($field, $message) {
-
+    public function hasErrors($field, $message)
+    {
         return $this->errors[$field] = $message;
     }
 }

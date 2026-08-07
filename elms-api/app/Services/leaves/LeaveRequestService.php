@@ -481,29 +481,66 @@ class LeaveRequestService implements LeaveRequestInterface {
 
     public function destroy($id, $user_id, $role): void {
 
-    if ($id && $user_id && $role) {
-        $this->db->query("DELETE FROM leave_requests WHERE id = :id", [
+        if(!$user_id || !$role) {
+            http_response_code(401);
+            echo json_encode([
+                'success' => false,
+                'message' => 'You are not authorized to delete this leave request.',
+                'leave_request_id' => $id
+            ]);
+            return;
+        }
+
+        $leave_request = $this->db->query("SELECT * FROM leave_requests WHERE id = :id AND deleted_at IS NULL", [
             'id' => $id
         ])->find();
 
+        if(!$leave_request) {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Leave request not found.',
+                'leave_request_id' => $id
+            ]);
+            return;
+        }
+
+        // validate if the user is the owner of the leave request (tightes just in case admin or super admin wants to delete the leave request)
+        if($user_id !== $leave_request['user_id']) {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'message' => 'You are not authorized to delete this leave request.',
+                'leave_request_id' => $id
+            ]);
+            return;
+        }
+
+        if (in_array($leave_request['status'], ['approved', 'rejected'], true)) {
+            http_response_code(422);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Only pending leave requests can be deleted.',
+                'leave_request_id' => $id,
+                'status' => $leave_request['status']
+            ]);
+            return;
+        }
+
+        $this->db->query("UPDATE leave_requests SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id", [
+            'id' => $id
+        ])->find();
+        
         http_response_code(200);
         echo json_encode([
-            'success' => true,
-            'message' => 'Leave request deleted successfully',
-            'leave_request_id' => $id
-        ]);
-        return;
-    }else {
-        http_response_code(401);
-        echo json_encode([
-            'success' => false,
-            'message' => 'You are not authorized to delete this leave request.',
-            'leave_request_id' => $id
-        ]);
+        'success' => true,
+        'message' => 'Leave request deleted successfully',
+        'leave_request_id' => $id,
+    ]);
+        
         return;
     }
 
 
-    }
 
 }

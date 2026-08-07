@@ -3,33 +3,38 @@
 namespace App\Services\employees;
 
 use App\Http\Middleware\Auth;
+use App\Http\Forms\EmployeeForm;
+use Core\App;
+use Core\Database;
 
-use core\App;
-use core\Database;
 
 
 class EmployeesService {
 
     private Database $db;
-    private ?array $currentUser;
-    private int $currentUserId;
-    private string $currentUserRole;
-    private string $currentUserDepartment;
+    private ?array $current_user;
+    private int $current_user_id;
+    private string $current_user_role;
+    private string $current_user_department;
 
     public function __construct() {
 
         $this->db = App::resolve(Database::class);
-        $this->currentUser = Auth::user();
-        $this->currentUserId = (int) ($user['id'] ?? 0);
-        $this->currentUserRole = (string) ($user['role'] ?? '');
-        $this->currentUserDepartment = (string) ($user['department'] ?? '');
+        $this->current_user = Auth::user();
+        $this->current_user_id = (int) ($this->current_user['id'] ?? 0);
+        $this->current_user_role = (string) ($this->current_user['role'] ?? '');
+        $this->current_user_department = (string) ($this->current_user['department'] ?? '');
     }
 
     public function getEmployees() {
-        if(!$this->currentUserId) {
+        if(!$this->current_user_id) {
             http_response_code(401);
-            echo json_encode(["error" => "Admin not found"]);
-            exit;
+            echo json_encode([
+                "success" => false,
+                "message" => "Admin not found",
+                "id" => $this->current_user_id
+            ]);
+            return;
         }
 
         $search = $_GET['search'] ?? "";
@@ -53,13 +58,13 @@ class EmployeesService {
 
         $params = [];
 
-        if($this->currentUserRole === 'manager') {
+        if($this->current_user_role === 'manager') {
             $query .= " AND assigned_to = :current_user_id ";
-            $params = ['current_user_id' => $this->currentUserId];
-        }else if ($this->currentUserRole === 'admin') {
+            $params = ['current_user_id' => $this->current_user_id];
+        }else if ($this->current_user_role === 'admin') {
             $query .= " AND department = :department AND role != 'super admin'";
             $params = [
-                'department' => $this->currentUserDepartment];
+                'department' => $this->current_user_department];
         }
 
         if(!empty($search)) {
@@ -88,7 +93,7 @@ class EmployeesService {
         echo json_encode([
              'success' => true,
              'message' => 'Employee List fetched successfully',
-             'id' => $this->currentUserId,
+             'id' => $this->current_user_id,
              'employees' => $employees ?: [],
              'search' => $search
          ]);
@@ -98,10 +103,14 @@ class EmployeesService {
 
     public function getEmployee($id) {
 
-        if(!$this->currentUserId) {
+        if(!$this->current_user_id) {
             http_response_code(401);
-            echo json_encode(["error" => "Admin not found"]);
-            exit;
+            echo json_encode([
+                "success" => false,
+                "message" => "Admin not found",
+                "id" => $this->current_user_id
+            ]);
+            return;
         }
 
         $user = $this->db->query("
@@ -124,7 +133,11 @@ class EmployeesService {
 
         if (!$user) {
             http_response_code(404);
-            echo json_encode(["error" => "User not found"]);
+            echo json_encode([
+                "success" => false,
+                "message" => "User not found",
+                "user_id" => $id
+            ]);
             exit;
         }
 
@@ -148,13 +161,13 @@ class EmployeesService {
 
     public function updateEmployee($id) {
 
-        if($this->currentUserId && $this->currentUserRole === 'admin') {
+        if($this->current_user_id && $this->current_user_role === 'admin') {
 
-            $existingUser = $this->db->query("SELECT * FROM users WHERE id = :id", [
+            $existing_user = $this->db->query("SELECT * FROM users WHERE id = :id", [
                 'id' => $id
             ])->find();
 
-            if (!$existingUser) {
+            if (!$existing_user) {
                 http_response_code(404);
                 echo json_encode([
                     'success' => false,
@@ -166,23 +179,23 @@ class EmployeesService {
             
             $input = json_decode(file_get_contents('php://input'), true);
 
-            $first_name = array_key_exists('first_name', $input) ? $input['first_name'] : $existingUser['first_name'];
-            $last_name  = array_key_exists('last_name', $input)  ? $input['last_name']  : $existingUser['last_name'];
-            $email      = array_key_exists('email', $input)      ? $input['email']      : $existingUser['email'];
-            $phone      = array_key_exists('phone', $input)      ? $input['phone']      : $existingUser['phone'];
-            $role       = array_key_exists('role', $input)       ? $input['role']       : $existingUser['role'];
-            $department = array_key_exists('department', $input) ? $input['department'] : $existingUser['department'];
-            $salary     = array_key_exists('salary', $input)     ? $input['salary']     : $existingUser['salary'];
-            $hired_date = array_key_exists('hired_date', $input) ? $input['hired_date'] : date('Y-m-d', $existingUser['hired_date']);
+            $first_name = array_key_exists('first_name', $input) ? $input['first_name'] : $existing_user['first_name'];
+            $last_name  = array_key_exists('last_name', $input)  ? $input['last_name']  : $existing_user['last_name'];
+            $email      = array_key_exists('email', $input)      ? $input['email']      : $existing_user['email'];
+            $phone      = array_key_exists('phone', $input)      ? $input['phone']      : $existing_user['phone'];
+            $role       = array_key_exists('role', $input)       ? $input['role']       : $existing_user['role'];
+            $department = array_key_exists('department', $input) ? $input['department'] : $existing_user['department'];
+            $salary     = array_key_exists('salary', $input)     ? $input['salary']     : $existing_user['salary'];
+            $hired_date = array_key_exists('hired_date', $input) ? $input['hired_date'] : date('Y-m-d', strtotime($existing_user['hired_date']));
             $is_active  = array_key_exists('is_active', $input)
                 ? (int)$input['is_active']
-                : (int)$existingUser['is_active'];
-            $manager_id = array_key_exists('manager_id', $input)
-                ? (!empty($input['manager_id']) ? (int)$input['manager_id'] : null)
-                : $existingUser['manager_id'];
+                : (int)$existing_user['is_active'];
+            $manager_id = array_key_exists('assigned_to', $input)
+                ? (!empty($input['assigned_to']) ? (int) $input['assigned_to'] : null)
+                : $existing_user['assigned_to'];
 
        
-            $employee_form = new RegisterForm();
+            $employee_form = new EmployeeForm();
 
             if(!$employee_form->validate($first_name, $last_name, $email, $phone, $role, $department, $salary, $manager_id, $is_active, $hired_date)) {
                 http_response_code(422);
@@ -222,13 +235,13 @@ class EmployeesService {
                     'salary'      => empty($salary) ? null : $salary
             ]);
     
-            $editedUser = $this->db->query("
+            $edited_user = $this->db->query("
                 SELECT id, first_name, last_name, email, phone, role, department, assigned_to, is_active, hired_date, salary 
                 FROM users
                 WHERE id = :id", 
                 ['id' => $id])->find();
     
-            if(!$editedUser) {
+            if(!$edited_user) {
                 http_response_code(422);
                 echo json_encode([
                     'success' => false,
@@ -243,50 +256,81 @@ class EmployeesService {
                 'success' => true,
                 'message' => 'Employee details updated successfully',
                 'employee_id' => $id,
-                'employee'    => $editedUser
+                'employee'    => $edited_user
             ]);
 
-            return $editedUser;
+            return $edited_user;
         }
 
        http_response_code(401);
        echo json_encode([
         "success" => false,
         "message" => "Unauthorized access",
-        "id" => $this->currentUserId
+        "id" => $this->current_user_id
        ]);
        return;
     }
 
     public function deleteEmployee($id) {
-        if(!$this->currentUserId) {
+
+        if(!$this->current_user_id && !$this->current_user_role === 'admin') {
+            http_response_code(403);
+            echo json_encode([
+                "success" => false,
+                "message" => "Unauthorized Access",
+                "id" => $this->current_user_id
+            ]);
+            return;
+        }
+
+        $user = $this->db->query("SELECT * FROM users WHERE id = :id", [
+            'id' => $id
+        ])->find();
+
+        if(!$user) {
+            http_response_code(404);
+            echo json_encode([
+                "success" => false,
+                "message" => "User not found",
+                "id" => $id
+            ]);
+            return;
+        }
+
+        if($user['role'] === 'admin') {
             http_response_code(401);
-            echo json_encode(["error" => "Admin not found"]);
-            exit;
+            echo json_encode([
+                "success" => false,
+                "message" => "You are not authorized to delete this employee (admin).",
+                "id" => $id
+            ]);
+            return;
         }
 
 
-        $deleteUser = $this->db->query("UPDATE employees SET is_active = 0 WHERE id = :id", [
+        $delete_user = $this->db->query("UPDATE users SET is_active = 0 WHERE id = :id", [
             'id' => $id
         ]);
 
         http_response_code(200);
         echo json_encode([
             'success' => true,
-            'message' => 'User deleted successfully',
+            'message' => 'Employee deleted successfully',
             'id' => $id,
-            'deleted' => $deleteUser
+            'deleted' => $delete_user
         ]);
+
+        return;
     }
 
-    public function getProfile() {
+    public function getProfile($id) {
 
-        if(!$this->currentUserId && $this->currentUserRole === 'admin') {
+        if(!$this->current_user_id || !$this->current_user_role === 'admin') {
             http_response_code(403);
             echo json_encode([
                 "success" => false,
                 "message" => "Unauthorized Access",
-                "id" => $this->currentUserId
+                "id" => $this->current_user_id
             ]);
             return;
         }
@@ -299,6 +343,7 @@ class EmployeesService {
                 u.phone,
                 u.role, 
                 u.assigned_to,
+                CONCAT(m.first_name, ' ', m.last_name) as manager_name,
                 u.department,
                 u.salary,
                 u.hired_date,
@@ -325,7 +370,7 @@ class EmployeesService {
             return;
         }
 
-        $structuredData = [
+        $structured_data = [
             'id' => $user[0]['id'],
             'first_name' => $user[0]['first_name'],
             'last_name' => $user[0]['last_name'],
@@ -333,7 +378,7 @@ class EmployeesService {
             'phone' => $user[0]['phone'],
             'role' => $user[0]['role'],
             'department' => $user[0]['department'],
-            'manager' => [
+            'assigned_to' => [
                 'id' => $user[0]['assigned_to'],
                 'name' => $user[0]['manager_name'] ?? null,
             ],
@@ -345,7 +390,7 @@ class EmployeesService {
 
         foreach($user as $employee) {
             if(!empty($employee['leave_type_name'])) {
-                $structuredData['leave_balance'][] = [
+                $structured_data['leave_balance'][] = [
                     'leave_type_name' => $employee['leave_type_name'],
                     'remaining_balance' => $employee['remaining_balance'],
                 ];
@@ -357,35 +402,37 @@ class EmployeesService {
             'success' => true,
             'message' => 'Employee details fetched successfully',
             'id' => $id,
-            'employee' => $structuredData
+            'employee' => $structured_data
         ]);
 
-        return $structuredData;
+        return $structured_data;
     }
 
     public function getManagers() {
-        if (!$this->currentUserId) {
+
+        if (!$this->current_user_id) {
             http_response_code(401);
             echo json_encode([
                 'success' => false,
                 'message' => 'Unauthorized',
-                'id' => $this->currentUserId
+                'id' => $this->current_user_id
             ]);
             return;
         }
 
-        if (!in_array($this->currentUserRole, ['admin', 'super admin'], true)) {
+        if (!in_array($this->current_user_role, ['admin', 'super admin'], true)) {
             http_response_code(403);
             echo json_encode([
                 'success' => false,
                 'message' => 'Only admins can list managers',
-                'id' => $this->currentUserId
+                'id' => $this->current_user_id
             ]);
             return;
         }
 
         $query = "
-            SELECT id, first_name, last_name, email, role, department
+            SELECT id, first_name, last_name, email, role, department,
+                CONCAT(first_name, ' ', last_name) as name
             FROM users
             WHERE role = 'manager'
             AND is_active = 1
@@ -394,9 +441,9 @@ class EmployeesService {
         $params = [];
 
         // Department admin only sees managers in their department
-        if ($this->currentUserRole === 'admin') {
+        if ($this->current_user_role === 'admin') {
             $query .= " AND department = :department";
-            $params['department'] = $this->currentUserDepartment;
+            $params['department'] = $this->current_user_department;
         }
 
         $query .= " ORDER BY first_name, last_name";

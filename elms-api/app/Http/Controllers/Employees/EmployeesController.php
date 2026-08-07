@@ -11,45 +11,39 @@ use Core\Database;
 
 class EmployeesController {
 
-    private EmployeesService $employeesService;
-
-    private Database $db;
-    private ?array $currentUser;
-    private int $currentUserId;
-    private string $currentUserRole;
-    private string $currentUserDepartment;
+    private EmployeesService $employees_service;
 
     public function __construct() {
-        $this->employeesService = App::resolve(EmployeesService::class);
+        $this->employees_service = App::resolve(EmployeesService::class);
     }
 
     public function index() {
     
-        return $this->employeesService->getEmployees();
+        return $this->employees_service->getEmployees();
        
     }
 
     public function show($id) {
       
-       return $this->employeesService->getEmployee($id);
+       return $this->employees_service->getEmployee($id);
     }
 
 
     public function patch($id) {
 
-       return $this->employeesService->updateEmployee($id);
+       return $this->employees_service->updateEmployee($id);
     }
 
 
     public function destroy($id) {
 
-       return $this->employeesService->deleteEmployee($id); 
+       return $this->employees_service->deleteEmployee($id); 
 
     }
 
-    public function profile() {
+    public function profile($id) {
 
-       return $this->employeesService->getProfile();
+       return $this->employees_service->getProfile($id);
     }
 
     /**
@@ -57,7 +51,7 @@ class EmployeesController {
      */
     public function managers() {
         
-        return $this->employeesService->getManagers();
+        return $this->employees_service->getManagers();
     }
 
 

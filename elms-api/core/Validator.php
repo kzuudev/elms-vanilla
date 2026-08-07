@@ -41,7 +41,7 @@ class Validator {
         return password_verify($input, $hashed_password);
     }
 
-    public static function date($date, $format = 'm/d/Y') {
+    public static function date($date, $format = 'Y-m-d') {
 
         $d = \DateTime::createFromFormat($format, $date);
         return $d && $d->format($format) === $date;

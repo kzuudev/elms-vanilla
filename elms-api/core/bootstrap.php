@@ -3,6 +3,7 @@
 use App\Services\dashboard\AdminDashboardService;
 use App\Services\dashboard\EmployeeDashboardService;
 use App\Services\dashboard\ManagerDashboardService;
+use App\Services\employees\EmployeesService;
 use App\Services\employees\EmployeeSummaryService;
 use App\Services\notifications\NotificationService;
 use App\Services\leaves\LeaveReviewService;
@@ -43,11 +44,15 @@ $container->bind(AdminDashboardService::class, function() {
 });
 
 $container->bind(EmployeeSummaryService::class, function() {
-    return new EmployeeSummaryService;
+    return new EmployeeSummaryService();
 });
 
 $container->bind(LeaveReviewService::class, function() {
     return new LeaveReviewService();
+});
+
+$container->bind(EmployeesService::class, function() {
+    return new EmployeesService();
 });
 
 App::setContainer($container);

@@ -9,10 +9,15 @@ use App\Http\Forms\LoginForm;
 
 class LoginController {
 
+    private Database $db;
+
+    public function __construct() {
+        $this->db = App::resolve(Database::class);
+    }
+
     public function login() {
 
         $loginAttempt = new LoginForm();
-        $db = App::resolve(Database::class);
 
         $input = json_decode(file_get_contents('php://input'), true);
         $email = $input['email'] ?? '';
@@ -26,7 +31,7 @@ class LoginController {
         }
 
         // check if the provided credential exists in the database
-        $user = $db->query("SELECT * FROM users WHERE email = :email", [
+        $user = $this->db->query("SELECT * FROM users WHERE email = :email", [
             'email' => $email
         ])->find();
 
@@ -42,7 +47,7 @@ class LoginController {
         $token = bin2hex(random_bytes(64));
 
         // insert it with user_id
-        $db->query("INSERT INTO personal_access_tokens (user_id, token) VALUES (:user_id, :token)", [
+        $this->db->query("INSERT INTO personal_access_tokens (user_id, token) VALUES (:user_id, :token)", [
             'user_id' => $user['id'],
             'token' => $token
         ]);
@@ -51,6 +56,7 @@ class LoginController {
 
         http_response_code(200);
         echo json_encode([
+            'success' => true,
             'message' => 'Login successful',
             'user' => [
                 'id' => $user['id'],
@@ -59,8 +65,10 @@ class LoginController {
                 'role' => $user['role']
             ],
             'token' => $token,
+            'id' => $user['id']
         ]);
-        exit;
+
+        return;
 
     }
 

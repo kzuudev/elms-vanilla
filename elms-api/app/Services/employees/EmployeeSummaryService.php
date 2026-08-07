@@ -5,7 +5,6 @@ namespace App\Services\employees;
 
 
 use App\Http\Middleware\Auth;
-use App\Traits\HasSharedAnalytics;
 use Core\App;
 use Core\Database;
 
@@ -15,15 +14,18 @@ class EmployeeSummaryService {
 
     private Database $db;
 
-    private int $id;
-    private string $role;
-    private string $department;
+    private ?array $current_user;
+    private int $current_user_id;
+    private string $current_user_role;
+    private string $current_user_department;
 
     public function __construct() {
+
         $this->db = App::resolve(Database::class);
-        $this->id = Auth::authenticate()['id'];
-        $this->role = Auth::authenticate()['role'];
-        $this->department = Auth::authenticate()['department'];
+        $this->current_user = Auth::user();
+        $this->current_user_id = (int) ($this->current_user['id'] ?? 0);
+        $this->current_user_role = (string) ($this->current_user['role'] ?? '');
+        $this->current_user_department = (string) ($this->current_user['department'] ?? '');
     }
 
 
@@ -43,17 +45,23 @@ class EmployeeSummaryService {
         ";
 
         $params = [
-            'department' => $this->department,
-            'user_id' => $this->id,
+            'department' => $this->current_user_department,
+            'user_id' => $this->current_user_id,
 
         ];
 
-        if ($this->role === "manager") {
+        if ($this->current_user_role === "manager") {
             $query .= " AND u.assigned_to = :manager_id";
-            $params['manager_id'] = $this->id;
+            $params['manager_id'] = $this->current_user_id;
         }
 
-        return $this->db->query($query, $params)->find();
+        $summary = $this->db->query($query, $params)->find();
+
+        return [
+            'success' => true,
+            'message' => 'Employee summary fetched successfully',
+            'summary' => $summary
+        ];
 
     }
 }
