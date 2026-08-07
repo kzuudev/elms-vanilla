@@ -43,7 +43,7 @@ class LeaveRequestService implements LeaveRequestInterface {
         $end_date = $input['end_date'] ?? '';
         $reason = $input['reason'] ?? '';
 
-        
+
         // validate the inputs
         if (!$leaveRequestForm->validate($leave_type, $start_date, $end_date, $reason)) {
             http_response_code(422);
@@ -103,7 +103,7 @@ class LeaveRequestService implements LeaveRequestInterface {
             AND leave_type_id = :leave_type_id 
             AND status IN ('pending', 'approved')
             AND deleted_at IS NULL
-            AND start_date <= :end_date AND end_date >= :start_date
+            AND start_date <= :end_date AND end_date >= :start_date AND (start_date >= CURRENT_DATE OR end_date >= CURRENT_DATE)
         ", [
             'user_id' => $user_id,
             'leave_type_id' => $leave_type_id,
@@ -297,11 +297,10 @@ class LeaveRequestService implements LeaveRequestInterface {
     public function patch($id, $user_id, $role, $input): void {
 
 
-        if($user_id && $role) {
+        $leaveRequestForm = new LeaveRequestForm();
 
-            $start_date = $input['start_date'] ?? $existingLeaveRequest['start_date'];
-            $end_date = $input['end_date'] ?? $existingLeaveRequest['end_date'];
-            $reason = $input['reason'] ?? $existingLeaveRequest['reason'];
+
+        if($user_id && $role) {
 
             $existingLeaveRequest = $this->db->query("SELECT * FROM leave_requests WHERE id = :id AND user_id = :user_id", [
                 'id' => $id,
@@ -318,18 +317,10 @@ class LeaveRequestService implements LeaveRequestInterface {
                 return;
             }
 
-            if(!$existingLeaveRequest['user_id'] == $user_id) {
-                http_response_code(401);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'You are not authorized to update this leave request.',
-                    'leave_request_id' => $id
-                ]);
-                return;
-            }
-
+            // validate if the leave request is approved or rejected
             $current_status = $existingLeaveRequest['status'];
 
+            // if the leave request is approved, return an error
             if($current_status === 'approved') {
                 http_response_code(422);
                 echo json_encode([
@@ -340,6 +331,7 @@ class LeaveRequestService implements LeaveRequestInterface {
                 return;
             }
 
+            // if the leave request is rejected, return an error
             if($current_status === 'rejected') {
                 http_response_code(422);
                 echo json_encode([
@@ -350,33 +342,94 @@ class LeaveRequestService implements LeaveRequestInterface {
                 return;
             }
 
-            if (!empty($input['leave_type'] || $input['start_date'] || $input['end_date'] || $input['reason'])) {
-                    $leaveTypeRecord = $db->query("SELECT id FROM leave_types WHERE name = :name", [
-                        'name' => $input['leave_type']
-                    ])->find();
+            // existing leave type name (rather than id) since the user will be submitting the leave type name
+            $leaveType = $this->db->query("SELECT name FROM leave_types WHERE id = :id", [
+                'id' => $existingLeaveRequest['leave_type_id']
+            ])->find();
 
-                    $leave_type_id = $leaveTypeRecord ? $leaveTypeRecord['id'] : $existingLeaveRequest['leave_type_id'];
-                    $start_date = $input['start_date'] ?? $existingLeaveRequest['start_date'];
-                    $end_date = $input['end_date'] ?? $existingLeaveRequest['end_date'];
-                    $reason = $input['reason'] ?? $existingLeaveRequest['reason'];
-                } else {
-                    $leave_type_id = $existingLeaveRequest['leave_type_id'];
-                    $start_date = $existingLeaveRequest['start_date'];
-                    $end_date = $existingLeaveRequest['end_date'];
-                    $reason = $existingLeaveRequest['reason'];
+            if (!$leaveType) {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Leave type not found.',
+                    'leave_type_id' => $existingLeaveRequest['leave_type_id']
+                ]);
+                return;
             }
 
+            $leave_type = !empty($input['leave_type']) ? $input['leave_type'] : $leaveType['name'];
+            $start_date = !empty($input['start_date']) ? $input['start_date'] : date('Y-m-d', $existingLeaveRequest['start_date']);
+            $end_date = !empty($input['end_date']) ? $input['end_date'] : date('Y-m-d',($existingLeaveRequest['end_date']));
+            $reason = !empty($input['reason']) ? $input['reason'] : $existingLeaveRequest['reason'];
+
+            // validate the leave type
+            $leaveTypeRecord = $this->db->query("SELECT id FROM leave_types WHERE name = :name", [
+                'name' => $leave_type
+            ])->find();
+
+            if (!$leaveTypeRecord) {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid leave type.',
+                    'leave_type' => $leave_type
+                ]);
+                return;
+            }
+
+            if (!$leaveRequestForm->validate($leave_type, $start_date, $end_date, $reason)) {
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid inputs.',
+                    'errors' => $leaveRequestForm->errors()
+                ]);
+                return;
+            }
+
+            // convert the start and end date to DateTime objects
+            $start_date_obj = new DateTime($start_date);
+            $end_date_obj = new DateTime($end_date);
+
+            // count for days requested (weekdays)
+            $days_requested = 0;
+
+            // calculate the start and end date (only weekdays), and ensures include the end date in the loop
+            $period = new DatePeriod($start_date_obj, new DateInterval('P1D'), clone $end_date_obj->modify('+1 day'));
+
+            foreach ($period as $date) {
+                if ($date->format('N') < 6) { // format('N') returns 1-5 for Mon-Fri
+                    $days_requested++;
+                }
+            }
+
+            $remaining_balance = $this->db->query("SELECT remaining_balance FROM leave_balance WHERE user_id = :user_id AND leave_type_id = :leave_type_id", [
+                'user_id' => $user_id,
+                'leave_type_id' => $leaveTypeRecord['id']
+            ])->find();
+
+            if (!$remaining_balance || $remaining_balance['remaining_balance'] < $days_requested) {
+
+                http_response_code(422);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Insufficient leave balance for this leave type.',
+                    'leave_type_id' => $leaveTypeRecord['id'],
+                    'remaining_balance' => $remaining_balance['remaining_balance'],
+                ]);
+                return;
+            }
 
             // validate if there's already an existing leave request in the date range
             $overlapRequest = $this->db->query("
                 SELECT 
-                    id,
+                    id AS overlap_request_id
                 FROM leave_requests 
                 WHERE user_id = :user_id 
                 AND leave_type_id = :leave_type_id 
                 AND status IN ('pending', 'approved')
-                AND CURRENT_DATE BETWEEN start_date AND end_date
-                AND ((start_date <= :end_date AND end_date >= :start_date) OR (start_date >= :start_date AND end_date <= :end_date))
+                AND deleted_at IS NULL
+                AND start_date <= :end_date AND end_date >= :start_date AND (start_date >= CURRENT_DATE OR end_date >= CURRENT_DATE)
                 AND id != :id
             ", [
                 'id' => $id,
@@ -391,11 +444,10 @@ class LeaveRequestService implements LeaveRequestInterface {
                 echo json_encode([
                     'success' => false,
                     'message' => 'You already have a pending or approved request for this leave type during the selected dates.',
-                    'leave_request_id' => $id
+                    'overlap_request_id' => $overlapRequest['overlap_request_id'],
                 ]);
                 return;
             }
-
 
             $this->db->query("UPDATE leave_requests SET start_date = :start_date, end_date = :end_date, reason = :reason, leave_type_id = :leave_type_id WHERE id = :id", [
                 'id' => $id,
@@ -415,6 +467,14 @@ class LeaveRequestService implements LeaveRequestInterface {
 
             
         }
+
+        http_response_code(401);
+        echo json_encode([
+            'success' => false,
+            'message' => 'You are not authorized to update this leave request.',
+            'leave_request_id' => $id
+        ]);
+        return;
 
     }
 
