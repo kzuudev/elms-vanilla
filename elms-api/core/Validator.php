@@ -47,6 +47,13 @@ class Validator {
         return $d && $d->format($format) === $date;
     }
 
+    public static function number($value) {
+
+        return is_int($value);
+
+    }
+
+
     public static function type($value) {
 
         $allowedTypes = [

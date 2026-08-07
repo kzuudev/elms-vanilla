@@ -24,7 +24,7 @@ class LeaveRequestService implements LeaveRequestInterface {
 
     public function store(array $input, int $user_id, string $role): void {
 
-        $leaveRequestForm = new LeaveRequestForm();
+        $leave_request_form = new LeaveRequestForm();
 
         $assigned_to = $this->db->query(
             "SELECT 
@@ -45,7 +45,7 @@ class LeaveRequestService implements LeaveRequestInterface {
 
 
         // validate the inputs
-        if (!$leaveRequestForm->validate($leave_type, $start_date, $end_date, $reason)) {
+        if (!$leave_request_form->validate($leave_type, $start_date, $end_date, $reason)) {
             http_response_code(422);
             echo json_encode([
                 'success' => false,

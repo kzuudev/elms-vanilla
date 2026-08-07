@@ -8,6 +8,7 @@ use App\Http\Controllers\Leave\LeaveRequestController;
 use App\Http\Controllers\Leave\LeaveReviewController;
 use App\Http\Controllers\Manager\EmployeeController;
 use App\Http\Controllers\Employees\EmployeesController;
+use App\Http\Controllers\Employees\EmployeesSummaryController;
 use App\Http\Controllers\Leave\EmployeeLeaveBalanceController;
 use App\Http\Controllers\Dashboard\EmployeeDashboardController;
 use App\Http\Controllers\Dashboard\ManagerDashboardController;
@@ -52,7 +53,7 @@ $router->get('/manager-dashboard', [ManagerDashboardController::class, 'index'])
 
 // admin and manager
 $router->get('/employees', [EmployeesController::class, 'index'])->only('auth');
-$router->get('/employees/summary', [EmployeesController::class, 'summary'])->only('auth');
+$router->get('/employees/summary', [EmployeesSummaryController::class, 'summary'])->only('auth');
 $router->get('/employees/managers', [EmployeesController::class, 'managers'])->only('auth');
 $router->post('/register', [RegisteredUserController::class, 'store'])->only('auth');
 $router->get('/employees/{id}/profile', [EmployeesController::class, 'profile'])->only('auth');

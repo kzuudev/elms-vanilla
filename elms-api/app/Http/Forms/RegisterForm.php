@@ -11,7 +11,7 @@ class RegisterForm {
     protected $errors;
 
 
-    public function validate($first_name, $last_name, $email, $phone, $role, $assigned_to) {
+    public function validate($first_name, $last_name, $email, $phone, $role, $department, $salary, $assigned_to, $is_active, $hired_date) {
 
         if(!Validator::string($first_name, 3, 20)) {
 
@@ -40,13 +40,36 @@ class RegisterForm {
 
         }
 
+        if(!Validator::string($department, 1, 50)) {
+
+            $this->errors['department'] = 'Department is required';
+
+        }
+
+        if(!Validator::number($salary)) {
+
+            $this->errors['salary'] = 'Salary is required and must be a valid number';
+
+        }
+
         // assigned_to is a users.id (manager), not a long string label
         if($assigned_to === '' || $assigned_to === null || !ctype_digit((string) $assigned_to)) {
 
             $this->errors['assigned_to'] = 'Assigned manager is required';
         }
 
+        if(!Validator::date($hired_date)) {
 
+            $this->errors['hired_date'] = 'Hired date is required and must be a valid date';
+        }
+
+        if(!Validator::number($is_active)) {
+
+            $this->errors['is_active'] = 'Is active is required and must be a valid number';
+
+        }
+
+        
         return empty($this->errors);
 
     }
