@@ -27,6 +27,7 @@ class EmployeesService {
     }
 
     public function getEmployees() {
+
         if(!$this->current_user_id) {
             http_response_code(401);
             echo json_encode([
@@ -161,7 +162,7 @@ class EmployeesService {
 
     public function updateEmployee($id) {
 
-        if($this->current_user_id && $this->current_user_role === 'admin') {
+        if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super admin'], true)) {
 
             $existing_user = $this->db->query("SELECT * FROM users WHERE id = :id", [
                 'id' => $id
@@ -273,191 +274,195 @@ class EmployeesService {
 
     public function deleteEmployee($id) {
 
-        if(!$this->current_user_id && !$this->current_user_role === 'admin') {
-            http_response_code(403);
-            echo json_encode([
-                "success" => false,
-                "message" => "Unauthorized Access",
-                "id" => $this->current_user_id
+        if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super admin'], true)) {
+
+            $user = $this->db->query("SELECT * FROM users WHERE id = :id", [
+                'id' => $id
+            ])->find();
+    
+            if(!$user) {
+                http_response_code(404);
+                echo json_encode([
+                    "success" => false,
+                    "message" => "User not found",
+                    "id" => $id
+                ]);
+                return;
+            }
+    
+            if($user['role'] === 'admin') {
+                http_response_code(401);
+                echo json_encode([
+                    "success" => false,
+                    "message" => "You are not authorized to delete this employee (admin).",
+                    "id" => $id
+                ]);
+                return;
+            }
+    
+    
+            $delete_user = $this->db->query("UPDATE users SET is_active = 0 WHERE id = :id", [
+                'id' => $id
             ]);
+    
+            http_response_code(200);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Employee deleted successfully',
+                'id' => $id,
+                'deleted' => $delete_user
+            ]);
+    
             return;
         }
 
-        $user = $this->db->query("SELECT * FROM users WHERE id = :id", [
-            'id' => $id
-        ])->find();
 
-        if(!$user) {
-            http_response_code(404);
-            echo json_encode([
-                "success" => false,
-                "message" => "User not found",
-                "id" => $id
-            ]);
-            return;
-        }
-
-        if($user['role'] === 'admin') {
-            http_response_code(401);
-            echo json_encode([
-                "success" => false,
-                "message" => "You are not authorized to delete this employee (admin).",
-                "id" => $id
-            ]);
-            return;
-        }
-
-
-        $delete_user = $this->db->query("UPDATE users SET is_active = 0 WHERE id = :id", [
-            'id' => $id
-        ]);
-
-        http_response_code(200);
+        http_response_code(401);
         echo json_encode([
-            'success' => true,
-            'message' => 'Employee deleted successfully',
-            'id' => $id,
-            'deleted' => $delete_user
+            'success' => false,
+            'message' => 'Unauthorized Access',
+            'id' => $this->current_user_id
         ]);
-
         return;
+
+       
     }
 
     public function getProfile($id) {
 
-        if(!$this->current_user_id || !$this->current_user_role === 'admin') {
-            http_response_code(403);
-            echo json_encode([
-                "success" => false,
-                "message" => "Unauthorized Access",
-                "id" => $this->current_user_id
-            ]);
-            return;
-        }
-
-        $user = $this->db->query("
-            SELECT u.id,
-                u.first_name, 
-                u.last_name,
-                u.email,  
-                u.phone,
-                u.role, 
-                u.assigned_to,
-                CONCAT(m.first_name, ' ', m.last_name) as manager_name,
-                u.department,
-                u.salary,
-                u.hired_date,
-                u.is_active,
-                lt.name as leave_type_name,
-                lb.remaining_balance as remaining_balance
-            FROM users u 
-            LEFT JOIN leave_balance lb ON lb.user_id = u.id
-            LEFT JOIN users m ON m.id = u.assigned_to
-            LEFT JOIN leave_types lt ON lb.leave_type_id = lt.id
-            WHERE u.id = :id
-        ", [
-            'id' => $id
-        ])->all();
+        if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super admin'], true)) {
+           
+            $user = $this->db->query("
+                SELECT u.id,
+                    u.first_name, 
+                    u.last_name,
+                    u.email,  
+                    u.phone,
+                    u.role, 
+                    u.assigned_to,
+                    CONCAT(m.first_name, ' ', m.last_name) as manager_name,
+                    u.department,
+                    u.salary,
+                    u.hired_date,
+                    u.is_active,
+                    lt.name as leave_type_name,
+                    lb.remaining_balance as remaining_balance
+                FROM users u 
+                LEFT JOIN leave_balance lb ON lb.user_id = u.id
+                LEFT JOIN users m ON m.id = u.assigned_to
+                LEFT JOIN leave_types lt ON lb.leave_type_id = lt.id
+                WHERE u.id = :id
+            ", [
+                'id' => $id
+            ])->all();
 
 
-        if(!$user) {
-            http_response_code(404);
-            echo json_encode([
-                "success" => false,
-                "message" => "Employee not found",
-                "id" => $id
-            ]);
-            return;
-        }
-
-        $structured_data = [
-            'id' => $user[0]['id'],
-            'first_name' => $user[0]['first_name'],
-            'last_name' => $user[0]['last_name'],
-            'email' => $user[0]['email'],
-            'phone' => $user[0]['phone'],
-            'role' => $user[0]['role'],
-            'department' => $user[0]['department'],
-            'assigned_to' => [
-                'id' => $user[0]['assigned_to'],
-                'name' => $user[0]['manager_name'] ?? null,
-            ],
-            'is_active' => $user[0]['is_active'],
-            'hired_date' => $user[0]['hired_date'],
-            'salary' => $user[0]['salary'],
-            'leave_balance' => []
-        ];
-
-        foreach($user as $employee) {
-            if(!empty($employee['leave_type_name'])) {
-                $structured_data['leave_balance'][] = [
-                    'leave_type_name' => $employee['leave_type_name'],
-                    'remaining_balance' => $employee['remaining_balance'],
-                ];
+            if(!$user) {
+                http_response_code(404);
+                echo json_encode([
+                    "success" => false,
+                    "message" => "Employee not found",
+                    "id" => $id
+                ]);
+                return;
             }
+
+            $structured_data = [
+                'id' => $user[0]['id'],
+                'first_name' => $user[0]['first_name'],
+                'last_name' => $user[0]['last_name'],
+                'email' => $user[0]['email'],
+                'phone' => $user[0]['phone'],
+                'role' => $user[0]['role'],
+                'department' => $user[0]['department'],
+                'assigned_to' => [
+                    'id' => $user[0]['assigned_to'],
+                    'name' => $user[0]['manager_name'] ?? null,
+                ],
+                'is_active' => $user[0]['is_active'],
+                'hired_date' => $user[0]['hired_date'],
+                'salary' => $user[0]['salary'],
+                'leave_balance' => []
+            ];
+
+            foreach($user as $employee) {
+                if(!empty($employee['leave_type_name'])) {
+                    $structured_data['leave_balance'][] = [
+                        'leave_type_name' => $employee['leave_type_name'],
+                        'remaining_balance' => $employee['remaining_balance'],
+                    ];
+                }
+            }
+
+            http_response_code(200);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Employee details fetched successfully',
+                'id' => $id,
+                'employee' => $structured_data
+            ]);
+
+            return $structured_data;
         }
 
-        http_response_code(200);
+        http_response_code(401);
         echo json_encode([
-            'success' => true,
-            'message' => 'Employee details fetched successfully',
-            'id' => $id,
-            'employee' => $structured_data
-        ]);
-
-        return $structured_data;
+            'success' => false,
+            'message' => 'Unauthorized Access',
+            'id' => $this->current_user_id
+        ]);       
+        return;
     }
 
     public function getManagers() {
 
-        if (!$this->current_user_id) {
-            http_response_code(401);
+        if ($this->current_user_id && in_array($this->current_user_role, ['admin', 'super admin'], true)) {
+
+            $query = "
+                SELECT id, first_name, last_name, email, role, department,
+                    CONCAT(first_name, ' ', last_name) as name
+                FROM users
+                WHERE role = 'manager'
+                AND is_active = 1
+            ";
+
+            $params = [];
+
+            // Department admin only sees managers in their department
+            // Super admin sees all managers
+            if ($this->current_user_role === 'super admin') {
+                
+            }else if($this->current_user_role === 'admin') {
+                $query .= " AND department = :department";
+                $params['department'] = $this->current_user_department;
+            }
+
+            $query .= " ORDER BY first_name, last_name";
+
+            $managers = $this->db->query($query, $params)->all();
+
+            http_response_code(200);
             echo json_encode([
-                'success' => false,
-                'message' => 'Unauthorized',
-                'id' => $this->current_user_id
+                'success' => true,
+                'message' => 'Managers fetched successfully',
+                'managers' => $managers ?: [],
             ]);
-            return;
+
+            return $managers;
+            
         }
 
-        if (!in_array($this->current_user_role, ['admin', 'super admin'], true)) {
-            http_response_code(403);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Only admins can list managers',
-                'id' => $this->current_user_id
-            ]);
-            return;
-        }
 
-        $query = "
-            SELECT id, first_name, last_name, email, role, department,
-                CONCAT(first_name, ' ', last_name) as name
-            FROM users
-            WHERE role = 'manager'
-            AND is_active = 1
-        ";
-
-        $params = [];
-
-        // Department admin only sees managers in their department
-        if ($this->current_user_role === 'admin') {
-            $query .= " AND department = :department";
-            $params['department'] = $this->current_user_department;
-        }
-
-        $query .= " ORDER BY first_name, last_name";
-
-        $managers = $this->db->query($query, $params)->all();
-
-        http_response_code(200);
+        http_response_code(401);
         echo json_encode([
-            'success' => true,
-            'message' => 'Managers fetched successfully',
-            'managers' => $managers ?: [],
+            'success' => false,
+            'message' => 'Unauthorized Access',
+            'id' => $this->current_user_id
         ]);
+        return;
 
-        return $managers;
+
+       
     }
 
 }

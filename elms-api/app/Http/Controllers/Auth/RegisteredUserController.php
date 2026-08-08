@@ -19,11 +19,12 @@ class RegisteredUserController {
     public function store() {
 
      $user = Auth::user();
-
+     
+     // Department comes from the logged-in admin (department-scoped invite)
+     $department = $user['department'] ?? null;
     
-    
-     if(!$user || ($user['role'] !== 'admin' || $user['role'] !== 'super_admin'))  {
-        http_response_code(401);
+     if(!$user || !in_array($user['role'], ['admin', 'super admin'], true))  {
+        http_response_code(403);
         echo json_encode([
             'success' => false,
             'message' => 'Forbidden: You are not authorized to create a new user',
@@ -33,17 +34,17 @@ class RegisteredUserController {
 
      // check first the content type and see whether it is a JSON format
      if(!empty($_SERVER['CONTENT_TYPE']) && str_contains($_SERVER['CONTENT_TYPE'], 'application/json')) {
+
         $input = json_decode(file_get_contents('php://input'), true);
-
-        $register = new RegisterForm();
         
-
         $first_name = $input['first_name'] ?? '';
         $last_name = $input['last_name'] ?? '';
         $email = $input['email'] ?? '';
         $phone = $input['phone'] ?? '';
         $role = $input['role'] ?? '';
         $assigned_to = $input['assigned_to'] ?? '';
+
+        $register = new RegisterForm();
 
         if(!$register->validate($first_name, $last_name, $email, $phone, $role, $assigned_to)) {
             http_response_code(422);
@@ -56,11 +57,11 @@ class RegisteredUserController {
         }
 
         // check if email exists
-        $user = $this->db->query("SELECT * FROM users WHERE email = :email", [
+        $existing_user = $this->db->query("SELECT * FROM users WHERE email = :email", [
             'email' => $email
         ])->find();
 
-        if($user) {
+        if($existing_user) {
             http_response_code(422);
             echo json_encode([
                 'success' => false,
@@ -69,9 +70,6 @@ class RegisteredUserController {
             ]);
             return;
         }
-
-        // Department comes from the logged-in admin (department-scoped invite)
-        $department = $admin['department'] ?? null;
 
         $this->db->query("INSERT INTO users (first_name, last_name, email, phone, password, role, department, assigned_to) VALUES (:first_name, :last_name, :email, :phone, :password, :role, :department, :assigned_to)", [
             'first_name' => $first_name,
