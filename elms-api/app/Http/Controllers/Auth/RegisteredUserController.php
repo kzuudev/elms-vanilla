@@ -18,11 +18,12 @@ class RegisteredUserController {
 
     public function store() {
 
+     $user = Auth::user();
 
-     $admin = Auth::user();
     
-     if($admin !== 'admin') {
-        http_response_code(403);
+    
+     if(!$user || ($user['role'] !== 'admin' || $user['role'] !== 'super_admin'))  {
+        http_response_code(401);
         echo json_encode([
             'success' => false,
             'message' => 'Forbidden: You are not authorized to create a new user',
