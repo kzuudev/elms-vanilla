@@ -16,11 +16,7 @@ class VerifyEmailController {
     public function verifyEmail() {
 
         if (empty($_SERVER['CONTENT_TYPE']) || !str_contains($_SERVER['CONTENT_TYPE'], 'application/json')) {
-            http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Invalid verification request',
-            ]);
+            $this->db->response(400, false, 'Invalid verification request');
             return;
         }
 
@@ -31,29 +27,17 @@ class VerifyEmailController {
         $confirmPassword = $input['confirm_password'] ?? '';
 
         if ($token === '') {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Verification token is required',
-            ]);
+            $this->db->response(422, false, 'Verification token is required');
             return;
         }
 
         if ($password === '' || strlen($password) < 8) {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Password must be at least 8 characters',
-            ]);
+            $this->db->response(422, false, 'Password must be at least 8 characters');
             return;
         }
 
         if ($password !== $confirmPassword) {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Passwords do not match',
-            ]);
+            $this->db->response(422, false, 'Passwords do not match');
             return;
         }
 
@@ -63,22 +47,14 @@ class VerifyEmailController {
         )->find();
 
         if (!$verificationToken) {
-            http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Invalid or already used verification token',
-            ]);
+            $this->db->response(400, false, 'Invalid or already used verification token');
             return;
         }
 
         $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
 
         if ($verificationToken['expires_at'] < $now) {
-            http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Verification token expired',
-            ]);
+            $this->db->response(400, false, 'Verification token expired');
             return;
         }
 
@@ -98,10 +74,6 @@ class VerifyEmailController {
             ['id' => $verificationToken['id']]
         );
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Email verified successfully. You can now log in.',
-        ]);
+        $this->db->response(200, true, 'Email verified successfully. You can now log in.');
     }
 }

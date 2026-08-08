@@ -5,16 +5,19 @@ namespace App\Http\Controllers\employees;
 use App\Services\employees\EmployeeSummaryService;
 use App\Http\Middleware\Auth;
 use Core\App;
+use Core\Database;
 
 
 class EmployeesSummaryController {
 
+    private Database $db;
     private EmployeeSummaryService $employee_summary_service;
     private ?array $current_user;
     private int $current_user_id;
     private string $current_user_role;
     public function __construct() {
 
+        $this->db = App::resolve(Database::class);
         $this->employee_summary_service = App::resolve(EmployeeSummaryService::class);
         $this->current_user = Auth::user();
         $this->current_user_id = (int) ($this->current_user['id'] ?? 0);
@@ -24,21 +27,13 @@ class EmployeesSummaryController {
     public function summary() {
 
         if(!$this->current_user_id && !$this->current_user_role === 'admin') {
-            http_response_code(401);
-            echo json_encode([
-                "success" => false,
-                "message" => "Unauthorized Access",
-                "id" => $this->current_user_id
-            ]);
+            $this->db->response(401, false, 'Unauthorized Access', ['id' => $this->current_user_id]);
             return;
         }
 
         $employee_summary = $this->employee_summary_service->getEmployeeSummary();
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Employee summary fetched successfully',
+        $this->db->response(200, true, 'Employee summary fetched successfully', [
             'id' => $this->current_user_id,
             'employee_summary' => $employee_summary
         ]);
@@ -46,4 +41,3 @@ class EmployeesSummaryController {
         return $employee_summary;
     }
 }
-

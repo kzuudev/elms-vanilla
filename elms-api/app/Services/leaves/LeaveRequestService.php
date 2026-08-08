@@ -46,12 +46,7 @@ class LeaveRequestService implements LeaveRequestInterface {
 
         // validate the inputs
         if (!$leave_request_form->validate($leave_type, $start_date, $end_date, $reason)) {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Invalid inputs.',
-                'errors' => $leaveRequestForm->errors()
-            ]);
+            $this->db->response(422, false, 'Invalid inputs.', ['errors' => $leaveRequestForm->errors()]);
             return;
         }
 
@@ -79,12 +74,7 @@ class LeaveRequestService implements LeaveRequestInterface {
         ])->find();
 
         if (!$leaveTypeRecord) {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Invalid leave type.',
-                'leave_type_id' => $leave_type_id
-            ]);
+            $this->db->response(422, false, 'Invalid leave type.', ['leave_type_id' => $leave_type_id]);
             return;
         }
 
@@ -112,30 +102,21 @@ class LeaveRequestService implements LeaveRequestInterface {
         ])->find();
 
         if ($overlap) {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'message' => 'You already have a pending or approved request for this leave type during the selected dates.',
+            $this->db->response(422, false, 'You already have a pending or approved request for this leave type during the selected dates.', [
                 'leave_request_id' => $overlap['id']
             ]);
             return;
         }
 
         if (!$remaining_balance || $remaining_balance['remaining_balance'] < $days_requested) {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Insufficient leave balance for this leave type.',
+            $this->db->response(422, false, 'Insufficient leave balance for this leave type.', [
                 'leave_request_id' => $remaining_balance['id']
             ]);
             return;
         }
 
         if (!$role) {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'message' => 'You are not authorized to submit a leave request.',
+            $this->db->response(401, false, 'You are not authorized to submit a leave request.', [
                 'leave_request_id' => $user_id
             ]);
             return;
@@ -163,12 +144,9 @@ class LeaveRequestService implements LeaveRequestInterface {
         ['leave_request_id' => $this->db->lastInsertId()]
         );
 
-        http_response_code(201);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Leave request submitted successfully',
+        $this->db->response(201, true, 'Leave request submitted successfully', [
             'leave_request_id' => $this->db->lastInsertId()
-            ]);
+        ]);
         return;
 
     }
@@ -222,18 +200,14 @@ class LeaveRequestService implements LeaveRequestInterface {
             $leave_requests = $this->db->query($query, $params)->all();
 
 
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Leave requests fetched successfully',
+            $this->db->response(200, true, 'Leave requests fetched successfully', [
                 'leave_requests' => [
                     'data' => $leave_requests,
                 ],
             ]);
             return;
         }else {
-            http_response_code(401);
-            echo json_encode(['error' => 'You are not authorized to fetch leave requests.']);
+            $this->db->response(401, false, 'You are not authorized to fetch leave requests.');
             return;
         }
     }
@@ -255,39 +229,25 @@ class LeaveRequestService implements LeaveRequestInterface {
                 ])->find();
 
             if (!$leave_request) {
-                http_response_code(404);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Leave request not found.',
-                    'leave_request_id' => $id
-                ]);
+                $this->db->response(404, false, 'Leave request not found.', ['leave_request_id' => $id]);
                 return;
             }
 
             // validate if the user is the owner of the leave request or the assigned to the leave request
             if ((int) $leave_request['user_id'] !== (int) $user_id
                 && (int) ($leave_request['assigned_to'] ?? 0) !== (int) $user_id) {
-                http_response_code(401);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'You are not authorized to fetch this leave request.',
+                $this->db->response(401, false, 'You are not authorized to fetch this leave request.', [
                     'leave_request_id' => $id
                 ]);
                 return;
             }
 
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Leave request fetched successfully',
+            $this->db->response(200, true, 'Leave request fetched successfully', [
                 'leave_request' => $leave_request,
             ]);
             return;
         }else {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'message' => 'You are not authorized to fetch this leave request.',
+            $this->db->response(401, false, 'You are not authorized to fetch this leave request.', [
                 'leave_request_id' => $id
             ]);
             return;
@@ -308,12 +268,7 @@ class LeaveRequestService implements LeaveRequestInterface {
             ])->find();
 
             if (!$existingLeaveRequest) {
-                http_response_code(404);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Leave request not found.',
-                    'leave_request_id' => $id
-                ]);
+                $this->db->response(404, false, 'Leave request not found.', ['leave_request_id' => $id]);
                 return;
             }
 
@@ -322,10 +277,7 @@ class LeaveRequestService implements LeaveRequestInterface {
 
             // if the leave request is approved, return an error
             if($current_status === 'approved') {
-                http_response_code(422);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'You cannot update an approved leave request.',
+                $this->db->response(422, false, 'You cannot update an approved leave request.', [
                     'leave_request_id' => $id
                 ]);
                 return;
@@ -333,10 +285,7 @@ class LeaveRequestService implements LeaveRequestInterface {
 
             // if the leave request is rejected, return an error
             if($current_status === 'rejected') {
-                http_response_code(422);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'You cannot update a rejected leave request.',
+                $this->db->response(422, false, 'You cannot update a rejected leave request.', [
                     'leave_request_id' => $id
                 ]);
                 return;
@@ -348,10 +297,7 @@ class LeaveRequestService implements LeaveRequestInterface {
             ])->find();
 
             if (!$leaveType) {
-                http_response_code(422);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Leave type not found.',
+                $this->db->response(422, false, 'Leave type not found.', [
                     'leave_type_id' => $existingLeaveRequest['leave_type_id']
                 ]);
                 return;
@@ -368,22 +314,12 @@ class LeaveRequestService implements LeaveRequestInterface {
             ])->find();
 
             if (!$leaveTypeRecord) {
-                http_response_code(422);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Invalid leave type.',
-                    'leave_type' => $leave_type
-                ]);
+                $this->db->response(422, false, 'Invalid leave type.', ['leave_type' => $leave_type]);
                 return;
             }
 
             if (!$leaveRequestForm->validate($leave_type, $start_date, $end_date, $reason)) {
-                http_response_code(422);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Invalid inputs.',
-                    'errors' => $leaveRequestForm->errors()
-                ]);
+                $this->db->response(422, false, 'Invalid inputs.', ['errors' => $leaveRequestForm->errors()]);
                 return;
             }
 
@@ -410,10 +346,7 @@ class LeaveRequestService implements LeaveRequestInterface {
 
             if (!$remaining_balance || $remaining_balance['remaining_balance'] < $days_requested) {
 
-                http_response_code(422);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Insufficient leave balance for this leave type.',
+                $this->db->response(422, false, 'Insufficient leave balance for this leave type.', [
                     'leave_type_id' => $leaveTypeRecord['id'],
                     'remaining_balance' => $remaining_balance['remaining_balance'],
                 ]);
@@ -440,10 +373,7 @@ class LeaveRequestService implements LeaveRequestInterface {
             ])->find();
 
             if ($overlapRequest) {
-                http_response_code(422);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'You already have a pending or approved request for this leave type during the selected dates.',
+                $this->db->response(422, false, 'You already have a pending or approved request for this leave type during the selected dates.', [
                     'overlap_request_id' => $overlapRequest['overlap_request_id'],
                 ]);
                 return;
@@ -457,21 +387,13 @@ class LeaveRequestService implements LeaveRequestInterface {
                 'leave_type_id' => $leave_type_id
             ])->find();
             
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Leave request updated successfully',
-                'leave_request_id' => $id
-            ]);
+            $this->db->response(200, true, 'Leave request updated successfully', ['leave_request_id' => $id]);
             return;
 
             
         }
 
-        http_response_code(401);
-        echo json_encode([
-            'success' => false,
-            'message' => 'You are not authorized to update this leave request.',
+        $this->db->response(401, false, 'You are not authorized to update this leave request.', [
             'leave_request_id' => $id
         ]);
         return;
@@ -482,10 +404,7 @@ class LeaveRequestService implements LeaveRequestInterface {
     public function destroy($id, $user_id, $role): void {
 
         if(!$user_id || !$role) {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'message' => 'You are not authorized to delete this leave request.',
+            $this->db->response(401, false, 'You are not authorized to delete this leave request.', [
                 'leave_request_id' => $id
             ]);
             return;
@@ -496,31 +415,20 @@ class LeaveRequestService implements LeaveRequestInterface {
         ])->find();
 
         if(!$leave_request) {
-            http_response_code(404);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Leave request not found.',
-                'leave_request_id' => $id
-            ]);
+            $this->db->response(404, false, 'Leave request not found.', ['leave_request_id' => $id]);
             return;
         }
 
         // validate if the user is the owner of the leave request (tightes just in case admin or super admin wants to delete the leave request)
         if($user_id !== $leave_request['user_id']) {
-            http_response_code(403);
-            echo json_encode([
-                'success' => false,
-                'message' => 'You are not authorized to delete this leave request.',
+            $this->db->response(403, false, 'You are not authorized to delete this leave request.', [
                 'leave_request_id' => $id
             ]);
             return;
         }
 
         if (in_array($leave_request['status'], ['approved', 'rejected'], true)) {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Only pending leave requests can be deleted.',
+            $this->db->response(422, false, 'Only pending leave requests can be deleted.', [
                 'leave_request_id' => $id,
                 'status' => $leave_request['status']
             ]);
@@ -531,12 +439,7 @@ class LeaveRequestService implements LeaveRequestInterface {
             'id' => $id
         ])->find();
         
-        http_response_code(200);
-        echo json_encode([
-        'success' => true,
-        'message' => 'Leave request deleted successfully',
-        'leave_request_id' => $id,
-    ]);
+        $this->db->response(200, true, 'Leave request deleted successfully', ['leave_request_id' => $id]);
         
         return;
     }

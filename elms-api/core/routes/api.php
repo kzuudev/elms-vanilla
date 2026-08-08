@@ -21,6 +21,8 @@ use Core\Router;
 $router = new Router();
 
 $router->post('/', [LoginController::class, 'login'])->only('guest');
+$router->post('/logout', [LoginController::class, 'logout'])->only('auth');
+
 $router->post('/verify-email', [VerifyEmailController::class, 'verifyEmail']);
 $router->post('/leave-request', [LeaveRequestController::class, 'store'])->only('auth');
 

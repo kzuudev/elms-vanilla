@@ -19,16 +19,12 @@ class RegisteredUserController {
     public function store() {
 
      $user = Auth::user();
-     
+
      // Department comes from the logged-in admin (department-scoped invite)
      $department = $user['department'] ?? null;
     
      if(!$user || !in_array($user['role'], ['admin', 'super admin'], true))  {
-        http_response_code(403);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Forbidden: You are not authorized to create a new user',
-        ]);
+        $this->db->response(403, false, 'Forbidden: You are not authorized to create a new user');
         return;
      }
 
@@ -47,12 +43,7 @@ class RegisteredUserController {
         $register = new RegisterForm();
 
         if(!$register->validate($first_name, $last_name, $email, $phone, $role, $assigned_to)) {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $register->errors()
-            ]);
+            $this->db->response(422, false, 'Validation failed', $register->errors());
             return;
         }
 
@@ -62,12 +53,7 @@ class RegisteredUserController {
         ])->find();
 
         if($existing_user) {
-            http_response_code(422);
-            echo json_encode([
-                'success' => false,
-                'message' => 'User already exists',
-                'id' => $user['id']
-            ]);
+            $this->db->response(422, false, 'User already exists', ['id' => $existing_user['id']]);
             return;
         }
 
@@ -102,19 +88,11 @@ class RegisteredUserController {
         try {
             $email_verification_service->sendVerificationEmail($name, $email, $verification_token);
         } catch (\Exception $e) {
-            http_response_code(500);
-            echo json_encode([
-                'success' => false,
-                'message' => 'User created but failed to send verification email',
-                'error' => $e->getMessage(),
-            ]);
+            $this->db->response(500, false, 'User created but failed to send verification email', ['error' => $e->getMessage()]);
             return;
         }
 
-        http_response_code(201);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Registration successful! Please verify your email to activate your account.',
+        $this->db->response(201, true, 'Registration successful! Please verify your email to activate your account.', [
             'user' => [
                 'id' => $user_id,
                 'first_name' => $first_name,
@@ -128,12 +106,7 @@ class RegisteredUserController {
         return;
     }
 
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Invalid Registration Request',
-            'id' => $user_id
-        ]);
+        $this->db->response(400, false, 'Invalid Registration Request', ['id' => $user_id]);
         return;
     }
 }

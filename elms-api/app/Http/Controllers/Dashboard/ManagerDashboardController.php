@@ -6,15 +6,18 @@ use App\Contracts\LeaveAnalyticsInterface;
 use App\Http\Middleware\Auth;
 use App\Services\dashboard\ManagerDashboardService;
 use Core\App;
+use Core\Database;
 
 class ManagerDashboardController {
 
+    private Database $db;
     private LeaveAnalyticsInterface $leaveAnalyticsService;
 
     private ManagerDashboardService $managerDashboardService;
 
     public function __construct() {
 
+        $this->db = App::resolve(Database::class);
         $this->leaveAnalyticsService = App::resolve(ManagerDashboardService::class);
         $this->managerDashboardService = App::resolve(ManagerDashboardService::class);
 
@@ -35,10 +38,7 @@ class ManagerDashboardController {
             $backlogRequests = $this->leaveAnalyticsService->getBacklogRequests();
             $recentActivity = $this->leaveAnalyticsService->getRecentActivity();
 
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Dashboard data fetched successfully',
+            $this->db->response(200, true, 'Dashboard data fetched successfully', [
                 'remaining_balance' => $remainingBalance,
                 'pending_request' => $pendingRequest,
                 'total_used_days' => $usedDays,
@@ -51,8 +51,7 @@ class ManagerDashboardController {
             exit;
         }
 
-        http_response_code(403);
-        echo json_encode(['error' => 'Forbidden: Only managers can view this dashboard']);
+        $this->db->response(403, false, 'Forbidden: Only managers can view this dashboard');
     }
 
 }

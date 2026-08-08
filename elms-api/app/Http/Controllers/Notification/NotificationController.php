@@ -24,53 +24,16 @@ class NotificationController {
 
     public function index() {
 
-        $current_user = $this->auth->authenticate();
-
-        $current_user_id = $current_user['id'] ?? null;
-
-        if(!$current_user_id) {
-            http_response_code(401);
-            echo json_encode(["error" => "User not found"]);
-            exit;
-        }
-
-        $notifications = $this->notificationService->index();
-
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'notifications' => $notifications,
-        ]);
-        exit;
+        return $this->notificationService->index();
     }
 
     public function patch(int $id) {
-
-        $current_user = $this->auth->authenticate();
-
-        $current_user_id = $current_user['id'] ?? null;
-
-        if(!$current_user_id) {
-            http_response_code(401);
-            echo json_encode(["error" => "User not found"]);
-            exit;
-        }
-
+        
         $mark_as_read = $this->notificationService->markAsRead($id);
 
         if(!$mark_as_read) {
-            http_response_code(400);
-            echo json_encode(["error" => "Failed to mark as read"]);
-            exit;
+            return $this->db->response(400, false, 'Failed to mark as read');
         }
-
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => "Notification marked as read",
-            'mark_as_read' => $mark_as_read,
-        ]);
-        exit;
     }
 
 

@@ -54,13 +54,25 @@ class Database {
     }
 
     public static function abort($code, $message) {
-        http_response_code($code);
 
+        http_response_code($code);
         echo json_encode([
             "success" => false,
             "error" => $message
         ]);
 
-        die();
+        exit;
+    }
+
+    public static function response($code, $status, $message, $data = null) {
+        http_response_code($code);
+        
+        echo json_encode([
+            "success" => $status,
+            "message" => $message,
+            "data" => $data
+        ]);
+
+        return;
     }
 }

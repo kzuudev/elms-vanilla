@@ -29,12 +29,7 @@ class EmployeesService {
     public function getEmployees() {
 
         if(!$this->current_user_id) {
-            http_response_code(401);
-            echo json_encode([
-                "success" => false,
-                "message" => "Admin not found",
-                "id" => $this->current_user_id
-            ]);
+            $this->db->response(401, false, 'Admin not found', ['id' => $this->current_user_id]);
             return;
         }
 
@@ -90,10 +85,7 @@ class EmployeesService {
 
         $employees = $this->db->query($query, $params)->all();
 
-        http_response_code(200);
-        echo json_encode([
-             'success' => true,
-             'message' => 'Employee List fetched successfully',
+        $this->db->response(200, true, 'Employee List fetched successfully', [
              'id' => $this->current_user_id,
              'employees' => $employees ?: [],
              'search' => $search
@@ -105,12 +97,7 @@ class EmployeesService {
     public function getEmployee($id) {
 
         if(!$this->current_user_id) {
-            http_response_code(401);
-            echo json_encode([
-                "success" => false,
-                "message" => "Admin not found",
-                "id" => $this->current_user_id
-            ]);
+            $this->db->response(401, false, 'Admin not found', ['id' => $this->current_user_id]);
             return;
         }
 
@@ -133,12 +120,7 @@ class EmployeesService {
         ])->find();
 
         if (!$user) {
-            http_response_code(404);
-            echo json_encode([
-                "success" => false,
-                "message" => "User not found",
-                "user_id" => $id
-            ]);
+            $this->db->response(404, false, 'User not found', ['user_id' => $id]);
             exit;
         }
 
@@ -149,10 +131,7 @@ class EmployeesService {
             WHERE role = 'manager' AND is_active = 1
         ")->all();
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Existing user details fetched successfully',
+        $this->db->response(200, true, 'Existing user details fetched successfully', [
             'id' => $id,
             'user' => $user
         ]);
@@ -169,12 +148,7 @@ class EmployeesService {
             ])->find();
 
             if (!$existing_user) {
-                http_response_code(404);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Employee to edit not found',
-                    'employee_id' => $id
-                ]);
+                $this->db->response(404, false, 'Employee to edit not found', ['employee_id' => $id]);
                 return;
             }
             
@@ -199,12 +173,7 @@ class EmployeesService {
             $employee_form = new EmployeeForm();
 
             if(!$employee_form->validate($first_name, $last_name, $email, $phone, $role, $department, $salary, $manager_id, $is_active, $hired_date)) {
-                http_response_code(422);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Invalid inputs',
-                    'errors' => $employee_form->errors()
-                ]);
+                $this->db->response(422, false, 'Invalid inputs', ['errors' => $employee_form->errors()]);
                 return;
             }
             
@@ -243,19 +212,11 @@ class EmployeesService {
                 ['id' => $id])->find();
     
             if(!$edited_user) {
-                http_response_code(422);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Failed to update employee details',
-                    'employee_id' => $id
-                ]);
+                $this->db->response(422, false, 'Failed to update employee details', ['employee_id' => $id]);
                 return;
             }
     
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Employee details updated successfully',
+            $this->db->response(200, true, 'Employee details updated successfully', [
                 'employee_id' => $id,
                 'employee'    => $edited_user
             ]);
@@ -263,12 +224,7 @@ class EmployeesService {
             return $edited_user;
         }
 
-       http_response_code(401);
-       echo json_encode([
-        "success" => false,
-        "message" => "Unauthorized access",
-        "id" => $this->current_user_id
-       ]);
+       $this->db->response(401, false, 'Unauthorized access', ['id' => $this->current_user_id]);
        return;
     }
 
@@ -281,22 +237,12 @@ class EmployeesService {
             ])->find();
     
             if(!$user) {
-                http_response_code(404);
-                echo json_encode([
-                    "success" => false,
-                    "message" => "User not found",
-                    "id" => $id
-                ]);
+                $this->db->response(404, false, 'User not found', ['id' => $id]);
                 return;
             }
     
             if($user['role'] === 'admin') {
-                http_response_code(401);
-                echo json_encode([
-                    "success" => false,
-                    "message" => "You are not authorized to delete this employee (admin).",
-                    "id" => $id
-                ]);
+                $this->db->response(401, false, 'You are not authorized to delete this employee (admin).', ['id' => $id]);
                 return;
             }
     
@@ -305,10 +251,7 @@ class EmployeesService {
                 'id' => $id
             ]);
     
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Employee deleted successfully',
+            $this->db->response(200, true, 'Employee deleted successfully', [
                 'id' => $id,
                 'deleted' => $delete_user
             ]);
@@ -317,12 +260,7 @@ class EmployeesService {
         }
 
 
-        http_response_code(401);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Unauthorized Access',
-            'id' => $this->current_user_id
-        ]);
+        $this->db->response(401, false, 'Unauthorized Access', ['id' => $this->current_user_id]);
         return;
 
        
@@ -358,12 +296,7 @@ class EmployeesService {
 
 
             if(!$user) {
-                http_response_code(404);
-                echo json_encode([
-                    "success" => false,
-                    "message" => "Employee not found",
-                    "id" => $id
-                ]);
+                $this->db->response(404, false, 'Employee not found', ['id' => $id]);
                 return;
             }
 
@@ -394,10 +327,7 @@ class EmployeesService {
                 }
             }
 
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Employee details fetched successfully',
+            $this->db->response(200, true, 'Employee details fetched successfully', [
                 'id' => $id,
                 'employee' => $structured_data
             ]);
@@ -405,12 +335,7 @@ class EmployeesService {
             return $structured_data;
         }
 
-        http_response_code(401);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Unauthorized Access',
-            'id' => $this->current_user_id
-        ]);       
+        $this->db->response(401, false, 'Unauthorized Access', ['id' => $this->current_user_id]);
         return;
     }
 
@@ -441,24 +366,16 @@ class EmployeesService {
 
             $managers = $this->db->query($query, $params)->all();
 
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Managers fetched successfully',
+            $this->db->response(200, true, 'Managers fetched successfully', [
                 'managers' => $managers ?: [],
             ]);
 
-            return $managers;
+            return $managers; 
             
         }
 
 
-        http_response_code(401);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Unauthorized Access',
-            'id' => $this->current_user_id
-        ]);
+        $this->db->response(401, false, 'Unauthorized Access', ['id' => $this->current_user_id]);
         return;
 
 

@@ -34,21 +34,11 @@ class NotificationService {
                 'data' => $data ? json_encode($data) : null,
             ]);
 
-            http_response_code(201);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Notification created successfully',
-                'user_id' => $user_id,
-            ]);
+            $this->db->response(201, true, 'Notification created successfully', ['user_id' => $user_id]);
             return;
         }
 
-        http_response_code(401);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Unathorized Access',
-            'user_id' => $this->current_user_id,
-        ]);
+        $this->db->response(401, false, 'Unathorized Access', ['user_id' => $this->current_user_id]);
         return;
     }
 
@@ -64,21 +54,11 @@ class NotificationService {
             'user_id' => $this->current_user_id, // list of notifications for the current user
             ])->all();
 
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Notifications fetched successfully',
-                'notifications' => $notifications,
-            ]);
+            $this->db->response(200, true, 'Notifications fetched successfully', ['notifications' => $notifications]);
             return $notifications ?? [];
         }
 
-        http_response_code(401);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Unathorized Access',
-            'user_id' => $this->current_user_id,
-        ]);
+        $this->db->response(401, false, 'Unathorized Access', ['user_id' => $this->current_user_id]);
         return;
 
        
@@ -92,12 +72,7 @@ class NotificationService {
     public function markAsRead(int $id): bool {
 
         if(!$this->current_user_id) {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Unathorized Access',
-                'user_id' => $this->current_user_id,
-            ]);
+            $this->db->response(401, false, 'Unathorized Access', ['user_id' => $this->current_user_id]);
             return false;
         }
 
@@ -107,21 +82,12 @@ class NotificationService {
         ])->find();
 
         if(!$notification) {
-            http_response_code(404);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Notification not found',
-                'user_id' => $this->current_user_id,
-            ]);
+            $this->db->response(404, false, 'Notification not found', ['user_id' => $this->current_user_id]);
             return false;
         }
+        
         if($notification['read_at'] == date('Y-m-d H:i:s')) {
-            http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Notification already marked as read',
-                'user_id' => $this->current_user_id,
-            ]);
+            $this->db->response(400, false, 'Notification already marked as read', ['user_id' => $this->current_user_id]);
             return false;
         }
 
@@ -131,12 +97,7 @@ class NotificationService {
             'user_id' => $this->current_user_id,
         ])->find();
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Notification marked as read',
-            'user_id' => $this->current_user_id,
-        ]);
+        $this->db->response(200, true, 'Notification marked as read', ['user_id' => $this->current_user_id]);
         return true;
     }
 
@@ -148,12 +109,7 @@ class NotificationService {
         
 
         if(!$this->current_user_id) {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Unathorized Access',
-                'user_id' => $this->current_user_id,
-            ]);
+            $this->db->response(401, false, 'Unathorized Access', ['user_id' => $this->current_user_id]);
             return;
         }
 
@@ -162,12 +118,7 @@ class NotificationService {
             'user_id' => $this->current_user_id,
         ])->find();
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Notification deleted successfully',
-            'user_id' => $this->current_user_id,
-        ]);
+        $this->db->response(200, true, 'Notification deleted successfully', ['user_id' => $this->current_user_id]);
         return;
     }
 

@@ -6,14 +6,17 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Middleware\Auth;
 use App\Services\dashboard\EmployeeDashboardService;
 use Core\App;
+use Core\Database;
 
 
 class EmployeeDashboardController {
 
+    private Database $db;
     private EmployeeDashboardService $employeeDashboardService;
 
     public function __construct() {
 
+        $this->db = App::resolve(Database::class);
         $this->employeeDashboardService = App::resolve(EmployeeDashboardService::class);
 
     }
@@ -33,10 +36,7 @@ class EmployeeDashboardController {
         $teamAvailability = $this->employeeDashboardService->getTeamAvailability($currentUserId, $currentUserRole);
         $monthlyLeaveConsumption = $this->employeeDashboardService->getMonthlyLeaveConsumption($currentUserId);
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Dashboard data fetched successfully',
+        $this->db->response(200, true, 'Dashboard data fetched successfully', [
             'total_remaining_balance' => $totalRemainingBalance,
             'total_pending_request' => $totalPendingRequest,
             'total_used_days' => $totalUsedDays,

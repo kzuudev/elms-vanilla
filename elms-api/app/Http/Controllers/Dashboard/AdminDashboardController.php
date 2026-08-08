@@ -7,17 +7,19 @@ use App\Contracts\LeaveAnalyticsInterface;
 use App\Http\Middleware\Auth;
 use App\Services\dashboard\AdminDashboardService;
 use Core\App;
+use Core\Database;
 
 
 class AdminDashboardController {
 
-    
+    private Database $db;
     private LeaveAnalyticsInterface $leaveAnalyticsService;
 
     private AdminDashboardService $adminDashboardService;
 
     public function __construct() {
 
+        $this->db = App::resolve(Database::class);
         $this->leaveAnalyticsService = App::resolve(AdminDashboardService::class);
         $this->adminDashboardService = App::resolve(AdminDashboardService::class);
     }
@@ -29,10 +31,7 @@ class AdminDashboardController {
         
         if($currentUserRole === 'admin') {
 
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Dashboard data fetched successfully',
+            $this->db->response(200, true, 'Dashboard data fetched successfully', [
                 'remaining_balance' => $this->adminDashboardService->getRemainingTotalBalance(),
                 'pending_request' => $this->adminDashboardService->getPendingApprovalMetrics(),
                 'total_used_days' => $this->adminDashboardService->getUsedDays(),
@@ -46,7 +45,6 @@ class AdminDashboardController {
 
         }
 
-        http_response_code(403);
-        echo json_encode(['error' => 'Forbidden: Only admins can view this dashboard']);
+        $this->db->response(403, false, 'Forbidden: Only admins can view this dashboard');
     }
 }

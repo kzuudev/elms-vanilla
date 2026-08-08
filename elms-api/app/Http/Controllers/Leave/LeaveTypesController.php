@@ -26,11 +26,7 @@ class LeaveTypesController {
         $user_id = (int) ($user['id'] ?? 0);
 
         if (!$user_id) {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ]);
+            $this->db->response(401, false, 'Unauthorized');
             return;
         }
 
@@ -46,12 +42,7 @@ class LeaveTypesController {
             ['user_id' => $user_id]
         )->all();
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Leave types fetched successfully',
-            'leave_types' => $rows ?: [],
-        ]);
+        $this->db->response(200, true, 'Leave types fetched successfully', ['leave_types' => $rows ?: []]);
         return;
     }
 

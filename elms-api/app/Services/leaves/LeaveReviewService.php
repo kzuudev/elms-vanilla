@@ -29,12 +29,7 @@ class LeaveReviewService implements LeaveReviewInterface {
         $current_user_id = $current_user['id'] ?? null;
 
         if (!$current_user_id) {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Unauthorized',
-                'data' => null,
-            ]);
+            $this->db->response(401, false, 'Unauthorized');
             exit;
         }
 
@@ -66,16 +61,13 @@ class LeaveReviewService implements LeaveReviewInterface {
             $params['reviewer_id'] = $current_user_id;
         } else {
             // Stop regular employees from seeing the review list!
-            http_response_code(403);
-            echo json_encode(["error" => "Forbidden: You do not have review permissions"]);
+            $this->db->response(403, false, 'Forbidden: You do not have review permissions');
             exit;
         }
 
         $leavesList = $this->db->query($sql, $params)->all();
 
-        echo json_encode([
-            'success' => true,
-            'message' => 'Employee leaves list fetched successfully',
+        $this->db->response(200, true, 'Employee leaves list fetched successfully', [
             'id' => $current_user_id,
             'leaves' => [
                 'data' => $leavesList,
@@ -90,12 +82,7 @@ class LeaveReviewService implements LeaveReviewInterface {
         $current_user_id = $current_user['id'] ?? null;
 
         if (!$current_user_id) {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false, 
-                'message' => 'User not found',
-                'user_id' => $current_user_id
-            ]);
+            $this->db->response(401, false, 'User not found', ['user_id' => $current_user_id]);
             exit;
         }
         
@@ -121,12 +108,7 @@ class LeaveReviewService implements LeaveReviewInterface {
             $sql .= " AND (lr.assigned_to = :current_user_id OR lr.user_id = :current_user_id)";
             $params['current_user_id'] = $current_user_id;
         }else {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Unauthorized User',
-                'user_id' => $current_user_id,
-            ]);
+            $this->db->response(401, false, 'Unauthorized User', ['user_id' => $current_user_id]);
             exit;
         }
 
@@ -140,20 +122,17 @@ class LeaveReviewService implements LeaveReviewInterface {
 
         // Validation of a rejection phase
         if(!in_array($status, ['approved', 'rejected'])) {
-            http_response_code(422);
-            echo json_encode(['error' => 'Invalid status. Must be approved or rejected.']);
+            $this->db->response(422, false, 'Invalid status. Must be approved or rejected.');
             exit;
         }
 
         if($status == 'rejected' && empty($rejectionReason)) {
-            http_response_code(422);
-            echo json_encode(['error' => 'Rejection reason is required when status is rejected.']);
+            $this->db->response(422, false, 'Rejection reason is required when status is rejected.');
             exit;
         }
 
         if($current_user_id === $authorizedUser['user_id']) {
-            http_response_code(403);
-            echo json_encode(["error" => "Self-approval is strictly prohibited."]);
+            $this->db->response(403, false, 'Self-approval is strictly prohibited.');
             exit;
         }
    
@@ -217,10 +196,7 @@ class LeaveReviewService implements LeaveReviewInterface {
 
         
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Leave request status updated successfully',
+        $this->db->response(200, true, 'Leave request status updated successfully', [
             'id' => $id,
             'authorized_user' => $authorizedUser,
             'rejected' => $rejected,
@@ -235,11 +211,7 @@ class LeaveReviewService implements LeaveReviewInterface {
         $current_user = $this->auth->authenticate();
         $current_user_id = $current_user['id'] ?? null;
         if (!$current_user_id) {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ]);
+            $this->db->response(401, false, 'Unauthorized');
             exit;
         }
         
@@ -271,12 +243,7 @@ class LeaveReviewService implements LeaveReviewInterface {
             $query .= " AND lr.assigned_to = :current_user_id";
             $params['current_user_id'] = $current_user_id;
         }else {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Unauthorized',
-                'user_id' => $current_user_id,
-            ]);
+            $this->db->response(401, false, 'Unauthorized', ['user_id' => $current_user_id]);
             exit;
         }
         
@@ -284,13 +251,9 @@ class LeaveReviewService implements LeaveReviewInterface {
         $pendingRequest = $this->db->query($query, ['id' => $id])->find();
 
         if(!$pendingRequest) {
-            http_response_code(404);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Leave request not found',
+            $this->db->response(404, false, 'Leave request not found', [
                 'user_id' => $current_user_id,
                 'id' => $id,
-                'data' => null,
             ]);
             exit;
         }
@@ -338,10 +301,7 @@ class LeaveReviewService implements LeaveReviewInterface {
 
         $criticalOverlap = $remainingStaff <= 0;
 
-        http_response_code(200);
-        echo json_encode([
-            'success'               => true,
-            'message'               => 'Check overlap successfully',
+        $this->db->response(200, true, 'Check overlap successfully', [
             'department'            => $pendingRequest['department'],
             'total_active_staff'    => $totalActiveStaff,
             'remaining_staff'       => $remainingStaff,

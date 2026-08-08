@@ -9,28 +9,29 @@ use Core\Database;
 
 class EmployeeLeaveBalanceController {
 
+    private Database $db;
+    private Auth $auth;
+
+    public function __construct() {
+        $this->db = App::resolve(Database::class);
+        $this->auth = App::resolve(Auth::class);
+    }
 
     public function index () {
 
-        $db = App::resolve(Database::class);
-        $currentUser = Auth::authenticate();
+        $current_user = $this->auth->user();
 
-        $role = $currentUser['role'];
-
-        // only admin and managers are allowed to view at OTHER employees balance
-//        if($role !== 'admin' && $role !== 'manager') {
-//            http_response_code(403);
-//            echo json_encode(['error' => 'Forbidden: Only admins and managers can view leave balances']);
-//            exit;
-//        }
-
-        if(!$role) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Forbidden: User not found']);
+        if(!$current_user || !$current_user['token']) {
+            $this->db->response(401, false, 'Unauthorized: No token provided');
             exit;
         }
 
-        $balances = $db->query("
+        if(!in_array($current_user['role'], ['admin', 'manager'])) {
+            $this->db->response(403, false, 'Forbidden: Only admins and managers can view other employees leave balances');
+            exit;
+        }
+
+        $balances = $this->db->query("
            SELECT
                 lb.used_days,
                 lb.remaining_balance,
@@ -40,14 +41,14 @@ class EmployeeLeaveBalanceController {
            LEFT JOIN leave_types lt ON lb.leave_type_id = lt.id
            WHERE lb.user_id = :user_id
         ", [
-            'user_id' => $currentUser['id'],
+            'user_id' => $current_user['id'],
         ])->all();
 
-        $structuredBalances = [];
+        $structured_balances = [];
 
         foreach ($balances as $balance) {
             if (!empty($balance['leave_type'])) {
-                $structuredBalances[] = [
+                $structured_balances[] = [
                     'leave_type'        => $balance['leave_type'],
                     'remaining_balance' => (float)$balance['remaining_balance'],
                     'used_days'         => (float)$balance['used_days'],
@@ -57,18 +58,14 @@ class EmployeeLeaveBalanceController {
         }
 
 
-        http_response_code(200);
-        echo json_encode([
-            'success' => true,
-            'message' => 'Leave balances fetched successfully',
-            'id' => $currentUser['id'],
-            'balances' => $structuredBalances
+        $this->db->response(200, true, 'Leave balances fetched successfully', [
+            'id' => $current_user['id'],
+            'balances' => $structured_balances
         ]);
 
 
     }
 }
-
 
 
 
