@@ -247,7 +247,7 @@ class EmployeesService {
             }
     
     
-            $delete_user = $this->db->query("UPDATE users SET is_active = 0 WHERE id = :id", [
+            $delete_user = $this->db->query("UPDATE users SET is_active = 0 AND deleted_at = CURRENT_TIMESTAMP WHERE id = :id", [
                 'id' => $id
             ]);
     
