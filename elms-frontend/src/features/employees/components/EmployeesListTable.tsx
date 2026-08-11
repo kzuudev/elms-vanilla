@@ -10,12 +10,15 @@
     import {formatE164} from "@/lib/utils.ts";
 
     import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
+    import { type Manager } from "@/types/employees.ts";
 
     import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
     import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog.tsx";
     import {Field, FieldError, FieldGroup, FieldLabel,} from "@/components/ui/field.tsx";
+    import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
     import {Button} from "@/components/ui/button.tsx";
     import { Input } from "@/components/ui/input";
+
     import {Eye, Pencil, Trash, Calendar} from "lucide-react";
     import {format} from "date-fns";
 
@@ -38,6 +41,8 @@
         const [isFormOpen, setIsFormOpen] = useState(false);
         const [activeUserId, setActiveUserId] = useState<number | null>(null);
 
+        const [managers, setManagers] = useState<Manager[]>([]);
+
         const [employeeDetails, setEmployeeDetails] = useState<EmployeeDetails>({} as EmployeeDetails);
 
         const [error, setError] = useState<string | null>(null);
@@ -54,7 +59,7 @@
             salary: z.string().min(1, {message: "Salary is required"}),
 
             // manager_id can be empty/null if they don't have a manager assigned
-            manager_id: z.string().optional().nullable(),
+            assigned_to: z.string().optional().nullable(),
 
             // accepts string or number since dropdown selects return values as strings ("1" or "0")
             is_active: z.union([z.string(), z.number()]),
@@ -75,7 +80,7 @@
                 department: '',
                 hired_date: '',
                 salary: '',
-                manager_id: '',
+                assigned_to: '',
                 is_active: 1,
             }
         });
@@ -97,7 +102,9 @@
                     department: employeeDetails.department || '',
                     hired_date: employeeDetails.hired_date ? employeeDetails.hired_date.split(' ')[0] : '',
                     salary: employeeDetails.salary ? String(employeeDetails.salary) : '',
-                    manager_id: employeeDetails.manager_id ? String(employeeDetails.manager_id) : '',
+                    assigned_to: employeeDetails.assigned_to?.id != null
+                        ? String(employeeDetails.assigned_to.id)
+                        : '',
                     is_active: employeeDetails.is_active,
                 });
             }
@@ -111,7 +118,7 @@
                         Authorization: `Bearer ${holder}`,
                     }
                 });
-                const data = response.data.employee;
+                const data = response.data.data.employee;
                 setEmployeeDetails(data);
                 return data
             } catch (e) {
@@ -149,7 +156,9 @@
                     department: data.department || '',
                     hired_date: data.hired_date ? data.hired_date.split(' ')[0] : '',
                     salary: data.salary ? String(data.salary) : '',
-                    manager_id: data.manager_id ? String(data.manager_id) : '',
+                    assigned_to: data.assigned_to?.id != null
+                        ? String(data.assigned_to.id)
+                        : '',
                     is_active: data.is_active,
                 });
 
@@ -209,12 +218,37 @@
             }
 
         const handleDeleteEmployee = async (id: number) => {
-            form.setError("root", null);
+            form.setError("root", {
+                type: "server",
+                message: "A network error occurred.",
+            });
 
             if (window.confirm("Are you sure you want to delete this user?")) {
                 await fetchDeleteEmployee(id);
             }
         }
+
+        const fetchManagers = async () => {
+
+            try {
+                const holder = localStorage.getItem("token");
+                const response = await api.get(`/employees/managers`, {
+                    headers: {
+                        Authorization: `Bearer ${holder}`,
+                    }
+                });
+                setManagers(response.data.data.managers);
+            } catch (e: any) {
+                setError(e.response.data.message || "A network error occurred.");
+                return [];
+            }
+        }
+
+        useEffect(() => {
+            if(isAdmin) {
+                fetchManagers();
+            }
+        }, []);
 
         const options = [
                 {value: 'IT Support', label: 'IT Support'},
@@ -224,6 +258,8 @@
                 {value: 'AI Engineer', label: 'AI Engineer'},
                 {value: 'Accountant', label: 'Accountant'}
         ]
+
+
 
             return (
 
@@ -356,6 +392,7 @@
                                             </div>
                                             {/* Email & Phone */}
                                             <div className="flex gap-2">
+                                                
                                                 <Controller name="email" control={form.control}
                                                             render={({field, fieldState}) => (
                                                                 <Field data-invalid={fieldState.invalid} className="w-1/2">
@@ -366,7 +403,8 @@
                                                                     {fieldState.invalid &&
                                                                         <FieldError errors={[fieldState.error]}/>}
                                                                 </Field>
-                                                            )}/>
+                                                )}/>
+
                                                 <Controller name="phone" control={form.control}
                                                             render={({field, fieldState}) => (
                                                                 <Field data-invalid={fieldState.invalid} className="w-1/2">
@@ -377,7 +415,7 @@
                                                                     {fieldState.invalid &&
                                                                         <FieldError errors={[fieldState.error]}/>}
                                                                 </Field>
-                                                            )}/>
+                                                )}/>
                                             </div>
 
                                             {/* Role & Department */}
@@ -398,7 +436,7 @@
                                                                         {fieldState.invalid &&
                                                                             <FieldError errors={[fieldState.error]}/>}
                                                                     </Field>
-                                                                )}/>
+                                                )}/>
                                                 <Controller name="department" control={form.control}
                                                             render={({field, fieldState}) => (
                                                                 <Field data-invalid={fieldState.invalid} className="w-1/2">
@@ -410,7 +448,7 @@
                                                                     {fieldState.invalid &&
                                                                         <FieldError errors={[fieldState.error]}/>}
                                                                 </Field>
-                                                            )}/>
+                                                )}/>
                                             </div>
 
                                             {/* Hired Date & Salary */}
@@ -424,7 +462,8 @@
                                                                     {fieldState.invalid &&
                                                                         <FieldError errors={[fieldState.error]}/>}
                                                                 </Field>
-                                                            )}/>
+                                                )}/>
+
                                                 <Controller name="salary" control={form.control}
                                                             render={({field, fieldState}) => (
                                                                 <Field data-invalid={fieldState.invalid} className="w-1/2">
@@ -434,34 +473,36 @@
                                                                     {fieldState.invalid &&
                                                                         <FieldError errors={[fieldState.error]}/>}
                                                                 </Field>
-                                                            )}/>
+                                                )}/>
                                             </div>
 
                                             {/* Manager ID & Status */}
                                             <div className="flex gap-2">
                                                 <Controller
-                                                    name="manager_id"
+                                                    name="assigned_to"
                                                     control={form.control}
                                                     render={({field, fieldState}) => (
                                                         <Field data-invalid={fieldState.invalid} className="w-1/2">
-                                                            <FieldLabel htmlFor="manager_id">Manager (Optional)</FieldLabel>
-                                                            <select
-                                                                {...field}
-                                                                id="manager_id"
-                                                                value={field.value || ''}
-                                                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                                                aria-invalid={fieldState.invalid}
+                                                            <FieldLabel htmlFor="assigned_to">Manager (Optional)</FieldLabel>
+                                                            <Select
+                                                                value={field.value ? String(field.value) : 'none'}
+                                                                onValueChange={(value) =>
+                                                                    field.onChange(value === 'none' ? '' : value)
+                                                                }
                                                             >
-                                                                <option value="">No Manager Assigned</option>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select a manager" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="none">No Manager Assigned</SelectItem>
+                                                                    {managers.map((manager) => (
+                                                                        <SelectItem key={manager.id} value={String(manager.id)}>
+                                                                            {manager.name}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
 
-                                                                {/*{employeeDetails?.manager?.map((manager) => (*/}
-                                                                {/*    <option key={manager.id} value={manager.id}>*/}
-                                                                {/*        {manager.name}*/}
-                                                                {/*    </option>*/}
-                                                                {/*))}*/}
-
-
-                                                            </select>
                                                             {fieldState.invalid && <FieldError errors={[fieldState.error]}/>}
                                                         </Field>
                                                     )}
@@ -471,14 +512,15 @@
                                                                 <Field data-invalid={fieldState.invalid} className="w-1/2">
                                                                     <FieldLabel htmlFor="is_active" className="m-0">Account
                                                                         Status</FieldLabel>
-                                                                    <select
-                                                                        {...field}
-                                                                        id="is_active"
-                                                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                                                    >
-                                                                        <option value={1}>Active</option>
-                                                                        <option value={0}>Inactive</option>
-                                                                    </select>
+                                                                    <Select {...field} value={field.value ? String(field.value) : ''}>
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder="Select a status" />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            <SelectItem value="1">Active</SelectItem>
+                                                                            <SelectItem value="0">Inactive</SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
                                                                     {fieldState.invalid &&
                                                                         <FieldError errors={[fieldState.error]}/>}
                                                                 </Field>

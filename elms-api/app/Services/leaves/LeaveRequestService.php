@@ -55,7 +55,6 @@ class LeaveRequestService implements LeaveRequestInterface {
         $end_date_obj = new DateTime($end_date);
 
 
-
         // count for days requested (weekdays)
         $days_requested = 0;
 
@@ -69,16 +68,16 @@ class LeaveRequestService implements LeaveRequestInterface {
         }
 
         // capture the leave_type id based on the leave type name submitted
-        $leaveTypeRecord = $this->db->query("SELECT id FROM leave_types WHERE name = :name", [
+        $leave_type_record = $this->db->query("SELECT id FROM leave_types WHERE name = :name", [
             'name' => $leave_type
         ])->find();
 
-        if (!$leaveTypeRecord) {
-            $this->db->response(422, false, 'Invalid leave type.', ['leave_type_id' => $leave_type_id]);
+        if (!$leave_type_record) {
+            $this->db->response(422, false, 'Invalid leave type.', ['leave_type_id' => $leave_type_record['id']]);
             return;
         }
 
-        $leave_type_id = $leaveTypeRecord['id'];
+        $leave_type_id = $leave_type_record['id'];
 
         // query the remaining balance and leave types
         $remaining_balance = $this->db->query("SELECT remaining_balance FROM leave_balance WHERE user_id = :user_id AND leave_type_id = :leave_type_id", [

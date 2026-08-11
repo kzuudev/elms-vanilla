@@ -68,18 +68,15 @@ export default function Register({closeDialog}: RegisterFormProps) {
 
     // Fetch managers — EmployeesController@managers
     useEffect(() => {
-        const controller = new AbortController();
-
         const fetchManagers = async () => {
             try {
                 const holder = localStorage.getItem("token");
                 const response = await api.get("/employees/managers", {
                     headers: { Authorization: `Bearer ${holder}` },
-                    signal: controller.signal,
                 });
 
                 setManagers(
-                    (response.data.managers ?? []).map(
+                    (response.data.data.managers ?? []).map(
                         (manager: { id: number; first_name: string; last_name: string }) => ({
                             value: String(manager.id),
                             label: `${manager.first_name} ${manager.last_name}`,
@@ -104,8 +101,6 @@ export default function Register({closeDialog}: RegisterFormProps) {
         };
 
         fetchManagers();
-
-        return () => controller.abort();
     }, []);
 
     const onSubmit = async (data: RegisterFormData) => {

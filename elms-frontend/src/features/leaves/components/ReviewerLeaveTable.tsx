@@ -96,8 +96,8 @@ export default function ReviewerLeaveTable() {
                 }
             });
             if(response.data.success) {
-                setOverlaps(response.data.overlapping_employees || []);
-                return response.data
+                setOverlaps(response.data.data.overlapping_employees || []);
+                return response.data.data
             }
         }catch (e) {
             setError(e.response.data.message);

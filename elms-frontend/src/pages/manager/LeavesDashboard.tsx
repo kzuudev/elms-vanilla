@@ -49,7 +49,7 @@ export default function  LeavesDashboard() {
 
     const { formState: {errors}} = form;
 
-    const fetchLeaveRequests = async (signal?: AbortSignal) => {
+    const fetchLeaveRequests = async () => {
 
         try {
             const holder = localStorage.getItem("token");
@@ -57,9 +57,8 @@ export default function  LeavesDashboard() {
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 },
-                signal: signal
             });
-            setReviewerLeaveRequests(response.data.leaves.data);
+            setReviewerLeaveRequests(response.data.data.leaves.data);
         }catch (e) {
             setError(e.response.data.message);
         }
@@ -74,8 +73,8 @@ export default function  LeavesDashboard() {
                     Authorization: `Bearer ${holder}`,
                 }
             });
-            setLeaveRequestDetails(response.data.leave_request);
-            console.log(response.data.leave_request);
+            setLeaveRequestDetails(response.data.data.leave_request);
+            console.log(response.data.data.leave_request);
         }catch (e) {
             form.setError("root", {
                 type: "server",
@@ -85,11 +84,8 @@ export default function  LeavesDashboard() {
     }
 
     useEffect(() => {
-
-        const controller = new AbortController();
-
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchLeaveRequests(controller.signal);
+        fetchLeaveRequests();
 
         const handleFocus = () => {
             fetchLeaveRequests();
@@ -97,9 +93,7 @@ export default function  LeavesDashboard() {
 
         window.addEventListener("focus", handleFocus);
 
-
         return () => {
-            controller.abort();
             window.removeEventListener("focus", handleFocus);
         }
     }, []);

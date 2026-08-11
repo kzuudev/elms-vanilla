@@ -37,12 +37,12 @@ export default function EmployeeDashboard() {
                     Authorization: `Bearer ${holder}`,
                 }
             });
-            setTotalRemainingBalance(response.data.total_remaining_balance);
-            setTotalPendingRequest(response.data.total_pending_request);
-            setTotalUsedDays(response.data.total_used_days);
-            setMonthlyLeaveConsumption(response.data.monthly_leave_consumption);
-            setRecentActivity(response.data.recent_activity);
-            setTeamAvailability(response.data.team_availability);
+            setTotalRemainingBalance(response.data.data.total_remaining_balance);
+            setTotalPendingRequest(response.data.data.total_pending_request);
+            setTotalUsedDays(response.data.data.total_used_days);
+            setMonthlyLeaveConsumption(response.data.data.monthly_leave_consumption);
+            setRecentActivity(response.data.data.recent_activity);
+            setTeamAvailability(response.data.data.team_availability);
         }catch (e) {
             setError(e.response.data.message);
 

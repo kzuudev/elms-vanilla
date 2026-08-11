@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import { api } from "@/lib/api";
 import axios from "axios";
@@ -18,9 +18,6 @@ import { Bell } from "lucide-react";
 
 export default function Notifications() {
 
-    const controllerRef = useRef<AbortController | null>(null);
-    const markAsReadRef = useRef<AbortController | null>(null);
-
     const [notifications, setNotifications] = useState<Notification[]>([]);
 
     const [isLoading, setIsLoading] = useState(false);
@@ -28,21 +25,17 @@ export default function Notifications() {
 
     const fetchNotifications = async () => {
 
-        const controller = new AbortController();
-        controllerRef.current?.abort();
-        controllerRef.current = controller;
-
+        setError(null);
         const holder = localStorage.getItem("token");
         try {   
             const response = await api.get("/notifications", {
                 headers: {
                     Authorization: `Bearer ${holder}`
                 },
-                signal: controller.signal
             });
             setIsLoading(false);
-            setNotifications(response.data.notifications);
-            console.log(response.data.notifications);
+            setNotifications(response.data.data.notifications);
+            console.log(response.data.data.notifications);
         }catch (error: any) {
             if(axios.isCancel(error)) {
                 return;
@@ -52,11 +45,6 @@ export default function Notifications() {
     }
 
     const fetchMarkAsRead = async (id: number) => {
-        const controller = new AbortController();
-
-        markAsReadRef.current?.abort();
-        markAsReadRef.current = controller;
-
         const holder = localStorage.getItem("token");
 
        try{
@@ -66,10 +54,9 @@ export default function Notifications() {
                     headers: {
                         Authorization: `Bearer ${holder}`
                     },
-                    signal: controller.signal
                 }
             );
-            return response.data.mark_as_read;
+            return response.data.data.mark_as_read;
        }catch (error: any) {
             if(axios.isCancel(error)) {
                 return;
@@ -84,7 +71,7 @@ export default function Notifications() {
     }, []);
 
     const totalNotifications = useMemo(() => {
-        if(notifications.length > 0) {
+        if(notifications?.length > 0) {
             return notifications.filter((n) => !n.read_at).length;
         }
 

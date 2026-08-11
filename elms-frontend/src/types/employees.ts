@@ -19,11 +19,10 @@ export type EmployeeDetails = {
     email: string;
     phone: string;
     role: string;
-    manager_id: number | null;
-    manager: {
-        id: number;
-        name: string;
-    }[];
+    assigned_to: {
+        id: number | null;
+        name: string | null;
+    } | null;
     department: string;
     salary: string;
     leave_balance:  [
@@ -41,4 +40,9 @@ export type EmployeeSummary = {
     total_active_employees: number;
     total_inactive_employees: number;
     total_on_leave_employees: number;
+}
+
+export type Manager = {
+    id: number;
+    name: string;
 }

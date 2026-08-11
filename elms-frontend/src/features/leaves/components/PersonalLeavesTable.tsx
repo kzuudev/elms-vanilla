@@ -24,7 +24,7 @@ export default function PersonalLeavesTable() {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchPersonalLeaveRequests = async (signal?: AbortSignal) => {
+    const fetchPersonalLeaveRequests = async () => {
 
         try {
             const holder = localStorage.getItem("token");
@@ -32,11 +32,10 @@ export default function PersonalLeavesTable() {
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 },
-                signal: signal
             });
 
             if(response.data.success) {
-                setPersonalLeaveRequests(response.data.leave_requests.data);
+                setPersonalLeaveRequests(response.data.data.leave_requests.data);
             }
         }catch (e) {
             setError(e.response.data.message);
@@ -51,15 +50,9 @@ export default function PersonalLeavesTable() {
 
 
     useEffect(() => {
-
-        const controller = new AbortController();
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchPersonalLeaveRequests(controller.signal);
+        fetchPersonalLeaveRequests();
         fetchLeaveRequests();
-
-        return () => {
-            controller.abort();
-        }
     }, []);
 
     return (

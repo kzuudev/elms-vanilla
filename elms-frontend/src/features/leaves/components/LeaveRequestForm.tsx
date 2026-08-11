@@ -47,7 +47,7 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
             });
     
             if(response.data.success) {
-                setLeaveTypes(response.data.leave_types ?? []);
+                setLeaveTypes(response.data.data.leave_types ?? []);
             }else {
                 setLeaveTypeError(response.data.message);
             }

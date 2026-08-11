@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { api } from "@/lib/api.ts";
 import {Link, useNavigate} from "react-router-dom";
 
 import {useContext} from "react";
@@ -41,13 +42,33 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
 
     const { user, setUser } = useContext(AuthContext) as { user: Profile, setUser: (user: Profile | null) => void };
 
+    const [error, setError] = useState<string | null>(null);
+
     const role = user?.role;
 
-    const handleLogout = () => {
-        localStorage.clear();
-        setUser(null);
+    const handleLogout = async () => {
 
-        navigate("/");
+        setError(null);
+
+        try{
+            const response = await api.post('/logout', {}, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if(response.data.success === true) {
+                localStorage.clear();
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+                localStorage.removeItem('user');
+                setUser(null);
+                navigate("/");
+            }
+        }catch(error) {
+            setError(error instanceof Error ? error.message : 'An unknown error occurred');
+
+        }
     }
 
     return (
@@ -218,8 +239,9 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                     <div className="p-6">
                         {children}
                     </div>
-
                 </main>
+
+                {error && <div className="text-red-500 text-sm">{error}</div>}
             </SidebarProvider>
         </>
     )

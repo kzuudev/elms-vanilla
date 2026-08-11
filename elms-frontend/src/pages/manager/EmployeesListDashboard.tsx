@@ -1,6 +1,6 @@
 "use client";
 
-import {useState, useEffect, useRef} from "react";
+import {useState, useEffect} from "react";
 import {api} from "@/lib/api.ts";
 import axios from "axios";
 
@@ -32,12 +32,7 @@ export default function EmployeesListDashboard() {
 
     const holder = localStorage.getItem("token");
 
-    const employeesControllerRef = useRef<AbortController | null>(null);
-    employeesControllerRef.current = new AbortController();
-
     const fetchEmployees = async () => {
-        employeesControllerRef.current?.abort();
-
        try{
             const holder = localStorage.getItem("token");
 
@@ -45,9 +40,8 @@ export default function EmployeesListDashboard() {
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 },
-                signal: employeesControllerRef.current?.signal
             });
-            setEmployees(response.data.employee_list);
+            setEmployees(response.data.data.employee_list);
        }catch (e) {
             if (axios.isAxiosError(e)) {
                 setError(e.response?.data?.message ?? "Failed to fetch employees");
@@ -71,8 +65,8 @@ export default function EmployeesListDashboard() {
                     Authorization: `Bearer ${holder}`,
                 }
             });
-            setEmployeeDetails(response.data.employee_details);
-            console.log(response.data.employee_details);
+            setEmployeeDetails(response.data.data.employee_details);
+            console.log(response.data.data.employee_details);
         }catch (e) {
             setError(e.response.data.message);
         }

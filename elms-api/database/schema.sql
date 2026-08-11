@@ -42,7 +42,7 @@ CREATE TABLE `leave_balance` (
   `leave_type_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_balance_leave_type` (`leave_type_id`),
-  KEY `fk_balance_user` (`user_id`),
+  KEY `fk_balance_user` (`user_id`),2
   CONSTRAINT `fk_balance_leave_type` FOREIGN KEY (`leave_type_id`) REFERENCES `leave_types` (`id`),
   CONSTRAINT `fk_balance_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci

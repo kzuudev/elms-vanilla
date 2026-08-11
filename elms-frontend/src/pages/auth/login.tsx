@@ -7,6 +7,8 @@ import { api } from "@/lib/api.ts";
 import {Controller, useForm} from "react-hook-form";
 import {useNavigate} from "react-router-dom";
 
+import type { Profile } from "@/types/leave";
+
 import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
 import {LeaveBalanceContext} from "@/features/context/leaves/LeaveBalanceContext.tsx";
 
@@ -29,13 +31,14 @@ import { Input } from "@/components/ui/input"
 
 
 
+
 export default function Login() {
 
     const { setError, formState: { errors } } = useForm<LoginFormData>();
 
     const navigate = useNavigate();
-    const { user, setUser } = useContext(AuthContext);
-    const { fetchLeaveBalance } = useContext(LeaveBalanceContext);
+    const { setUser } = useContext(AuthContext) as { setUser: (user: Profile | null) => void };
+    const { fetchLeaveBalance } = useContext(LeaveBalanceContext) as { fetchLeaveBalance: () => void };
 
     // Schema for a login form
     const schema = z.object({
@@ -57,20 +60,30 @@ export default function Login() {
     })
 
     const onSubmit = async (data: LoginFormData) => {
-        console.log("Form submitted:", data);
+
+        let userRole = '';
 
         try {
-            const response = await api.post('/', data);
-            localStorage.setItem("token", response.data.token);
-            localStorage.setItem("role", response.data.user.role);
-            localStorage.setItem("user", JSON.stringify(response.data.user));
-            const userRole = localStorage.getItem("role");
-            setUser(response.data.user);
-            setError("root", {
-                type: "server",
-                message: "",
+            const response = await api.post('/', data, {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
             });
-            fetchLeaveBalance();
+
+            if(response.data.success === true) {
+                localStorage.setItem("token", response.data.data.token);
+                localStorage.setItem("role", response.data.data.user.role);
+                localStorage.setItem("user", JSON.stringify(response.data.data.user));
+                userRole = response.data.data.user.role;
+                setUser(response.data.data.user);
+                fetchLeaveBalance();
+            } else {
+                setError("root", {
+                    type: "server",
+                    message: response.data.message,
+                });
+                return; 
+            }
 
             if(userRole !== 'admin' && userRole !== 'manager') {
                 navigate("/employee/dashboard");
@@ -92,9 +105,8 @@ export default function Login() {
         }catch (e) {
             setError("root", {
                 type: "server",
-                message: e.response.data.message,
+                message: e instanceof Error ? e.message : 'An unknown error occurred',
             });
-            console.log(e.response.data.message);
         }
     }
 

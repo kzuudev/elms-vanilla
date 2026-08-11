@@ -40,17 +40,16 @@ function App() {
     const [error, setError] = useState<string | null>(null);
     const [isFormOpen, setIsOpenForm] = useState(false);
 
-    const fetchLeaveBalance = async (signal?: AbortSignal) => {
+    const fetchLeaveBalance = async () => {
 
-        try {
+        try {       
             const holder = localStorage.getItem("token");
             const response = await api.get("/leave-balance/me", {
                     headers: {
                         Authorization: `Bearer ${holder}`,
-                    },
-                signal: signal
+                    }
             });
-            setLeaveBalance(response.data.balances);
+            setLeaveBalance(response.data.data.balances);
         }catch (e) {
 
             if(axios.isCancel(e)) {
@@ -69,21 +68,15 @@ function App() {
     useEffect(() => {
 
         // if there's no user currently logged-in, reset the state
-        if(!user) {
+        if(!user || !localStorage.getItem('token') || !localStorage.getItem('role')) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setLeaveBalance([]);
             setError(null);
             return;
         }
 
-        const controller = new AbortController();
-
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchLeaveBalance(controller.signal);
-
-        return () => {
-            controller.abort();
-        }
+        fetchLeaveBalance();
     }, [user]);
 
   return (

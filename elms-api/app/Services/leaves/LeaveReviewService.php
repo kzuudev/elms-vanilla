@@ -168,40 +168,67 @@ class LeaveReviewService implements LeaveReviewInterface {
                         'rejected_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
                     ]
                 );
+
+
+                $this->db->response(200, true, 'Leave request rejected', [
+                    'id' => $id,
+                    'status' => $status,
+                    'rejected_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
+                    'rejection_reason' => $rejection_reason,
+                ]);
+                exit;
             }
 
         if($status == 'approved') {
 
-            if($leave_request['remaining_balance'] < $leave_request['total_days']) {
-                $this->db-response(400, false, 'Remaining balance for this leave type is insufficient');
+            $remaining_balance = $this->db->query("SELECT remaining_balance FROM leave_balance WHERE user_id = :user_id AND leave_type_id = :leave_type_id" , [
+                'user_id' => $leave_request['user_id'],
+                'leave_type_id' => $leave_request['leave_type_id'],
+            ])->find();
+
+            if(!$remaining_balance || $remaining_balance['remaining_balance'] < $leave_request['total_days']) {
+                $this->db->response(400, false, 'Remaining balance for this leave type is insufficient');
                 exit;
             }
-
+        
             // update the leave balance
-            $this->db->query("UPDATE leave_balance SET remaining_balance = remaining_balance - :total_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
+            $update_leave_balance = $this->db->query("UPDATE leave_balance SET remaining_balance = :remaining_balance - :total_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
                 'employee_id' => $leave_request['user_id'],
-                'total_days' => $leave_request['total_days'],
+                'remaining_balance' => $remaining_balance['remaining_balance'] - $leave_request['total_days'],
                 'leave_type_id' => $leave_request['leave_type_id'],
             ]);
 
             // approved the leave request status
-            $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
+            $approved = $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
                 'id'               => $id,
                 'status'           => $status,
                 'rejection_reason' => $rejection_reason
             ]);
 
+            if(!$update_leave_balance || !$approved) {
+                $this->db->response(500, false, 'Failed to update leave balance or approved leave request');
+                exit;
+            }
 
             $this->notificationService->store($leave_request['user_id'], 
                 'Leave Request Approved by ' . $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'], 
                 'leave_request_approved', 
                 'Your Leave Request has been approved by ' . $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'], 
-                'false',
+                'true',
                 [
                     'leave_request_id' => $id,
                     'approved_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
                 ]
             );
+
+            $this->db->response(200, true, 'Leave request approved', [
+                    'id' => $id,
+                    'status' => $status,
+                    'approved_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
+                ]);
+            exit;
+
+
         }
 
         $this->db->response(200, true, 'Leave request status updated successfully', [
@@ -209,14 +236,14 @@ class LeaveReviewService implements LeaveReviewInterface {
             'authorized_user' => $authorized_for_leave_request,
             'status' => $status,
         ]);
-
-        
+        exit;
 
     }
 
     public function getCheckOverlap(int $id): void {
 
         $current_user = $this->auth->authenticate();
+
         $current_user_id = $current_user['id'] ?? null;
         if (!$current_user_id) {
             $this->db->response(401, false, 'Unauthorized');
@@ -318,6 +345,7 @@ class LeaveReviewService implements LeaveReviewInterface {
         ]);
 
 
+        exit;
 
     }
 }

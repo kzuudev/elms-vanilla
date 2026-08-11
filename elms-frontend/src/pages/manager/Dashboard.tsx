@@ -55,14 +55,14 @@ export default function ManagerDashboard() {
                     Authorization: `Bearer ${holder}`,
                 }
             });
-            setRemainingBalance(response.data.remaining_balance);
-            setPendingRequest(response.data.pending_request);
-            setUsedDays(response.data.used_days);
-            setOverlap(response.data.leave_overlap);
-            setMonthlyLeaveConsumption(response.data.monthly_leave_consumption);
-            setTeamAvailability(response.data.team_availability);
-            setTotalUsers(response.data.total_users);
-            setRecentActivity(response.data.recent_activity);
+            setRemainingBalance(response.data.data.remaining_balance);
+            setPendingRequest(response.data.data.pending_request);
+            setUsedDays(response.data.data.used_days);
+            setOverlap(response.data.data.leave_overlap);
+            setMonthlyLeaveConsumption(response.data.data.monthly_leave_consumption);
+            setTeamAvailability(response.data.data.team_availability);
+            setTotalUsers(response.data.data.total_users);
+            setRecentActivity(response.data.data.recent_activity);
         }catch (e: any) {
             setError(e.response?.data?.message || "An error occurred while fetching manager dashboard");
         }

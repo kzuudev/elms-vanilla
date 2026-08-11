@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import axios from "axios";
 
@@ -31,24 +31,15 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
 
     const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
 
-    const leaveTypesControllerRef = useRef<AbortController | null>(null);
-
-
     const fetchLeaveTypes = async() => {
-
-        leaveTypesControllerRef.current?.abort(); // cancel the previous request
-        const controller = new AbortController(); // create a new controller
-        leaveTypesControllerRef.current = controller; // assign the controller to the ref
-
         try {
             const holder = localStorage.getItem("token");
             const response = await api.get("/leave-types", {
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 },
-                signal: controller.signal
             })
-            setLeaveTypes(response.data.leave_types ?? []);
+            setLeaveTypes(response.data.data.leave_types ?? []);
             console.log(leaveTypes);
         }catch (e) {
             if (axios.isAxiosError(e)) {

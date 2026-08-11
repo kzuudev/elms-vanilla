@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect, useContext } from "react";
-import axios from "axios";
+import { useState, useEffect, useContext } from "react";
+import axios, { AxiosError } from "axios";
 import { api } from "@/lib/api.ts";
 import type { EmployeeSummary, EmployeeData } from "@/types/employees.ts";
 
@@ -40,46 +40,33 @@ export default function EmployeesDashboard({role} : {role: string}) {
         total_on_leave_employees: 0,
     });
 
-    const employeesControllerRef = useRef<AbortController | null>(null);
-    const summaryControllerRef = useRef<AbortController | null>(null);
-
     role = user.role;
     const isAdmin = role === 'admin';
 
     const fetchEmployees = async () => {
-        const controller = new AbortController();
-        employeesControllerRef.current?.abort();
-        employeesControllerRef.current = controller;
-
         try {
             const holder = localStorage.getItem("token");
             const queryString = buildQueryString({ search: searchQuery, status: statusFilter, department: departmentFilter, role: roleFilter });
             const response = await api.get(`/employees${queryString}`, {
                 headers: { Authorization: `Bearer ${holder}` },
-                signal: controller.signal,
             });
-            setEmployees(response.data.employees);
+            setEmployees(response.data.data.employees);
             setError(null);
         } catch (e) {
             if (axios.isCancel(e)) return;
-            setError((e)?.response?.data?.message || "A network error occurred.");
+            setError((e as AxiosError)?.response?.data?.message || "A network error occurred.");
         }
     };
 
     const fetchEmployeeSummary = async () => {
-        const controller = new AbortController();
-        summaryControllerRef.current?.abort();
-        summaryControllerRef.current = controller;
-
         try {
             const holder = localStorage.getItem("token");
             const response = await api.get("/employees/summary", {
                 headers: { Authorization: `Bearer ${holder}` },
-                signal: controller.signal,
             });
 
-            if (response.data?.employee_summary) {
-                setEmployeeSummary(response.data.employee_summary);
+            if (response.data?.data?.employee_summary) {
+                setEmployeeSummary(response.data.data.employee_summary);
             }
         } catch (e) {
             if (axios.isCancel(e)) return;
@@ -144,7 +131,7 @@ export default function EmployeesDashboard({role} : {role: string}) {
                 </div>
 
                 <div>
-                    {employees.some(employee => employee.first_name.toLowerCase().includes(searchQuery.toLowerCase())) ? (
+                    {employees?.some(employee => employee.first_name.toLowerCase().includes(searchQuery.toLowerCase())) ? (
                         <EmployeesListTable employees={employees} onUserMutated={fetchEmployees} />
                     ) : (
                         <div className="text-center text-gray-500">

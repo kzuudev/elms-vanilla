@@ -27,7 +27,7 @@ export default function LeavesDashboard() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchLeaveRequests = async (signal?: AbortSignal) => {
+    const fetchLeaveRequests = async () => {
 
             try {
                 const holder = localStorage.getItem("token");
@@ -35,9 +35,8 @@ export default function LeavesDashboard() {
                     headers: {
                         Authorization: `Bearer ${holder}`,
                     },
-                    signal: signal
                 });
-                setReviewerLeaveRequests(response.data.leaves.data);
+                setReviewerLeaveRequests(response.data.data.leaves.data);
             }catch (e) {
 
                 // Ignore the error if it was intentionally canceled by React
@@ -46,11 +45,10 @@ export default function LeavesDashboard() {
                     return;
                 }
 
-
                 if (axios.isAxiosError(e)) {
-                    setError(e.response?.data?.message || "Failed to fetch data");
+                    setError(e.response?.data?.message || "Failed to fetch leave requests");
                 } else {
-                    setError("An unexpected error occurred");
+                    setError("Failed to fetch leave requests");
                 }
             }
         }
@@ -59,30 +57,29 @@ export default function LeavesDashboard() {
     const fetchLeaveRequestDetails = async (id: number) => {
 
         try {
-            const holder = localStorage.getItem("token");
+            const holder = localStorage.getItem("token");   
             const response = await api.get(`/leave-requests/${id}`, {
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 }
             });
-            setLeaveRequestDetails(response.data.leave_request);
+            setLeaveRequestDetails(response.data.data.leave_request);
         }catch (e) {
-            setError(e.response.data.message);
-        }
+            if (axios.isCancel?.(e) || (e as any)?.code === "ERR_CANCELED") {
+              return; // ignore abort
+            }
+            if (axios.isAxiosError(e)) {
+              setError(e.response?.data?.message ?? "Failed to fetch leave request details");
+              return;
+            }
+            setError("An unexpected error occurred");
 
     }
 
 
     useEffect(() => {
-
-        const controller = new AbortController();
-
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchLeaveRequests(controller.signal);
-
-        return () => {
-            controller.abort();
-        }
+        fetchLeaveRequests();
     }, []);
 
 
@@ -114,4 +111,6 @@ export default function LeavesDashboard() {
           </LeaveContext.Provider>
       </>
     )
+}
+
 }

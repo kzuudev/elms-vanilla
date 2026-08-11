@@ -1,4 +1,4 @@
-import {useState, useEffect, useRef} from "react";
+import {useState, useEffect} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
 import axios from "axios";
 import { LeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
@@ -42,14 +42,7 @@ export default function LeaveRequestDashboard() {
     const [startDateQuery, setStartDateQuery] = useState<string>('');
     const [endDateQuery, setEndDateQuery] = useState<string>('');
 
-    const leaveRequestsControllerRef = useRef<AbortController | null>(null);
-
     const fetchLeaveRequests = async () => {
-
-        const controller = new AbortController(); // create a new controller
-        leaveRequestsControllerRef.current?.abort(); // cancel the previous request
-        leaveRequestsControllerRef.current = controller; // assign the controller to the ref
-
         try {
             const holder = localStorage.getItem("token");
             const queryString = buildQueryString({
@@ -62,12 +55,11 @@ export default function LeaveRequestDashboard() {
                 headers: {
                     Authorization: `Bearer ${holder}`,
                 },
-                signal: controller.signal,
             });
             setLeaveRequests(
-                Array.isArray(response.data.leave_requests)
-                    ? response.data.leave_requests
-                    : response.data.leave_requests?.data ?? []
+                Array.isArray(response.data.data.leave_requests)
+                    ? response.data.data.leave_requests
+                    : response.data.data.leave_requests?.data ?? []
             );
         }catch (e) {
             if (axios.isCancel(e)) return;
@@ -91,7 +83,7 @@ export default function LeaveRequestDashboard() {
                 }
             });
             // Support flat leave_request OR legacy { data: leave_request }
-            const payload = response.data.leave_request;
+            const payload = response.data.data.leave_request;
             setLeaveRequestDetails(payload?.data ?? payload ?? null);
             console.log(payload);
         }catch (e) {
