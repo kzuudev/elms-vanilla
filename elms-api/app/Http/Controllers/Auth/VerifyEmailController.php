@@ -24,7 +24,7 @@ class VerifyEmailController {
 
         $token = $input['token'] ?? '';
         $password = $input['password'] ?? '';
-        $confirmPassword = $input['confirm_password'] ?? '';
+        $confirm_password = $input['confirm_password'] ?? '';
 
         if ($token === '') {
             $this->db->response(422, false, 'Verification token is required');
@@ -36,24 +36,24 @@ class VerifyEmailController {
             return;
         }
 
-        if ($password !== $confirmPassword) {
+        if ($password !== $confirm_password) {
             $this->db->response(422, false, 'Passwords do not match');
             return;
         }
 
-        $verificationToken = $this->db->query(
+        $verification_token = $this->db->query(
             "SELECT * FROM email_verification_token WHERE token = :token",
             ['token' => $token]
         )->find();
 
-        if (!$verificationToken) {
+        if (!$verification_token) {
             $this->db->response(400, false, 'Invalid or already used verification token');
             return;
         }
 
         $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
 
-        if ($verificationToken['expires_at'] < $now) {
+        if ($verification_token['expires_at'] < $now) {
             $this->db->response(400, false, 'Verification token expired');
             return;
         }
@@ -64,14 +64,14 @@ class VerifyEmailController {
             [
                 'password' => password_hash($password, PASSWORD_DEFAULT),
                 'email_verified_at' => $now,
-                'id' => $verificationToken['user_id'],
+                'id' => $verification_token['user_id'],
             ]
         );
 
         // One-time use — delete the token
         $this->db->query(
             "DELETE FROM email_verification_token WHERE id = :id",
-            ['id' => $verificationToken['id']]
+            ['id' => $verification_token['id']]
         );
 
         $this->db->response(200, true, 'Email verified successfully. You can now log in.');

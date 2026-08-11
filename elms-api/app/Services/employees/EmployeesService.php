@@ -58,9 +58,11 @@ class EmployeesService {
             $query .= " AND assigned_to = :current_user_id ";
             $params = ['current_user_id' => $this->current_user_id];
         }else if ($this->current_user_role === 'admin') {
-            $query .= " AND department = :department AND role != 'super admin'";
+            $query .= " AND department = :department AND role != 'super admin' AND id != :current_user_id";
             $params = [
-                'department' => $this->current_user_department];
+                'department' => $this->current_user_department,
+                'current_user_id' => $this->current_user_id
+            ];
         }
 
         if(!empty($search)) {

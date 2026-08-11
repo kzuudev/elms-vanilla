@@ -28,6 +28,7 @@ class Database {
 
     // Prepare the SQL statement to prevent SQL injection
     public function query($query, $params = []) {
+        
         $this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
         $this->statement = $this->connection->prepare($query);

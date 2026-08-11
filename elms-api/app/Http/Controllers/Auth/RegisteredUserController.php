@@ -65,7 +65,9 @@ class RegisteredUserController {
             'password' => null,
             'role' => $role,
             'department' => $department,
-            'assigned_to' => (int) $assigned_to,
+            'assigned_to' => ($assigned_to === '' || $assigned_to === null)
+            ? null
+            : (int) $assigned_to,
         ]);
 
         $user_id = (int) $this->db->lastInsertId();
