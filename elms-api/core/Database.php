@@ -20,6 +20,7 @@ class Database {
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             ]);
         } catch (PDOException $e) {
+            
             self::abort(500, 'Failed to connect to the database: ' . $e->getMessage());
         }
 
@@ -47,10 +48,21 @@ class Database {
     }
 
 
+    public function lastInsertId(): bool|string {
 
-    public function lastInsertId(): bool|string
-    {
         return $this->connection->lastInsertId();
+    }
+
+    public function beginTransaction(): void {
+        $this->connection->beginTransaction();
+    }
+
+    public function commit(): void {
+        $this->connection->commit();
+    }
+
+    public function rollBack(): void {
+        $this->connection->rollBack();
     }
 
     public static function abort($code, $message) {

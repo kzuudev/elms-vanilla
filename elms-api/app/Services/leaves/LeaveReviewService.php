@@ -24,132 +24,156 @@ class LeaveReviewService implements LeaveReviewInterface {
 
     public function getLeaveRequest(): array {
 
-        $current_user = $this->auth->authenticate();
+        try {
 
-        $current_user_id = $current_user['id'] ?? null;
+            $this->db->beginTransaction();
+            
+            $current_user = $this->auth->authenticate();
 
-        if (!$current_user_id) {
-            $this->db->response(401, false, 'Unauthorized');
+            $current_user_id = $current_user['id'] ?? null;
+
+            if (!$current_user_id) {
+                $this->db->response(401, false, 'Unauthorized');
+                $this->db->rollBack();
+                exit;
+            }
+
+            $role = $current_user['role'];
+            $params = [];
+
+            $sql = "
+                SELECT 
+                lr.*, 
+                e.first_name as employee_name, 
+                m.first_name as manager_name,
+                e.role as employee_role,
+                lt.name as leave_type_name,
+                DATEDIFF(lr.end_date, lr.start_date) + 1 as total_days
+                FROM leave_requests lr 
+                LEFT JOIN users e ON lr.user_id = e.id 
+                LEFT JOIN users m ON lr.assigned_to = m.id
+                LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id 
+                WHERE lr.deleted_at IS NULL
+            ";
+
+            if ($role === 'admin') {
+                // Admins see all requests, except their own requests
+                $sql .= " AND lr.user_id != :reviewer_id";
+                $params['reviewer_id'] = $current_user_id;
+            } elseif ($role === 'manager') {
+                // Managers only see requests assigned to them
+                $sql .= " AND lr.assigned_to = :reviewer_id";
+                $params['reviewer_id'] = $current_user_id;
+            } else {
+                // Stop regular employees from seeing the review list!
+                $this->db->response(403, false, 'Forbidden: You do not have review permissions');
+                $this->db->rollBack();
+                throw new Exception('Forbidden: You do not have review permissions');
+                exit;
+            }
+
+            $leave_requests = $this->db->query($sql, $params)->all();
+
+            $this->db->response(200, true, 'Employee leaves list fetched successfully', [
+                'id' => $current_user_id,
+                'leaves' => [
+                    'data' => $leave_requests,
+                ],
+            ]);
+
+        }catch(Exception $e) {
+            $this->db->rollBack();
+            $this->db->response(500, false, 'Failed to get leave request');
             exit;
         }
-
-        $role = $current_user['role'];
-        $params = [];
-
-        $sql = "
-            SELECT 
-            lr.*, 
-            e.first_name as employee_name, 
-            m.first_name as manager_name,
-            e.role as employee_role,
-            lt.name as leave_type_name,
-            DATEDIFF(lr.end_date, lr.start_date) + 1 as total_days
-            FROM leave_requests lr 
-            LEFT JOIN users e ON lr.user_id = e.id 
-            LEFT JOIN users m ON lr.assigned_to = m.id
-            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id 
-            WHERE lr.deleted_at IS NULL
-        ";
-
-        if ($role === 'admin') {
-            // Admins see all requests, except their own requests
-            $sql .= " AND lr.user_id != :reviewer_id";
-            $params['reviewer_id'] = $current_user_id;
-        } elseif ($role === 'manager') {
-            // Managers only see requests assigned to them
-            $sql .= " AND lr.assigned_to = :reviewer_id";
-            $params['reviewer_id'] = $current_user_id;
-        } else {
-            // Stop regular employees from seeing the review list!
-            $this->db->response(403, false, 'Forbidden: You do not have review permissions');
-            exit;
-        }
-
-        $leavesList = $this->db->query($sql, $params)->all();
-
-        $this->db->response(200, true, 'Employee leaves list fetched successfully', [
-            'id' => $current_user_id,
-            'leaves' => [
-                'data' => $leavesList,
-            ],
-        ]);
     }
 
     public function reviewLeaveRequest(int $id): void {
-        
-        $current_user = $this->auth->authenticate();
 
-        $current_user_id = $current_user['id'] ?? null;
+        try {
+            
+            $this->db->beginTransaction();
+            
+            $current_user = $this->auth->authenticate();
 
-        if (!$current_user_id) {
-            $this->db->response(401, false, 'User not found', ['user_id' => $current_user_id]);
-            exit;
-        }
-        
-        $role = $current_user['role'] ?? null;
-        $params = ['id' => $id];
+            $current_user_id = $current_user['id'] ?? null;
 
+            if (!$current_user_id) {
+                $this->db->response(401, false, 'User not found', ['user_id' => $current_user_id]);
+                $this->db->rollBack();
+                exit;
+            }
+            
+            $role = $current_user['role'] ?? null;
 
-        $sql = "
-            SELECT 
-                lr.*, 
-                e.first_name as employee_name,
-                e.first_name as reviewer_name 
-            FROM leave_requests lr 
-            LEFT JOIN users e ON lr.user_id = e.id
-            LEFT JOIN users m ON lr.assigned_to = m.id 
-            WHERE lr.id = :id AND lr.deleted_at IS NULL 
-        ";
+            $sql = "
+                SELECT 
+                    lr.*, 
+                    e.first_name as employee_name,
+                    e.first_name as reviewer_name 
+                FROM leave_requests lr 
+                LEFT JOIN users e ON lr.user_id = e.id
+                LEFT JOIN users m ON lr.assigned_to = m.id 
+                WHERE lr.id = :id AND lr.deleted_at IS NULL 
+            ";
 
-        if($role === "admin") {
-            $sql .= " AND e.department = :department AND lr.user_id != :current_user_id";
-            $params['department'] = $current_user['department'];
-            $params['current_user_id'] = $current_user_id;
+                
+            $params = ['id' => $id];
 
-        }else if ($role === "manager") {
-            // Managers can see it if they are assigned to it OR if managers created it
-            $sql .= " AND (lr.assigned_to = :current_user_id OR lr.user_id = :current_user_id)";
-            $params['current_user_id'] = $current_user_id;
-        }else {
-            $this->db->response(401, false, 'Unauthorized User', ['user_id' => $current_user_id]);
-            exit;
-        }
+            if($role === "admin") {
+                $sql .= " AND e.department = :department AND lr.user_id != :current_user_id";
+                $params['department'] = $current_user['department'];
+                $params['current_user_id'] = $current_user_id;
 
-        // capture the authorized user
-        $authorized_for_leave_request = $this->db->query($sql, $params)->find();
+            }else if ($role === "manager") {
+                // Managers can see it if they are assigned to it OR if managers created it
+                $sql .= " AND (lr.assigned_to = :current_user_id OR lr.user_id = :current_user_id)";
+                $params['current_user_id'] = $current_user_id;
+            }else {
+                $this->db->response(401, false, 'Unauthorized User', ['user_id' => $current_user_id]);
+                $this->db->rollBack();
+                exit;
+            }
 
-        // capture the new value
-        $input = json_decode(file_get_contents('php://input'), true);
-        $status = $input['status'] ?? '';
-        $rejection_reason = $input['rejection_reason'] ?? '';
+            // capture the authorized user
+            $authorized_for_leave_request = $this->db->query($sql, $params)->find();
 
-        // Validation of the status input
-        if(!in_array($status, ['approved', 'rejected'])) {
-            $this->db->response(422, false, 'Invalid status. Must be approved or rejected.');
-            exit;
-        }
+            // capture the new value
+            $input = json_decode(file_get_contents('php://input'), true);
+            $status = $input['status'] ?? '';
+            $rejection_reason = $input['rejection_reason'] ?? '';
 
-        if($status == 'rejected' && empty($rejection_reason)) {
-            $this->db->response(422, false, 'Rejection reason is required when status is rejected.');
-            exit;
-        }
+            // Validation of the status input
+            if(!in_array($status, ['approved', 'rejected'])) {
+                $this->db->response(422, false, 'Invalid status. Must be approved or rejected.');
+                $this->db->rollBack();
+                exit;
+            }
 
-        if($current_user_id === $authorized_for_leave_request['user_id']) {
-            $this->db->response(403, false, 'Self-approval is strictly prohibited.');
-            exit;
-        }
-   
-        // capture the leave request
-        $leave_request = $this->db->query("SELECT * FROM leave_requests WHERE id = :id", [
-            'id' => $id,
-        ])->find();
-        
-        if($leave_request['status'] !== 'pending') {
-            $this->db->response(400, false, 'Leave request already approved or rejected');
-            exit;
-        }
+            if($status == 'rejected' && empty($rejection_reason)) {
+                $this->db->response(422, false, 'Rejection reason is required when status is rejected.');
+                $this->db->rollBack();
+                exit;
+            }
 
-        if($status == 'rejected') {
+            if($current_user_id === $authorized_for_leave_request['user_id']) {
+                $this->db->response(403, false, 'Self-approval is strictly prohibited.');
+                $this->db->rollBack();
+                exit;
+            }
+    
+            // capture the leave request
+            $leave_request = $this->db->query("SELECT * FROM leave_requests WHERE id = :id", [
+                'id' => $id,
+            ])->find();
+            
+            if($leave_request['status'] !== 'pending') {
+                $this->db->response(400, false, 'Leave request already approved or rejected');
+                $this->db->rollBack();
+                exit;
+            }
+
+            if($status == 'rejected') {
 
                 // reject the leave request status
                 $rejected = $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
@@ -158,6 +182,15 @@ class LeaveReviewService implements LeaveReviewInterface {
                     'rejection_reason' => $rejection_reason
                 ]);
 
+                if(!$rejected) {
+                    $this->db->rollBack();
+                    $this->db->response(500, false, 'Failed to reject leave request');
+                    $this->db->rollBack();
+                    throw new Exception('Failed to reject leave request');
+                    exit;
+                }
+
+                $this->db->commit();
                 $this->notificationService->store($leave_request['user_id'], 
                     'Leave Request Rejected', 
                     'leave_request_rejected', 
@@ -169,74 +202,74 @@ class LeaveReviewService implements LeaveReviewInterface {
                     ]
                 );
 
-
                 $this->db->response(200, true, 'Leave request rejected', [
                     'id' => $id,
                     'status' => $status,
                     'rejected_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
                     'rejection_reason' => $rejection_reason,
                 ]);
+
                 exit;
             }
 
-        if($status == 'approved') {
+            if($status == 'approved') {
 
-            $remaining_balance = $this->db->query("SELECT remaining_balance FROM leave_balance WHERE user_id = :user_id AND leave_type_id = :leave_type_id" , [
-                'user_id' => $leave_request['user_id'],
-                'leave_type_id' => $leave_request['leave_type_id'],
-            ])->find();
+                $remaining_balance = $this->db->query("SELECT remaining_balance FROM leave_balance WHERE user_id = :user_id AND leave_type_id = :leave_type_id" , [
+                    'user_id' => $leave_request['user_id'],
+                    'leave_type_id' => $leave_request['leave_type_id'],
+                ])->find();
 
-            if(!$remaining_balance || $remaining_balance['remaining_balance'] < $leave_request['total_days']) {
-                $this->db->response(400, false, 'Remaining balance for this leave type is insufficient');
-                exit;
-            }
-        
-            // update the leave balance
-            $update_leave_balance = $this->db->query("UPDATE leave_balance SET remaining_balance = :remaining_balance - :total_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
-                'employee_id' => $leave_request['user_id'],
-                'remaining_balance' => $remaining_balance['remaining_balance'] - $leave_request['total_days'],
-                'leave_type_id' => $leave_request['leave_type_id'],
-            ]);
-
-            // approved the leave request status
-            $approved = $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
-                'id'               => $id,
-                'status'           => $status,
-                'rejection_reason' => $rejection_reason
-            ]);
-
-            if(!$update_leave_balance || !$approved) {
-                $this->db->response(500, false, 'Failed to update leave balance or approved leave request');
-                exit;
-            }
-
-            $this->notificationService->store($leave_request['user_id'], 
-                'Leave Request Approved by ' . $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'], 
-                'leave_request_approved', 
-                'Your Leave Request has been approved by ' . $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'], 
-                'true',
-                [
-                    'leave_request_id' => $id,
-                    'approved_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
-                ]
-            );
-
-            $this->db->response(200, true, 'Leave request approved', [
-                    'id' => $id,
-                    'status' => $status,
-                    'approved_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
+                if(!$remaining_balance || $remaining_balance['remaining_balance'] < $leave_request['total_days']) {
+                    $this->db->response(400, false, 'Remaining balance for this leave type is insufficient');
+                    $this->db->rollBack();
+                    exit;
+                }
+            
+                // update the leave balance
+                $update_leave_balance = $this->db->query("UPDATE leave_balance SET remaining_balance = :remaining_balance WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
+                    'employee_id' => $leave_request['user_id'],
+                    'remaining_balance' => $remaining_balance['remaining_balance'] - $leave_request['total_days'],
+                    'leave_type_id' => $leave_request['leave_type_id'],
                 ]);
+
+                // approved the leave request status
+                $approved = $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
+                    'id'               => $id,
+                    'status'           => $status,
+                    'rejection_reason' => $rejection_reason
+                ]);
+
+
+                $this->db->commit();
+                $this->notificationService->store($leave_request['user_id'], 
+                    'Leave Request Approved by ' . $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'], 
+                    'leave_request_approved', 
+                    'Your Leave Request has been approved by ' . $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'], 
+                    'true',
+                    [
+                        'leave_request_id' => $id,
+                        'approved_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
+                    ]
+                );
+
+                $this->db->response(200, true, 'Leave request approved', [
+                        'id' => $id,
+                        'status' => $status,
+                        'approved_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
+                    ]);
+
+                exit;
+
+
+            }
+
+            $this->db->commit();
+
+        }catch(Exception $e) {
+            $this->db->rollBack();
+            $this->db->response(500, false, 'Failed to update leave balance or approved leave request');
             exit;
-
-
         }
-
-        $this->db->response(200, true, 'Leave request status updated successfully', [
-            'id' => $id,
-            'authorized_user' => $authorized_for_leave_request,
-            'status' => $status,
-        ]);
-        exit;
 
     }
 
