@@ -1,13 +1,16 @@
 "use client"
 
+import {useEffect, useState} from "react";
 import axios from "axios";
 
-import AdminLeaveTable from "@/features/leaves/components/AdminLeaveTable.tsx";
-import {useEffect, useState} from "react";
-import type {LeaveRequest, ReviewerLeaveData} from "@/types/leave.ts";
 import {api} from "@/lib/api.ts";
+import { buildQueryString } from "@/utils/query-string.ts";
+import type {LeaveRequest, ReviewerLeaveData} from "@/types/leave.ts";
+
+import AdminLeaveTable from "@/features/leaves/components/AdminLeaveTable.tsx";
 import { LeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
 import LeaveRequestForm from "@/features/leaves/components/LeaveRequestForm.tsx";
+import LeavesFilterBar from "@/features/leaves/components/LeavesFilterBar.tsx";
 
 import {
     Dialog,
@@ -20,6 +23,7 @@ import {
 import {Button} from "@/components/ui/button.tsx";
 
 
+
 export default function LeavesDashboard({role}: {role: string}) {
 
     const [reviewerLeaveRequests, setReviewerLeaveRequests] = useState<ReviewerLeaveData[] | null>(null);
@@ -27,11 +31,22 @@ export default function LeavesDashboard({role}: {role: string}) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [leaveTypeQuery, setLeaveTypeQuery] = useState<string>("");
+    const [startDateQuery, setStartDateQuery] = useState<string>("");
+    const [endDateQuery, setEndDateQuery] = useState<string>("");
+    const [statusQuery, setStatusQuery] = useState<string>("");
+
     const fetchLeaveRequests = async () => {
 
             try {
                 const holder = localStorage.getItem("token");
-                const  response = await api.get("/leave-requests", {
+                const queryString = buildQueryString({
+                    leaveType: leaveTypeQuery,
+                    startDate: startDateQuery,
+                    endDate: endDateQuery,
+                    status: statusQuery,
+                });
+                const  response = await api.get(`/leave-requests${queryString}`, {
                     headers: {
                         Authorization: `Bearer ${holder}`,
                     },
@@ -74,8 +89,13 @@ export default function LeavesDashboard({role}: {role: string}) {
             }
             setError("An unexpected error occurred");
 
+        }
+
     }
 
+
+    const onSearchSubmit = () => {
+        fetchLeaveRequests();
     }
 
     useEffect(() => {
@@ -111,6 +131,21 @@ export default function LeavesDashboard({role}: {role: string}) {
                          </DialogContent>
                       </Dialog>
                   </div>
+
+                  <div>
+                    <LeavesFilterBar
+                        leaveTypeQuery={leaveTypeQuery}
+                        setLeaveTypeQuery={setLeaveTypeQuery}
+                        startDateQuery={startDateQuery}
+                        setStartDateQuery={setStartDateQuery}
+                        endDateQuery={endDateQuery}
+                        setEndDateQuery={setEndDateQuery}
+                        statusQuery={statusQuery}
+                        setStatusQuery={setStatusQuery}
+                        onSearchSubmit={onSearchSubmit}
+                    />
+                  </div>
+                    
                   <AdminLeaveTable/>
               </div>
 

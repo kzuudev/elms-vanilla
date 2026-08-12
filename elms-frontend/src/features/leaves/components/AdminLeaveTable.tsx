@@ -7,7 +7,10 @@ import ReviewerLeaveTable from "@/features/leaves/components/ReviewerLeaveTable.
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+import { useLeaveContext } from "@/features/context/leaves/LeaveContext";
+
 export default function AdminLeaveTable() {
+
     const [activeTab, setActiveTab] = useState('employee_leaves');
 
 
@@ -24,6 +27,7 @@ export default function AdminLeaveTable() {
                         <ReviewerLeaveTable />
                     )}
                 </TabsContent>
+
                 <TabsContent value="personal_leaves">
                     {activeTab === 'personal_leaves' && (
                         <PersonalLeavesTable />
