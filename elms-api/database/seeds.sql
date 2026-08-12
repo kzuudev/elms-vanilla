@@ -46,6 +46,14 @@ INSERT INTO users (
    '$2y$12$.E7XJG2rB2HJBN18WjdUruzhFCyQfHPtS/idV/y71n1Rb5P57P/P.',
    'manager', 'IT', 1, 1, '2024-02-01', '09170000002', CURRENT_TIMESTAMP, NULL),
 
+  (3, 'John Kevin', 'Dela Cruz', 'johnkevin@elms.test',
+   '$2y$12$.E7XJG2rB2HJBN18WjdUruzhFCyQfHPtS/idV/y71n1Rb5P57P/P.',
+   'employee', 'IT', 2, 1, '2024-03-01', '09170000003', CURRENT_TIMESTAMP, NULL),
+
+  (4, 'John Andrei', 'Mayagma', 'johnandrei@elms.test',
+   '$2y$12$.E7XJG2rB2HJBN18WjdUruzhFCyQfHPtS/idV/y71n1Rb5P57P/P.',
+   'employee', 'IT', 2, 1, '2024-03-15', '09170000004', CURRENT_TIMESTAMP, NULL);
+
 -- ------------------------------------------------------------
 -- 3) leave_balance (one row per user + leave type)
 -- ------------------------------------------------------------

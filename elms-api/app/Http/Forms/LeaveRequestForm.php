@@ -26,7 +26,7 @@ class LeaveRequestForm {
 
         $row = $this->db->query("SELECT name FROM leave_types")->all();
 
-        $allowed_types = array_column($rows, 'name');
+        $allowed_types = array_column($row, 'name');
 
         if($type === '') {
             $this->errors['leave_type'] = 'Leave type is required';

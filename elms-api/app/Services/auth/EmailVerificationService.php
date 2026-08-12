@@ -19,21 +19,20 @@ class EmailVerificationService {
 
 
     public function sendVerificationEmail($name, $email, $verification_token) {
-         
-    $phpmailer = new PHPMailer(true);
+        $phpmailer = new PHPMailer(true);
 
     try {
         $phpmailer->SMTPDebug = SMTP::DEBUG_SERVER;
         $phpmailer->isSMTP();
         $phpmailer->SMTPAuth = true;
 
-        $phpmailer = new PHPMailer();
         $phpmailer->isSMTP();
         $phpmailer->Host = $_ENV['MAIL_HOST'];
         $phpmailer->SMTPAuth = true;
+        $phpmailer->AuthType = 'LOGIN';
         $phpmailer->Username = $_ENV['MAIL_USER'];
         $phpmailer->Password = $_ENV['MAIL_PASS'];
-        $phpmailer->SMTPSecure = "tls";
+        $phpmailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $phpmailer->Port = (int) $_ENV['MAIL_PORT'];
         $phpmailer->setFrom("your-email@gmail.com", $name);
         $phpmailer->addAddress($email);

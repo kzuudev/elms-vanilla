@@ -26,8 +26,8 @@ class EmployeeLeaveBalanceController {
             exit;
         }
 
-        if(!in_array($current_user['role'], ['admin', 'manager'])) {
-            $this->db->response(403, false, 'Forbidden: Only admins and managers can view other employees leave balances');
+        if(!in_array($current_user['role'], ['admin', 'manager', $current_user['role']])) {
+            $this->db->response(403, false, 'Forbidden: You are not authorized to view this page');
             exit;
         }
 
