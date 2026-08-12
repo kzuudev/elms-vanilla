@@ -28,137 +28,135 @@ class LeaveRequestService implements LeaveRequestInterface {
             $this->db->beginTransaction();
             $leave_request_form = new LeaveRequestForm();
 
-        $assigned_to = $this->db->query(
-            "SELECT 
-                assigned_to AS approver_id, 
-                CONCAT(first_name, ' ', last_name) AS approver_name, 
-                role AS approver_role
-                FROM users 
-                WHERE id = :id"
-        , [
-            'id' => $user_id
-        ])->find();
+            $assigned_to = $this->db->query(
+                "SELECT 
+                    assigned_to AS approver_id, 
+                    CONCAT(first_name, ' ', last_name) AS approver_name, 
+                    role AS approver_role
+                    FROM users 
+                    WHERE id = :id"
+            , [
+                'id' => $user_id
+            ])->find();
 
 
-        $leave_type = $input['leave_type'] ?? '';
-        $start_date = $input['start_date'] ?? '';
-        $end_date = $input['end_date'] ?? '';
-        $reason = $input['reason'] ?? '';
+            $leave_type = $input['leave_type'] ?? '';
+            $start_date = $input['start_date'] ?? '';
+            $end_date = $input['end_date'] ?? '';
+            $reason = $input['reason'] ?? '';
 
-        // validate the inputs
-        if (!$leave_request_form->validate($leave_type, $start_date, $end_date, $reason)) {
-            $this->db->response(422, false, 'Invalid inputs.', ['errors' => $leaveRequestForm->errors()]);
-            $this->db->rollBack();
-            exit;
-        }
-    
-        // validate if the start date is before the end date
-        if ($start_date > $end_date) {
-            $this->db->response(422, false, 'Start date must be before end date.', ['start_date' => $start_date, 'end_date' => $end_date]);
-            $this->db->rollBack();
-            exit;
-        }
-
-        $start_date_obj = new DateTime($start_date);
-        $end_date_obj = new DateTime($end_date);
-
-        // count for days requested (weekdays)
-        $days_requested = 0;
-
-        // calculate the start and end date (only weekdays), and ensures include the end date in the loop
-        $period = new DatePeriod($start_date_obj, new DateInterval('P1D'), clone $end_date_obj->modify('+1 day'));
-
-        foreach ($period as $date) {
-            if ($date->format('N') < 6) { // format('N') returns 1-5 for Mon-Fri
-                $days_requested++;
+            // validate the inputs
+            if (!$leave_request_form->validate($leave_type, $start_date, $end_date, $reason)) {
+                $this->db->response(422, false, 'Invalid inputs.', ['errors' => $leaveRequestForm->errors()]);
+                $this->db->rollBack();
+                exit;
             }
-        }
+        
+            // validate if the start date is before the end date
+            if ($start_date > $end_date) {
+                $this->db->response(422, false, 'Start date must be before end date.', ['start_date' => $start_date, 'end_date' => $end_date]);
+                $this->db->rollBack();
+                exit;
+            }
 
-        // capture the leave_type id based on the leave type name submitted
-        $leave_type_record = $this->db->query("SELECT id FROM leave_types WHERE name = :name", [
-            'name' => $leave_type
-        ])->find();
+            $start_date_obj = new DateTime($start_date);
+            $end_date_obj = new DateTime($end_date);
 
-        if (!$leave_type_record) {
-            $this->db->response(422, false, 'Invalid leave type.', ['leave_type_id' => $leave_type_record['id']]);
-            $this->db->rollBack();
-            exit;
-        }
+            // count for days requested (weekdays)
+            $days_requested = 0;
 
-        $leave_type_id = $leave_type_record['id'];
+            // calculate the start and end date (only weekdays), and ensures include the end date in the loop
+            $period = new DatePeriod($start_date_obj, new DateInterval('P1D'), clone $end_date_obj->modify('+1 day'));
 
-        // query the remaining balance and leave types
-        $remaining_balance = $this->db->query("SELECT remaining_balance FROM leave_balance WHERE user_id = :user_id AND leave_type_id = :leave_type_id", [
-            'user_id' => $user_id,
-            'leave_type_id' => $leave_type_id
-        ])->find();
+            foreach ($period as $date) {
+                if ($date->format('N') < 6) { // format('N') returns 1-5 for Mon-Fri
+                    $days_requested++;
+                }
+            }
 
-        // validate the overlap (to check if the user already has a pending or approved request that covers the dates they just picked)
-        // and prevent employees from submitting the EXACT SAME TYPE while one is already pending.
-        $overlap = $this->db->query("
-            SELECT id FROM leave_requests WHERE user_id = :user_id 
-            AND leave_type_id = :leave_type_id 
-            AND status IN ('pending', 'approved')
-            AND deleted_at IS NULL
-            AND start_date <= :end_date AND end_date >= :start_date AND (start_date >= CURRENT_DATE OR end_date >= CURRENT_DATE)
-        ", [
-            'user_id' => $user_id,
-            'leave_type_id' => $leave_type_id,
-            'start_date' => $start_date,
-            'end_date' => $end_date
-        ])->find();
+            // capture the leave_type id based on the leave type name submitted
+            $leave_type_record = $this->db->query("SELECT id FROM leave_types WHERE name = :name", [
+                'name' => $leave_type
+            ])->find();
 
-        if ($overlap) {
-            $this->db->response(422, false, 'You already have a pending or approved request for this leave type during the selected dates.', [
-                'leave_request_id' => $overlap['id']
+            if (!$leave_type_record) {
+                $this->db->response(422, false, 'Invalid leave type.', ['leave_type_id' => $leave_type_record['id']]);
+                $this->db->rollBack();
+                exit;
+            }
+
+            $leave_type_id = $leave_type_record['id'];
+
+            // query the remaining balance and leave types
+            $remaining_balance = $this->db->query("SELECT remaining_balance FROM leave_balance WHERE user_id = :user_id AND leave_type_id = :leave_type_id", [
+                'user_id' => $user_id,
+                'leave_type_id' => $leave_type_id
+            ])->find();
+
+            // validate the overlap (to check if the user already has a pending or approved request that covers the dates they just picked)
+            // and prevent employees from submitting the EXACT SAME TYPE while one is already pending.
+            $overlap = $this->db->query("
+                SELECT id AS overlap_request_id FROM leave_requests WHERE user_id = :user_id 
+                AND status IN ('pending', 'approved')
+                AND deleted_at IS NULL
+                AND start_date <= :end_date AND end_date >= :start_date AND (start_date >= CURRENT_DATE OR end_date >= CURRENT_DATE)
+            ", [
+                'user_id' => $user_id,
+                'start_date' => $start_date,
+                'end_date' => $end_date
+            ])->find();
+
+            if ($overlap) {
+                $this->db->response(422, false, 'You already have a pending or approved request for this leave type during the selected dates.', [
+                    'leave_request_id' => $overlap['overlap_request_id']
+                ]);
+                $this->db->rollBack();
+                exit;
+            }
+
+            if (!$remaining_balance || $remaining_balance['remaining_balance'] < $days_requested) {
+                $this->db->response(422, false, 'Insufficient leave balance for this leave type.', [
+                    'leave_request_id' => $remaining_balance['id']
+                ]);
+                $this->db->rollBack();
+                exit;
+            }
+
+            if (!$role) {
+                $this->db->response(401, false, 'You are not authorized to submit a leave request.', [
+                    'leave_request_id' => $user_id
+                ]);
+                $this->db->rollBack();
+                exit;
+            }
+
+            // insert the leave request into the database
+            $this->db->query("INSERT INTO leave_requests (user_id, leave_type_id, start_date, end_date, total_days, reason, status, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date, :total_days, :reason, :status, :assigned_to)", [
+                'user_id' => $user_id,
+                'leave_type_id' => $leave_type_id,
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'total_days' => $days_requested,
+                'reason' => $reason,
+                'status' => 'pending',
+                'assigned_to' => $assigned_to['approver_id'] ?? null
             ]);
-            $this->db->rollBack();
-            exit;
-        }
 
-        if (!$remaining_balance || $remaining_balance['remaining_balance'] < $days_requested) {
-            $this->db->response(422, false, 'Insufficient leave balance for this leave type.', [
-                'leave_request_id' => $remaining_balance['id']
+            $notificationService = new NotificationService();
+            $notificationService->store(
+            $assigned_to['approver_id'],
+            'New Leave Request Submitted',
+            'leave_request_submitted',
+            'A new leave request has been submitted for your approval. Please review it and take appropriate action.',
+            false,
+            ['leave_request_id' => $this->db->lastInsertId()]
+            );
+
+            $this->db->response(201, true, 'Leave request submitted successfully', [
+                'leave_request_id' => $this->db->lastInsertId()
             ]);
-            $this->db->rollBack();
+            $this->db->commit();
             exit;
-        }
-
-        if (!$role) {
-            $this->db->response(401, false, 'You are not authorized to submit a leave request.', [
-                'leave_request_id' => $user_id
-            ]);
-            $this->db->rollBack();
-            exit;
-        }
-
-        // insert the leave request into the database
-        $this->db->query("INSERT INTO leave_requests (user_id, leave_type_id, start_date, end_date, total_days, reason, status, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date, :total_days, :reason, :status, :assigned_to)", [
-            'user_id' => $user_id,
-            'leave_type_id' => $leave_type_id,
-            'start_date' => $start_date,
-            'end_date' => $end_date,
-            'total_days' => $days_requested,
-            'reason' => $reason,
-            'status' => 'pending',
-            'assigned_to' => $assigned_to['approver_id'] ?? null
-        ]);
-
-        $notificationService = new NotificationService();
-        $notificationService->store(
-        $assigned_to['approver_id'],
-        'New Leave Request Submitted',
-        'leave_request_submitted',
-        'A new leave request has been submitted for your approval. Please review it and take appropriate action.',
-        false,
-        ['leave_request_id' => $this->db->lastInsertId()]
-        );
-
-        $this->db->response(201, true, 'Leave request submitted successfully', [
-            'leave_request_id' => $this->db->lastInsertId()
-        ]);
-        $this->db->commit();
-        exit;
 
         }catch (Exception $e) {
             $this->db->rollBack();
@@ -282,19 +280,19 @@ class LeaveRequestService implements LeaveRequestInterface {
 
             if($user_id && $role) {
 
-                $existingLeaveRequest = $this->db->query("SELECT * FROM leave_requests WHERE id = :id AND user_id = :user_id", [
+                $existing_leave_request = $this->db->query("SELECT * FROM leave_requests WHERE id = :id AND user_id = :user_id", [
                     'id' => $id,
                     'user_id' => $user_id
                 ])->find();
 
-                if (!$existingLeaveRequest) {
+                if (!$existing_leave_request) {
                     $this->db->response(404, false, 'Leave request not found.', ['leave_request_id' => $id]);
                     $this->db->rollBack();
                     exit;
                 }
 
                 // validate if the leave request is approved or rejected
-                $current_status = $existingLeaveRequest['status'];
+                $current_status = $existing_leave_request['status'];
 
                 // if the leave request is approved, return an error
                 if($current_status === 'approved') {
@@ -315,29 +313,29 @@ class LeaveRequestService implements LeaveRequestInterface {
                 }
 
                 // existing leave type name (rather than id) since the user will be submitting the leave type name
-                $leaveType = $this->db->query("SELECT name FROM leave_types WHERE id = :id", [
-                    'id' => $existingLeaveRequest['leave_type_id']
+                $existing_leave_type_record = $this->db->query("SELECT name FROM leave_types WHERE id = :id", [
+                    'id' => $existing_leave_request['leave_type_id']
                 ])->find();
 
-                if (!$leaveType) {
+                if (!$existing_leave_type_record) {
                     $this->db->response(422, false, 'Leave type not found.', [
-                        'leave_type_id' => $existingLeaveRequest['leave_type_id']
+                        'leave_type_id' => $existing_leave_type_record['leave_type_id']
                     ]);
                     $this->db-> rollBack();
                     exit;
                 }
 
-                $leave_type = !empty($input['leave_type']) ? $input['leave_type'] : $leaveType['name'];
-                $start_date = !empty($input['start_date']) ? $input['start_date'] : date('Y-m-d', $existingLeaveRequest['start_date']);
-                $end_date = !empty($input['end_date']) ? $input['end_date'] : date('Y-m-d',($existingLeaveRequest['end_date']));
-                $reason = !empty($input['reason']) ? $input['reason'] : $existingLeaveRequest['reason'];
+                $leave_type = !empty($input['leave_type']) ? $input['leave_type'] : $leave_type_record['name'];
+                $start_date = !empty($input['start_date']) ? $input['start_date'] : date('Y-m-d', $existing_leave_request['start_date']);
+                $end_date = !empty($input['end_date']) ? $input['end_date'] : date('Y-m-d',($existing_leave_request['end_date']));
+                $reason = !empty($input['reason']) ? $input['reason'] : $existing_leave_request['reason'];
 
                 // validate the leave type
-                $leave_type_record = $this->db->query("SELECT id FROM leave_types WHERE name = :name", [
+                $new_leave_type_record = $this->db->query("SELECT id FROM leave_types WHERE name = :name", [
                     'name' => $leave_type
                 ])->find();
 
-                if (!$leave_type_record) {
+                if (!$new_leave_type_record) {
                     $this->db->response(422, false, 'Invalid leave type.', ['leave_type' => $leave_type]);
                     $this->db->rollBack();
                     exit;
@@ -354,6 +352,8 @@ class LeaveRequestService implements LeaveRequestInterface {
                     $this->db->rollBack();
                     exit;
                 }
+
+
 
                 // convert the start and end date to DateTime objects
                 $start_date_obj = new DateTime($start_date);

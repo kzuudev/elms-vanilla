@@ -46,6 +46,7 @@ class LeaveReviewService implements LeaveReviewInterface {
                 lr.*, 
                 e.first_name as employee_name, 
                 m.first_name as manager_name,
+
                 e.role as employee_role,
                 lt.name as leave_type_name,
                 DATEDIFF(lr.end_date, lr.start_date) + 1 as total_days
@@ -81,11 +82,16 @@ class LeaveReviewService implements LeaveReviewInterface {
                 ],
             ]);
 
+            $this->db->commit();
+            return $leave_requests;
+
         }catch(Exception $e) {
             $this->db->rollBack();
-            $this->db->response(500, false, 'Failed to get leave request');
+            $this->db->response(500, false, 'Failed to get leave request', ['error' => $e->getMessage()]);
             exit;
         }
+
+        exit;
     }
 
     public function reviewLeaveRequest(int $id): void {
@@ -277,16 +283,16 @@ class LeaveReviewService implements LeaveReviewInterface {
 
         $current_user = $this->auth->authenticate();
 
+
         $current_user_id = $current_user['id'] ?? null;
         if (!$current_user_id) {
             $this->db->response(401, false, 'Unauthorized');
             exit;
         }
         
-
         $role = $current_user['role'] ?? null;
-        $params = ['id' => $id];
 
+        $params = ['id' => $id];
         $query = "
             SELECT
                 lr.id AS leave_request_id,
@@ -315,10 +321,10 @@ class LeaveReviewService implements LeaveReviewInterface {
             exit;
         }
         
-        // Capture the pending request
-        $pendingRequest = $this->db->query($query, ['id' => $id])->find();
+        // Capture the review request
+        $review_request = $this->db->query($query, $params)->find();
 
-        if(!$pendingRequest) {
+        if(!$review_request) {
             $this->db->response(404, false, 'Leave request not found', [
                 'user_id' => $current_user_id,
                 'id' => $id,
@@ -327,16 +333,16 @@ class LeaveReviewService implements LeaveReviewInterface {
         }
 
         // Count total ACTIVE EMPLOYEES in the exact department
-        $activeStaff = $this->db->query("
+        $active_staff = $this->db->query("
             SELECT COUNT(*) AS total_active_staff
             FROM users u
             WHERE u.department = :department AND u.is_active = 1
-        ", ['department' => $pendingRequest['department']]);
+        ", ['department' => $review_request['department']]);
 
-        $totalActiveStaff = (int) $activeStaff->find()['total_active_staff'] ?? 0;
+        $total_active_staff = (int) $active_staff->find()['total_active_staff'] ?? 0;
 
         // Fetch already approved leaves in the department (exclude the requester id)
-        $approvedLeaves = $this->db->query("
+        $approved_leaves = $this->db->query("
             SELECT 
                 lr.id, 
                 lr.user_id, 
@@ -354,30 +360,28 @@ class LeaveReviewService implements LeaveReviewInterface {
               AND lr.deleted_at IS NULL
               AND (lr.start_date <= :end_date AND lr.end_date >= :start_date)
         ", [
-            'start_date' => $pendingRequest['start_date'],
-            'end_date' => $pendingRequest['end_date'],
-            'department' => $pendingRequest['department'],
-            'requester_id' => $pendingRequest['employee_id'],
+            'start_date' => $review_request['start_date'],
+            'end_date' => $review_request['end_date'],
+            'department' => $review_request['department'],
+            'requester_id' => $review_request['employee_id'],
         ])->all();
 
 
         // Count total currently OFF EMPLOYEES
-        $totalOffStaff = count($approvedLeaves);
+        $total_off_staff = count($approved_leaves);
 
         // Calculate Remaining Staff
-        $remainingStaff = $totalActiveStaff - $totalOffStaff;
+        $remaining_staff = $total_active_staff - $total_off_staff;
 
-        $criticalOverlap = $remainingStaff <= 0;
+        $critical_overlap = $remaining_staff <= 0;
 
         $this->db->response(200, true, 'Check overlap successfully', [
-            'department'            => $pendingRequest['department'],
-            'total_active_staff'    => $totalActiveStaff,
-            'remaining_staff'       => $remainingStaff,
-            'has_critical_overlap'  => $criticalOverlap,
-            'overlapping_employees' => $approvedLeaves,
+            'department'            => $review_request['department'],
+            'total_active_staff'    => $total_active_staff,
+            'remaining_staff'       => $remaining_staff,
+            'has_critical_overlap'  => $critical_overlap,
+            'overlapping_employees' => $approved_leaves,
         ]);
-
-
         exit;
 
     }
