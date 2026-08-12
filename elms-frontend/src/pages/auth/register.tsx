@@ -46,7 +46,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
         email: z.string().email("Please enter a valid email address"),
         phone: z.string().min(1, {message: "Phone number is required"}),
         role: z.string().min(1, {message: "Role is required"}),
-        assigned_to: z.string().min(1, {message: "Assigned manager is required"}),
+        assigned_to: z.string().optional().nullable(),
     })
 
     type RegisterFormData = z.infer<typeof schema>;
@@ -60,7 +60,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
             email: "",
             phone: "",
             role: "",
-            assigned_to: "",
+            assigned_to: null,
         }
     })
 

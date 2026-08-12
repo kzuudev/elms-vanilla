@@ -2,13 +2,11 @@
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import UserProfile from "@/components/layout/UserProfile.tsx";
-import LeavesDashboard from "@/pages/manager/LeavesDashboard.tsx";
-import SearchInput from "@/components/ui/search.tsx";
+import LeavesDashboard from "@/features/leaves/components/LeavesDashboard.tsx";
+
 
 
 export default function ManagerLeaveDashboard() {
-
-
     return (
         <>
                 <AppSidebar>
@@ -23,16 +21,11 @@ export default function ManagerLeaveDashboard() {
 
                                 <UserProfile />
                             </div>
-
-                            <div>
-                                <SearchInput />
-                            </div>
                         </div>
-
                     </div>
 
                     <main>
-                        <LeavesDashboard/>
+                        <LeavesDashboard role="manager"/>
                     </main>
                 </AppSidebar>
         </>

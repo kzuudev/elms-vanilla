@@ -17,7 +17,7 @@ import { type LeaveBalance} from "@/types/leave-balance.ts";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute.tsx";
 import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
-import ManagerLeaveDashboard from "@/pages/manager/ManagerLeaveDashboard.tsx";
+import ManagerLeavesDashboard from "@/pages/manager/ManagerLeavesDashboard.tsx";
 
 import EmployeesDashboard from "@/features/employees/components/EmployeesDashboard.tsx";
 import AdminLeavesDashboard from "@/pages/admin/AdminLeavesDashboard.tsx";
@@ -122,7 +122,7 @@ function App() {
                                 element={
                                     // allowed 2 roles here because Managers and Admins are also employees!
                                     <ProtectedRoute allowedRoles={['manager', 'admin']}>
-                                        <ManagerLeaveDashboard />
+                                        <ManagerLeavesDashboard />
                                     </ProtectedRoute>
                                 }
                             />

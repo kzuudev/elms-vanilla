@@ -2,8 +2,7 @@
 
 
 import { useState } from "react";
-import { EmployeesContext } from "@/features/context/employees/EmployeesContext.tsx";
-import { useContext } from "react";
+import { useEmployeesContext } from "@/features/context/employees/EmployeesContext.tsx";
 import {formatE164} from "@/lib/utils.ts";
 
 import {
@@ -24,13 +23,12 @@ export default function EmployeeListTable() {
 
     const tableHeaders = ['First Name', 'Last Name', 'Email', 'Contact Number', 'Role', 'Actions']
 
-    const {employees, fetchEmployeeDetails, employeeDetails} = useContext(EmployeesContext);
+    const {employees, fetchEmployeeDetails, employeeDetails} = useEmployeesContext();
 
     const handleViewEmployeeDetails = async (id: number) => {
         await fetchEmployeeDetails(id);
         setIsDialogOpen(true);
     }
-
 
 
     return (
@@ -46,22 +44,22 @@ export default function EmployeeListTable() {
                             <div className="w-full flex flex-col gap-2">
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Name:</span>
-                                    <span>{`${employeeDetails.employee_first_name} ${employeeDetails?.employee_last_name}`}</span>
+                                    <span>{`${employeeDetails?.employee_first_name} ${employeeDetails?.employee_last_name}`}</span>
                                 </div>
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Role:</span>
-                                    <span>{employeeDetails.employee_role}</span>
+                                    <span>{employeeDetails?.employee_role}</span>
                                 </div>
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Email Address:</span>
-                                    <span>{employeeDetails.employee_email}</span>
+                                    <span>{employeeDetails?.employee_email}</span>
                                 </div>
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Contact No:</span>
-                                    <span>{employeeDetails.employee_phone}</span>
+                                    <span>{employeeDetails?.employee_phone}</span>
                                 </div>
 
                                 {employeeDetails?.employee_leave_balance && employeeDetails.employee_leave_balance.length > 0 ? (
@@ -70,7 +68,7 @@ export default function EmployeeListTable() {
                                             Leave Balances
                                         </p>
 
-                                        {employeeDetails.employee_leave_balance.map((leave, index) => (
+                                        {employeeDetails?.employee_leave_balance.map((leave, index) => (
                                             <div key={index} className="flex justify-between items-center py-1 border-b border-muted last:border-0">
                                                 <span className="text-sm text-muted-foreground">
                                                     {leave.leave_type_name}
@@ -90,22 +88,22 @@ export default function EmployeeListTable() {
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Salary:</span>
-                                    <span>{employeeDetails.employee_salary}</span>
+                                    <span>{employeeDetails?.employee_salary}</span>
                                 </div>
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Date Hired:</span>
                                     {employeeDetails?.employee_hired_date
-                                        ? format(new Date(employeeDetails.employee_hired_date), 'MMMM dd, yyyy')
+                                        ? format(new Date(employeeDetails?.employee_hired_date), 'MMMM dd, yyyy')
                                         : 'N/A'}
                                 </div>
 
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Status:</span>
-                                    {employeeDetails.employee_is_active === 1 ? (
+                                    {employeeDetails?.employee_is_active === 1 ? (
                                         <span className="bg-green-50 text-green-700 border border-green-200/60 px-2 py-1 rounded-md">active</span>
-                                    ) : employeeDetails.employee_is_active === 0 ? (
+                                    ) : employeeDetails?.employee_is_active === 0 ? (
                                         <span className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-md">inactive</span>
                                     ) : null}
                                 </div>

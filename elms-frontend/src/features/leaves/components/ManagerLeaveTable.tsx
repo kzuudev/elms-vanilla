@@ -21,7 +21,9 @@ export default function ManagerLeaveTable() {
                 </TabsList>
 
                 <TabsContent value="assigned_leaves">
-                    <ReviewerLeaveTable />
+                    {activeTab === 'assigned_leaves' && (
+                        <ReviewerLeaveTable />
+                    )}
                 </TabsContent>
                 <TabsContent value="personal_leaves">
                     {activeTab === 'personal_leaves' && (

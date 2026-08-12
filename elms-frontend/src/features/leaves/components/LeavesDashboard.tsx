@@ -20,7 +20,7 @@ import {
 import {Button} from "@/components/ui/button.tsx";
 
 
-export default function LeavesDashboard() {
+export default function LeavesDashboard({role}: {role: string}) {
 
     const [reviewerLeaveRequests, setReviewerLeaveRequests] = useState<ReviewerLeaveData[] | null>(null);
     const [leaveRequestDetails, setLeaveRequestDetails] = useState<LeaveRequest>({} as LeaveRequest);
@@ -76,6 +76,7 @@ export default function LeavesDashboard() {
 
     }
 
+    }
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -84,11 +85,15 @@ export default function LeavesDashboard() {
 
 
     return (
-      <>
-          <LeaveContext.Provider value={{ fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequests: [], leaveRequestDetails, reviewerLeaveRequests}}>
+        <>
+        <LeaveContext.Provider value={{ fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequests: [], leaveRequestDetails, reviewerLeaveRequests}}>
               <div className="flex flex-col gap-4 mt-8">
                   <div className="flex justify-between items-center">
-                      <h2 className="text-xl font-semibold">Admin Leave Request History</h2>
+                      {role === "admin" ? (
+                        <h2 className="text-xl font-semibold">Admin Leave Request History</h2>
+                      ) : (
+                        <h2 className="text-xl font-semibold">Manager Leave Request History</h2>
+                      )}
                       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                           <DialogTrigger asChild>
                               <Button className="text-sm rounded-md bg-black text-white px-4 py-2">
@@ -108,9 +113,13 @@ export default function LeavesDashboard() {
                   </div>
                   <AdminLeaveTable/>
               </div>
-          </LeaveContext.Provider>
-      </>
-    )
-}
 
+          {error && (
+                <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg">
+                    {error}
+                </div>
+            )}
+          </LeaveContext.Provider>
+        </>
+    )
 }

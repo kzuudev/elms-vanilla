@@ -20,7 +20,9 @@ export default function AdminLeaveTable() {
                 </TabsList>
 
                 <TabsContent value="employee_leaves">
-                    <ReviewerLeaveTable />
+                    {activeTab === 'employee_leaves' && (
+                        <ReviewerLeaveTable />
+                    )}
                 </TabsContent>
                 <TabsContent value="personal_leaves">
                     {activeTab === 'personal_leaves' && (

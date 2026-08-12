@@ -1,13 +1,13 @@
 "use client";
 
-import {useContext, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import * as z from 'zod';
 import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 
 import {api} from "@/lib/api.ts";
-import {LeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
-import {LeaveBalanceContext} from "@/features/context/leaves/LeaveBalanceContext.tsx";
+import {useLeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
+
 import LeaveRequestDetailsModal from "@/features/leaves/components/LeaveRequestDetailsModal.tsx";
 
 import {
@@ -29,7 +29,7 @@ import {Textarea} from "@/components/ui/textarea.tsx";
 
 export default function ReviewerLeaveTable() {
 
-    const { reviewerLeaveRequests, fetchLeaveRequestDetails, fetchLeaveRequests} = useContext(LeaveContext);
+    const { reviewerLeaveRequests, fetchLeaveRequestDetails, fetchLeaveRequests} = useLeaveContext();
 
 
     const tableHeaders = ['Name', 'Role', 'Leave Type', 'Reason', 'Start Date', 'End Date', 'Days', 'Status','Actions']
@@ -39,7 +39,7 @@ export default function ReviewerLeaveTable() {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [overlaps, setOverlaps] = useState<string[]>([]);
+    const [overlappingEmployees, setOverlappingEmployees] = useState<string[]>([]);
 
     const schema = z.object({
         rejection_reason: z.string().min(1, {message: "Rejection Reason is required"}),
@@ -54,9 +54,6 @@ export default function ReviewerLeaveTable() {
 
         }
     });
-
-    const {setError: setFormError, formState: {errors}} = form;
-
 
     // Handles both approvals and rejections on the database level (communicate with the server)
     const handleUpdateStatus = async (id: number, status: 'approved' | 'rejected', rejection_reason: string) => {
@@ -96,7 +93,7 @@ export default function ReviewerLeaveTable() {
                 }
             });
             if(response.data.success) {
-                setOverlaps(response.data.data.overlapping_employees || []);
+                setOverlappingEmployees(response.data.data.overlapping_employees || []);
                 return response.data.data
             }
         }catch (e) {
@@ -258,9 +255,17 @@ export default function ReviewerLeaveTable() {
                                     <TableCell><span className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-md">{leave.status}</span></TableCell>
                                 )}
                                 <TableCell>
-                                    <Button onClick={() => handleViewLeaveRequest(leave.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>
-                                    <Button onClick={() => handleApproveSubmit(leave.id)} variant="outline" className="p-2 mr-1"><CircleCheck /></Button>
-                                    <Button onClick={() => handleRejectionReasonForm(leave.id)}  variant="outline" className="p-2 text-red-500"><X /></Button>
+                                  {leave.status !== "pending" ? (
+                                <>
+                                        <Button className="ml-2" onClick={() => handleViewLeaveRequest(leave.id)} variant="outline"><Eye /></Button>
+                                    </>
+                                  ) : (
+                                    <>
+                                        <Button onClick={() => handleViewLeaveRequest(leave.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>
+                                        <Button onClick={() => handleApproveSubmit(leave.id)} variant="outline" className="p-2 mr-1"><CircleCheck /></Button>
+                                        <Button onClick={() => handleRejectionReasonForm(leave.id)}  variant="outline" className="p-2 text-red-500"><X /></Button>
+                                    </>
+                                  )}
                                 </TableCell>
                             </TableRow>
                         ))

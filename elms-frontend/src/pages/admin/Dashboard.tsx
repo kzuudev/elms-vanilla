@@ -11,6 +11,7 @@ import MonthlyLeavesConsumption from "@/features/dashboard/components/MonthlyLea
 import TeamInsights from "@/features/dashboard/components/TeamInsights.tsx";
 import TeamCoverageWidget from "@/features/dashboard/components/TeamCoverageWidget.tsx";
 import RecentActivityTable from "@/features/dashboard/components/RecentActivityTable.tsx";
+import Notifications from "@/components/layout/Notifications";
 
 import type {
     LeaveActivityRecord,
@@ -83,7 +84,10 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
 
-                            <UserProfile />
+                            <div className="flex items-center gap-4">
+                                <Notifications />
+                                <UserProfile />
+                            </div>
                         </div>
 
                         <LeaveSummaryGrid/>
