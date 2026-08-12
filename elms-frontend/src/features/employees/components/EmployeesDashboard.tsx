@@ -15,6 +15,7 @@ import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import Register from "@/pages/auth/register.tsx";
 import EmployeeSummaryGrid from "@/features/dashboard/components/EmployeeSummaryGrid.tsx";
 import UserProfile from "@/components/layout/UserProfile.tsx";
+import Notifications from "@/components/layout/Notifications.tsx";
 
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -94,7 +95,11 @@ export default function EmployeesDashboard({role} : {role: string}) {
                                 <h1 className="text-xl font-semibold text-blue-400">Employees</h1>
                                 <p className="text-gray-500 text-xs">Manage all employees</p>
                             </div>
-                            <UserProfile />
+
+                            <div className="flex items-center gap-4">
+                                <Notifications />
+                                <UserProfile />
+                            </div>
                         </div>
 
                         <div className="w-full">
@@ -105,11 +110,11 @@ export default function EmployeesDashboard({role} : {role: string}) {
                             <UserFilterBar
                                 searchQuery={searchQuery}
                                 setSearchQuery={setSearchQuery}
-                                statusFilter={statusFilter}
+                                statusFilter={statusFilter ?? ''}
                                 setStatusFilter={setStatusFilter}
-                                roleFilter={roleFilter}
+                                roleFilter={roleFilter ?? ''}
                                 setRoleFilter={setRoleFilter}
-                                departmentFilter={departmentFilter}
+                                departmentFilter={departmentFilter ?? ''}
                                 setDepartmentFilter={setDepartmentFilter}
                                 onSearchSubmit={fetchEmployees}
                             />

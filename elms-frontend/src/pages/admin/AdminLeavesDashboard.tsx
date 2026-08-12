@@ -4,6 +4,7 @@
 import LeavesDashboard from "@/features/leaves/components/LeavesDashboard";
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import UserProfile from "@/components/layout/UserProfile";
+import Notifications from "@/components/layout/Notifications.tsx";
 
 
 
@@ -19,7 +20,10 @@ export default function AdminLeavesDashboard() {
                                 <h2 className="text-sm text-gray-500">Track employee activities, stats, and updates</h2>
                             </div>
 
-                            <UserProfile />
+                            <div className="flex items-center gap-4">
+                                <Notifications />
+                                <UserProfile />
+                            </div>
                         </div>
                     </div>
                 </div>

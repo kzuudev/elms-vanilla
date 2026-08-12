@@ -26,7 +26,6 @@ import type {
     TotalUsers,
     LeaveActivityRecord
 } from "@/types/dashboard.ts";
-import Search from "@/components/ui/search.tsx";
 
 
 
@@ -36,9 +35,9 @@ export default function ManagerDashboard() {
 
     const [error, setError] = useState<string | null>(null);
 
-    const [remainingBalance, setRemainingBalance] = useState<TotalRemainingBalance[]>();
-    const [pendingRequest, setPendingRequest] = useState<TotalPendingRequest[]>();
-    const [usedDays, setUsedDays] = useState<TotalUsedDays[]>();
+    const [remainingBalance, setRemainingBalance] = useState<TotalRemainingBalance[]>([]);
+    const [pendingRequest, setPendingRequest] = useState<TotalPendingRequest[]>([]);
+    const [usedDays, setUsedDays] = useState<TotalUsedDays[]>([]);
     const [overlap, setOverlap] = useState<LeaveOverlap[]>([]);
     const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyConsumption[]>([]);
     const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
@@ -94,7 +93,7 @@ export default function ManagerDashboard() {
                       <LeaveSummaryGrid/>
 
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                          <LeaveOverlapTimeline />
+                          <LeaveOverlapTimeline role="manager" />
                           <MonthlyLeavesConsumption />
                           <TeamInsights />
                       </div>

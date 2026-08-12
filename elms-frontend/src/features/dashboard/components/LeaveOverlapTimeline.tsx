@@ -6,23 +6,22 @@ import Chart from "react-apexcharts";
 
 import { ManagerAnalyticsContext } from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 import { AdminAnalyticsContext } from "@/features/context/analytics/AdminAnalyticsContext.tsx";
-import { AuthContext } from "@/features/context/auth/AuthContext.tsx";
 
 import type { LeaveOverlap } from "@/types/dashboard.ts";
 
 import {Card} from "@/components/ui/card.tsx";
 
-export default function LeaveOverlapTimeline() {
 
-    const {user} = useContext(AuthContext);
+export default function LeaveOverlapTimeline({role}: {role: "manager" | "admin"}) {
+
 
     const managerAnalytics = useContext(ManagerAnalyticsContext);
     const adminAnalytics = useContext(AdminAnalyticsContext);
 
-    const isManager = user.role === 'manager';
-    const isAdmin = user.role === 'admin';
+    const isManager = role === 'manager';
+    const isAdmin = role === 'admin';
 
-    const dashboardAnalytics = isManager ? managerAnalytics :  isAdmin ? adminAnalytics : null;
+    const dashboardAnalytics = isManager ? managerAnalytics : isAdmin ? adminAnalytics : null;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const overlapData: LeaveOverlap[] = dashboardAnalytics?.overlap || [];
@@ -105,9 +104,6 @@ export default function LeaveOverlapTimeline() {
                             <h3 className="text-lg font-semibold text-gray-900">Leave Overlap</h3>
                             <p className="text-sm text-gray-500 mt-1">Upcoming critical periods</p>
                         </div>
-                        {/*<button className="text-sm font-semibold text-[#0a3977] hover:text-blue-800 transition-colors">*/}
-                        {/*    Full Timeline*/}
-                        {/*</button>*/}
                     </div>
 
                     <div className="w-full min-h-[220px]">

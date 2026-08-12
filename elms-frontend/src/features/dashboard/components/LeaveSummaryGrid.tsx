@@ -4,17 +4,16 @@ import { useContext } from "react";
 import { EmployeeAnalyticsContext } from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
 import { ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
-import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
+import { useAuthContext} from "@/features/context/auth/AuthContext.tsx";
 
 import { Card } from '@/components/ui/card.tsx';
 import { Wallet, Hourglass, ClockCheck, Plane } from 'lucide-react';
 
 export default function LeaveSummaryGrid() {
 
-    const { user } = useContext(AuthContext);
+    const { user } = useAuthContext();
 
-
-    const role = user.role || null;
+    const role = user?.role ?? null;
     const isManager = role === 'manager';
     const isAdmin = role === 'admin';
 
@@ -22,8 +21,8 @@ export default function LeaveSummaryGrid() {
     const managerDashboardAnalytics = useContext(ManagerAnalyticsContext);
     const adminDashboardAnalytics = useContext(AdminAnalyticsContext);
 
-    const remainingBalance = isManager ? managerDashboardAnalytics?.remainingBalance?.[0].grand_total ?? 0
-        : isAdmin ? adminDashboardAnalytics?.remainingBalance?.[0].grand_total ?? 0 : leaveSummary?.totalRemainingBalance?.[0]?.grand_total ?? 0;
+    const remainingBalance = isManager ? managerDashboardAnalytics?.remainingBalance?.[0]?.grand_total ?? 0
+        : isAdmin ? adminDashboardAnalytics?.remainingBalance?.[0]?.grand_total ?? 0 : leaveSummary?.totalRemainingBalance?.[0]?.grand_total ?? 0;
 
 
     const pendingRequest = isManager ? managerDashboardAnalytics?.pendingRequest?.[0]?.total_days ?? 0

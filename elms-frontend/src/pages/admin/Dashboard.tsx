@@ -30,9 +30,9 @@ export default function AdminDashboard() {
 
     const [error, setError] = useState<string | null>(null);
 
-    const [remainingBalance, setRemainingBalance] = useState<TotalRemainingBalance[]>();
-    const [pendingRequest, setPendingRequest] = useState<TotalPendingRequest[]>();
-    const [usedDays, setUsedDays] = useState<TotalUsedDays[]>();
+    const [remainingBalance, setRemainingBalance] = useState<TotalRemainingBalance[]>([]);
+    const [pendingRequest, setPendingRequest] = useState<TotalPendingRequest[]>([]);
+    const [usedDays, setUsedDays] = useState<TotalUsedDays[]>([]);
     const [overlap, setOverlap] = useState<LeaveOverlap[]>([]);
     const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyConsumption[]>([]);
     const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
@@ -93,10 +93,9 @@ export default function AdminDashboard() {
                         <LeaveSummaryGrid/>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <LeaveOverlapTimeline />
+                            <LeaveOverlapTimeline role="admin" />
                             <MonthlyLeavesConsumption />
                             <TeamInsights />
-
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createContext, useContext } from "react";
 import { type Profile } from "@/types/leave.ts";
 
 type EmployeeContextProfile = {
@@ -8,3 +8,13 @@ type EmployeeContextProfile = {
 
 
 export const AuthContext = createContext<EmployeeContextProfile | undefined>(undefined);
+
+export function useAuthContext(): EmployeeContextProfile {
+    const context = useContext(AuthContext);
+
+    if (!context) {
+        throw new Error("useAuthContext must be used within a AuthContext.Provider");
+    }
+
+    return context;
+}

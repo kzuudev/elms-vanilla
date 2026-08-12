@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createContext, useContext } from "react";
 import type { TotalRemainingBalance, TotalPendingRequest, TotalUsedDays, LeaveActivityRecord, TeamAvailability, MonthlyLeaveConsumption} from "@/types/dashboard.ts";
 
 type EmployeeAnalyticsContext = {
@@ -11,3 +11,13 @@ type EmployeeAnalyticsContext = {
 }
 
 export const EmployeeAnalyticsContext  = createContext<EmployeeAnalyticsContext | undefined>(undefined);
+
+export function useEmployeeAnalyticsContext(): EmployeeAnalyticsContext {
+    const context = useContext(EmployeeAnalyticsContext);
+
+    if (!context) {
+        throw new Error("useEmployeeAnalyticsContext must be used within a EmployeeAnalyticsContext.Provider");
+    }
+
+    return context;
+}
