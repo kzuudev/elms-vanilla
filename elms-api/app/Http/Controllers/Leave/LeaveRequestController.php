@@ -63,10 +63,17 @@ class LeaveRequestController
     public function index(): void
     {
 
+        $leave_request_form = new LeaveRequestForm();
+
         $search_type = $_GET['search_type'] ?? "";
         $start_date = $_GET['start_date'] ?? "";
         $end_date = $_GET['end_date'] ?? "";
         $status = $_GET['status'] ?? "";
+
+        if(!$leave_request_form->validate($search_type, $start_date, $end_date, $status)) {
+            $this->db->response(422, false, $leave_request_form->errors(), ['errors' => $leave_request_form->errors()]);
+            return;
+        }
 
         try{
             $leave_requests = $this->leave_request_service->getLeaveRequests($this->user_id, $this->role, $this->department, $search_type, $start_date, $end_date, $status);

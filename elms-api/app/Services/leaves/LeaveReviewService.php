@@ -5,6 +5,7 @@ namespace App\Services\leaves;
 use App\Http\Middleware\Auth;
 use Core\App;
 use Core\Database;
+use Exception;
 use App\Services\notifications\NotificationService;
 use App\Contracts\LeaveReviewInterface;
 
@@ -33,12 +34,15 @@ class LeaveReviewService implements LeaveReviewInterface {
             $current_user_id = $current_user['id'] ?? null;
 
             if (!$current_user_id) {
-                $this->db->response(401, false, 'Unauthorized');
-                $this->db->rollBack();
-                exit;
+                throw new Exception('User not found');
             }
 
-            $role = $current_user['role'];
+            $role = $current_user['role'] ?? null;
+
+            if(!$role) {
+                throw new Exception('Role not found');
+            }
+
             $params = [];
 
             $sql = "
@@ -67,34 +71,22 @@ class LeaveReviewService implements LeaveReviewInterface {
                 $params['reviewer_id'] = $current_user_id;
             } else {
                 // Stop regular employees from seeing the review list!
-                $this->db->response(403, false, 'Forbidden: You do not have review permissions');
-                $this->db->rollBack();
                 throw new Exception('Forbidden: You do not have review permissions');
-                exit;
             }
 
             $leave_requests = $this->db->query($sql, $params)->all();
-
-            $this->db->response(200, true, 'Employee leaves list fetched successfully', [
-                'id' => $current_user_id,
-                'leaves' => [
-                    'data' => $leave_requests,
-                ],
-            ]);
 
             $this->db->commit();
             return $leave_requests;
 
         }catch(Exception $e) {
             $this->db->rollBack();
-            $this->db->response(500, false, 'Failed to get leave request', ['error' => $e->getMessage()]);
-            exit;
+            throw $e;
         }
 
-        exit;
     }
 
-    public function reviewLeaveRequest(int $id): void {
+    public function reviewLeaveRequest(int $id, int $user_id, string $role, string $department) {
 
         try {
             
@@ -105,12 +97,14 @@ class LeaveReviewService implements LeaveReviewInterface {
             $current_user_id = $current_user['id'] ?? null;
 
             if (!$current_user_id) {
-                $this->db->response(401, false, 'User not found', ['user_id' => $current_user_id]);
-                $this->db->rollBack();
-                exit;
+                throw new Exception('User not found');
             }
             
             $role = $current_user['role'] ?? null;
+
+            if(!$role) {
+                throw new Exception('Role not found');
+            }
 
             $sql = "
                 SELECT 
@@ -126,46 +120,28 @@ class LeaveReviewService implements LeaveReviewInterface {
                 
             $params = ['id' => $id];
 
-            if($role === "admin") {
+
+            if($role === 'super_admin') {
                 $sql .= " AND e.department = :department AND lr.user_id != :current_user_id";
                 $params['department'] = $current_user['department'];
                 $params['current_user_id'] = $current_user_id;
-
+            }else if($role === 'admin') {
+                $sql .= " AND e.department = :department";
+                $params['department'] = $current_user['department'];
             }else if ($role === "manager") {
                 // Managers can see it if they are assigned to it OR if managers created it
                 $sql .= " AND (lr.assigned_to = :current_user_id OR lr.user_id = :current_user_id)";
                 $params['current_user_id'] = $current_user_id;
             }else {
-                $this->db->response(401, false, 'Unauthorized User', ['user_id' => $current_user_id]);
-                $this->db->rollBack();
-                exit;
+                throw new Exception('Forbidden: You do not have review permissions');
             }
 
             // capture the authorized user
             $authorized_for_leave_request = $this->db->query($sql, $params)->find();
 
-            // capture the new value
-            $input = json_decode(file_get_contents('php://input'), true);
-            $status = $input['status'] ?? '';
-            $rejection_reason = $input['rejection_reason'] ?? '';
-
-            // Validation of the status input
-            if(!in_array($status, ['approved', 'rejected'])) {
-                $this->db->response(422, false, 'Invalid status. Must be approved or rejected.');
-                $this->db->rollBack();
-                exit;
-            }
-
-            if($status == 'rejected' && empty($rejection_reason)) {
-                $this->db->response(422, false, 'Rejection reason is required when status is rejected.');
-                $this->db->rollBack();
-                exit;
-            }
-
+                    
             if($current_user_id === $authorized_for_leave_request['user_id']) {
-                $this->db->response(403, false, 'Self-approval is strictly prohibited.');
-                $this->db->rollBack();
-                exit;
+                throw new Exception('Self-approval is strictly prohibited.');
             }
     
             // capture the leave request
@@ -174,9 +150,7 @@ class LeaveReviewService implements LeaveReviewInterface {
             ])->find();
             
             if($leave_request['status'] !== 'pending') {
-                $this->db->response(400, false, 'Leave request already approved or rejected');
-                $this->db->rollBack();
-                exit;
+                throw new Exception('Leave request already approved or rejected');
             }
 
             if($status == 'rejected') {
@@ -189,11 +163,8 @@ class LeaveReviewService implements LeaveReviewInterface {
                 ]);
 
                 if(!$rejected) {
-                    $this->db->rollBack();
-                    $this->db->response(500, false, 'Failed to reject leave request');
-                    $this->db->rollBack();
                     throw new Exception('Failed to reject leave request');
-                    exit;
+                    
                 }
 
                 $this->db->commit();
@@ -208,14 +179,7 @@ class LeaveReviewService implements LeaveReviewInterface {
                     ]
                 );
 
-                $this->db->response(200, true, 'Leave request rejected', [
-                    'id' => $id,
-                    'status' => $status,
-                    'rejected_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
-                    'rejection_reason' => $rejection_reason,
-                ]);
-
-                exit;
+                return $id;
             }
 
             if($status == 'approved') {
@@ -226,9 +190,7 @@ class LeaveReviewService implements LeaveReviewInterface {
                 ])->find();
 
                 if(!$remaining_balance || $remaining_balance['remaining_balance'] < $leave_request['total_days']) {
-                    $this->db->response(400, false, 'Remaining balance for this leave type is insufficient');
-                    $this->db->rollBack();
-                    exit;
+                    throw new Exception('Remaining balance for this leave type is insufficient');
                 }
             
                 // update the leave balance
@@ -245,7 +207,6 @@ class LeaveReviewService implements LeaveReviewInterface {
                     'rejection_reason' => $rejection_reason
                 ]);
 
-
                 $this->db->commit();
                 $this->notificationService->store($leave_request['user_id'], 
                     'Leave Request Approved by ' . $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'], 
@@ -258,41 +219,37 @@ class LeaveReviewService implements LeaveReviewInterface {
                     ]
                 );
 
-                $this->db->response(200, true, 'Leave request approved', [
-                        'id' => $id,
-                        'status' => $status,
-                        'approved_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
-                    ]);
-
-                exit;
-
+                return $id;
 
             }
 
-            $this->db->commit();
+            throw new Exception('Invalid status');
 
         }catch(Exception $e) {
             $this->db->rollBack();
-            $this->db->response(500, false, 'Failed to update leave balance or approved leave request');
-            exit;
+            throw $e;
         }
 
     }
 
-    public function getCheckOverlap(int $id): void {
+    public function getCheckOverlap(int $id) {
 
         $current_user = $this->auth->authenticate();
 
-
         $current_user_id = $current_user['id'] ?? null;
+
         if (!$current_user_id) {
-            $this->db->response(401, false, 'Unauthorized');
-            exit;
+            throw new Exception('User not found');
         }
         
         $role = $current_user['role'] ?? null;
 
+        if(!$role) {
+            throw new Exception('Role not found');
+        }
+
         $params = ['id' => $id];
+
         $query = "
             SELECT
                 lr.id AS leave_request_id,
@@ -310,26 +267,26 @@ class LeaveReviewService implements LeaveReviewInterface {
             WHERE lr.id = :id AND lr.deleted_at IS NULL
         ";
 
-        if($role === "admin") {
-            $query .= " AND lr.user_id != :current_user_id";
+        if($role === 'super admin') {
+            $query .= " AND u.department = :department AND lr.user_id != :current_user_id";
+            $params['department'] = $current_user['department'];
             $params['current_user_id'] = $current_user_id;
+        }else if($role === "admin") {
+            $query .= " AND u.department = :department";
+            $params['department'] = $current_user['department'];
         }else if($role === "manager") {
             $query .= " AND lr.assigned_to = :current_user_id";
             $params['current_user_id'] = $current_user_id;
         }else {
-            $this->db->response(401, false, 'Unauthorized', ['user_id' => $current_user_id]);
-            exit;
+            throw new Exception('Forbidden: You do not have check overlap permissions');
         }
-        
+
+     
         // Capture the review request
         $review_request = $this->db->query($query, $params)->find();
 
         if(!$review_request) {
-            $this->db->response(404, false, 'Leave request not found', [
-                'user_id' => $current_user_id,
-                'id' => $id,
-            ]);
-            exit;
+            throw new Exception('Leave request not found');
         }
 
         // Count total ACTIVE EMPLOYEES in the exact department
@@ -373,16 +330,16 @@ class LeaveReviewService implements LeaveReviewInterface {
         // Calculate Remaining Staff
         $remaining_staff = $total_active_staff - $total_off_staff;
 
+        // Check if there is a critical overlap
         $critical_overlap = $remaining_staff <= 0;
 
-        $this->db->response(200, true, 'Check overlap successfully', [
+        return [
             'department'            => $review_request['department'],
             'total_active_staff'    => $total_active_staff,
             'remaining_staff'       => $remaining_staff,
             'has_critical_overlap'  => $critical_overlap,
-            'overlapping_employees' => $approved_leaves,
-        ]);
-        exit;
+            'overlapping_employees' => $approved_leaves,    
+        ];
 
     }
 }
