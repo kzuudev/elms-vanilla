@@ -65,12 +65,17 @@ class LeaveRequestController
 
         $leave_request_form = new LeaveRequestForm();
 
-        $search_type = $_GET['search_type'] ?? "";
-        $start_date = $_GET['start_date'] ?? "";
-        $end_date = $_GET['end_date'] ?? "";
-        $status = $_GET['status'] ?? "";
+        // GET filters live in the query string ($_GET), not php://input
+        $search_type = $_GET['leaveType'] ?? $_GET['leave_type'] ?? $_GET['search_type'] ?? '';
+        $start_date = $_GET['startDate'] ?? $_GET['start_date'] ?? '';
+        $end_date = $_GET['endDate'] ?? $_GET['end_date'] ?? '';
+        $status = $_GET['status'] ?? '';
 
-        if(!$leave_request_form->validate($search_type, $start_date, $end_date, $status)) {
+        if ($status === 'all') {
+            $status = '';
+        }
+
+        if (!$leave_request_form->validateQuery($search_type, $start_date, $end_date, $status)) {
             $this->db->response(422, false, $leave_request_form->errors(), ['errors' => $leave_request_form->errors()]);
             return;
         }

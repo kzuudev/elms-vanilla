@@ -21,7 +21,8 @@ class LeaveTypesController {
      * Leave types for the filter bar and leave request form
      */
 
-    public function index(): void {
+    public function index() {
+
         $user = Auth::user();
         $user_id = (int) ($user['id'] ?? 0);
 
@@ -42,8 +43,13 @@ class LeaveTypesController {
             ['user_id' => $user_id]
         )->all();
 
+        if(!$rows) {
+            $this->db->response(404, false, 'No leave types found');
+            return;
+        }
+
         $this->db->response(200, true, 'Leave types fetched successfully', ['leave_types' => $rows ?: []]);
-        return;
+        return $rows ?: [];
     }
 
 

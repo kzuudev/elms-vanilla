@@ -6,9 +6,11 @@ namespace App\Http\Controllers\Leave;
 use App\Http\Middleware\Auth;
 use Core\App;
 use Core\Database;
+use Exception;
 use App\Services\notifications\NotificationService;
 use App\Services\leaves\LeaveReviewService;
 use App\Contracts\LeaveReviewInterface;
+
 
 class LeaveReviewController {
 
@@ -17,6 +19,10 @@ class LeaveReviewController {
 
     private Database $db;
     private Auth $auth;
+    private array $user;
+    private int $user_id;
+    private string $role;
+    private string $department;
 
     private array $input = [];
     
@@ -28,10 +34,10 @@ class LeaveReviewController {
 
         $this->input = json_decode(file_get_contents('php://input'), true) ?? [];
 
-        $user = Auth::user();
-        $this->user_id = (int) $user['id'];
-        $this->role = (string) $user['role'];
-        $this->department = (string) $user['department'];
+        $this->user = Auth::user();
+        $this->user_id = (int) $this->user['id'];
+        $this->role = (string) $this->user['role'];
+        $this->department = (string) $this->user['department'];
     }
 
     /**
@@ -42,6 +48,7 @@ class LeaveReviewController {
         try {
             $leave_requests = $this->leave_review_service->getLeaveRequest();
             $this->db->response(200, true, 'Leave requests fetched successfully.', ['leave_requests' => $leave_requests]);
+            return $leave_requests;
         }catch (Exception $e) {
             $this->db->response(422, false, $e->getMessage());
         }
@@ -66,8 +73,14 @@ class LeaveReviewController {
 
     }
 
-    public function checkOverlap(int $id): void {
-        $this->leave_review_service->getCheckOverlap($id);
+    public function checkOverlap(int $id) {
+        
+        try{
+            $check_overlap = $this->leave_review_service->getCheckOverlap($id, $this->user_id, $this->role, $this->department);
+            $this->db->response(200, true, 'Check overlap fetched successfully.', ['check_overlap' => $check_overlap]);
+        }catch (Exception $e) {
+            $this->db->response(422, false, $e->getMessage());
+        }
 
     }
 }

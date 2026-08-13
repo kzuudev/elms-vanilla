@@ -53,6 +53,42 @@ class LeaveRequestForm {
         return empty($this->errors);
     }
 
+    /**
+     * Optional GET filters for listing leave requests.
+     * Empty values are allowed (no filter). Invalid values are rejected.
+     */
+    public function validateQuery($type, $start_date, $end_date, $status) {
+
+        $this->errors = [];
+
+        $row = $this->db->query("SELECT name FROM leave_types")->all();
+        
+        $allowed_types = array_column($row, 'name');
+        $allowed_statuses = ['pending', 'approved', 'rejected'];
+
+        if ($type !== '' && !in_array($type, $allowed_types, true)) {
+            $this->errors['leave_type'] = 'Leave type must be a valid leave type from the list.';
+        }
+
+        if ($start_date !== '' && !Validator::date($start_date, 'Y-m-d')) {
+            $this->errors['start_date'] = 'Start date must be in the format YYYY-MM-DD.';
+        }
+
+        if ($end_date !== '' && !Validator::date($end_date, 'Y-m-d')) {
+            $this->errors['end_date'] = 'End date must be in the format YYYY-MM-DD.';
+        }
+
+        if ($start_date !== '' && $end_date !== '' && $start_date > $end_date) {
+            $this->errors['end_date'] = 'End date must be on or after start date.';
+        }
+
+        if ($status !== '' && $status !== 'all' && !in_array($status, $allowed_statuses, true)) {
+            $this->errors['status'] = 'Status must be pending, approved, or rejected.';
+        }
+
+        return empty($this->errors);
+    }
+
     public function errors() {
         return $this->errors;
 

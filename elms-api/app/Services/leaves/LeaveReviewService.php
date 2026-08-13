@@ -86,7 +86,7 @@ class LeaveReviewService implements LeaveReviewInterface {
 
     }
 
-    public function reviewLeaveRequest(int $id, int $user_id, string $role, string $department) {
+    public function reviewLeaveRequest(int $id, int $user_id, string $role, string $department, string $status, string $rejection_reason) {
 
         try {
             
@@ -232,20 +232,14 @@ class LeaveReviewService implements LeaveReviewInterface {
 
     }
 
-    public function getCheckOverlap(int $id) {
+    public function getCheckOverlap(int $id, int $user_id, string $role, string $department) {
 
-        $current_user = $this->auth->authenticate();
-
-        $current_user_id = $current_user['id'] ?? null;
-
-        if (!$current_user_id) {
-            throw new Exception('User not found');
+        if(!$id) {
+            throw new Exception('Leave request not found.');
         }
-        
-        $role = $current_user['role'] ?? null;
 
-        if(!$role) {
-            throw new Exception('Role not found');
+        if($role !== 'admin' && $role !== 'manager' && $role !== 'super_admin') {
+            throw new Exception('You are not authorized to check overlap for this leave request.');
         }
 
         $params = ['id' => $id];
@@ -281,7 +275,6 @@ class LeaveReviewService implements LeaveReviewInterface {
             throw new Exception('Forbidden: You do not have check overlap permissions');
         }
 
-     
         // Capture the review request
         $review_request = $this->db->query($query, $params)->find();
 
