@@ -5,14 +5,14 @@ namespace App\Contracts;
 
 interface LeaveRequestInterface {
 
-    public function store(array $input, int $user_id, string $role): void;
+    public function createLeaveRequest(int $user_id, string $role, string $leave_type, string $start_date, string $end_date, string $reason);
 
-    public function index(int $user_id, string $role, ?string $department): void;
+    public function getLeaveRequests(int $user_id, string $role, ?string $department, ?string $search_type, ?string $start_date, ?string $end_date, ?string $status);
 
-    public function show(int $id, int $user_id, string $role): void;
+    public function getLeaveRequest(int $id, int $user_id, string $role);
 
-    public function patch(int $id, int $user_id, string $role, array $input): void;
+    public function updateLeaveRequest(int $id, int $user_id, string $role, string $leave_type, string $start_date, string $end_date, string $reason);
 
-    public function destroy(int $id, int $user_id, string $role): void;
+    public function deleteLeaveRequest(int $id, int $user_id, string $role);
 
 }

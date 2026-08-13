@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers\Leave;
 
+use Core\App;
+use Core\Database;
 use App\Services\leaves\LeaveRequestService;
 use App\Http\Middleware\Auth;
-use Core\Database;
-use Core\App;
+use App\Http\Forms\LeaveRequestForm;
+use Exception;
+
 
 class LeaveRequestController
 {
 
-    private LeaveRequestService $leaveRequestService;
+    private LeaveRequestService $leave_request_service;
 
     private ?array $input = null;
 
@@ -21,39 +24,108 @@ class LeaveRequestController
 
     public function __construct()
     {
-        $this->leaveRequestService = new LeaveRequestService();
+        $this->leave_request_service = new LeaveRequestService();
         $this->input = json_decode(file_get_contents('php://input'), true) ?? [];
         $this->db = App::resolve(Database::class);
+        
         $user = Auth::user();
-
         $this->user_id = (int) $user['id'];
         $this->role = (string) $user['role'];
-        $this->department = (string) $user['department'];
+        $this->department = (string) $user['department'];       
     }
 
-    public function store(): void
+    public function store(): void 
     {
-        $this->leaveRequestService->store($this->input, $this->user_id, $this->role);
+        $leave_request_form = new LeaveRequestForm();
+
+        $start_date = $this->input['start_date'] ?? '';
+        $end_date = $this->input['end_date'] ?? '';
+        $reason = $this->input['reason'] ?? '';
+        $leave_type = $this->input['leave_type'] ?? '';
+
+        // validate the inputs
+        if(!$leave_request_form->validate($leave_type, $start_date, $end_date, $reason)) {
+            $this->db->response(422, false, $leave_request_form->errors(), ['errors' => $leave_request_form->errors()]);
+            return;
+        }
+
+        try {
+            
+            $leave_request = $this->leave_request_service->createLeaveRequest($this->user_id, $this->role, $leave_type, $start_date, $end_date, $reason);
+            $this->db->response(201, true, 'Leave request submitted successfully.', ['leave_request_id' => $leave_request]);
+        }catch (Exception $e) {
+            $this->db->response(422, false, $e->getMessage());
+        }
+
+        throw new Exception('Failed to submit leave request.');
     }
 
     public function index(): void
     {
-        $this->leaveRequestService->index($this->user_id, $this->role, $this->department);
+
+        $search_type = $_GET['search_type'] ?? "";
+        $start_date = $_GET['start_date'] ?? "";
+        $end_date = $_GET['end_date'] ?? "";
+        $status = $_GET['status'] ?? "";
+
+        try{
+            $leave_requests = $this->leave_request_service->getLeaveRequests($this->user_id, $this->role, $this->department, $search_type, $start_date, $end_date, $status);
+            $this->db->response(200, true, 'Leave requests fetched successfully.', ['leave_requests' => $leave_requests]);
+        }catch (Exception $e) {
+            $this->db->response(422, false, $e->getMessage());
+        }
+
     }
 
     public function show($id): void
     {
-        $this->leaveRequestService->show($id, $this->user_id, $this->role);
+        try{
+            $leave_request = $this->leave_request_service->getLeaveRequest($id, $this->user_id, $this->role);
+            $this->db->response(200, true, 'Leave request fetched successfully.', ['leave_request' => $leave_request]);
+        }catch (Exception $e) {
+            $this->db->response(403, false, $e->getMessage(), ['leave_request_id' => $id]);
+        }
+
     }
 
     public function patch($id): void
     {
-        $this->leaveRequestService->patch($id, $this->user_id, $this->role, $this->input);
+
+        $leave_request_form = new LeaveRequestForm();
+
+        $leave_type = $this->input['leave_type'] ?? '';
+        $start_date = $this->input['start_date'] ?? '';
+        $end_date = $this->input['end_date'] ?? '';
+        $reason = $this->input['reason'] ?? '';
+
+        // validate the inputs
+        if(!$leave_request_form->validate($leave_type, $start_date, $end_date, $reason)) {
+            $this->db->response(422, false, $leave_request_form->errors(), ['errors' => $leave_request_form->errors()]);
+            return;
+        }
+
+        try{
+            $updated_leave_request = $this->leave_request_service->updateLeaveRequest($id, $this->user_id, $this->role, $leave_type, $start_date, $end_date, $reason);
+            $this->db->response(200, true, 'Leave request updated successfully.', ['leave_request' => $updated_leave_request]);
+            return;
+        }catch (Exception $e) {
+            $this->db->response(422, false, $e->getMessage(), ['leave_request_id' => $id]);
+        }
+
     }
 
     public function destroy($id): void
     {
-        $this->leaveRequestService->destroy($id, $this->user_id, $this->role);
+
+        try{
+
+            $deleted_leave_request_id = $this->leave_request_service->deleteLeaveRequest($id, $this->user_id, $this->role);
+            $this->db->response(200, true, 'Leave request deleted successfully.', ['leave_request_id' => $deleted_leave_request_id]);
+        }catch (Exception $e) {
+            $this->db->response(422, false, $e->getMessage(), ['leave_request_id' => $id]);
+            
+        }
+        
     }
 
     

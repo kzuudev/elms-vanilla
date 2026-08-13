@@ -24,7 +24,7 @@ class NotificationController {
 
     public function index() {
 
-        return $this->notificationService->index();
+        return $this->notificationService->getNotifications();
     }
 
     public function patch(int $id) {

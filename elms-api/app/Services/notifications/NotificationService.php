@@ -19,13 +19,13 @@ class NotificationService {
 
     /**
      * Create a new notification
-     * @return void
+     * @return array
      */
-    public function store(int $user_id, string $title, string $type, string $message, bool $is_read = false, ?array $data = null): void {
+    public function createNotification(int $user_id, string $title, string $type, string $message, bool $is_read = false, ?array $data = null) {
 
         if($this->current_user_id) {
 
-            $this->db->query("INSERT INTO notifications (user_id, title, message, type, read_at, data) VALUES (:user_id, :title, :message, :type, :read_at, :data)", [
+            $new_notification = $this->db->query("INSERT INTO notifications (user_id, title, message, type, read_at, data) VALUES (:user_id, :title, :message, :type, :read_at, :data)", [
                 'user_id' => $user_id, // recipient id (who will receive the notification)
                 'title' => $title,
                 'type' => $type,
@@ -34,19 +34,17 @@ class NotificationService {
                 'data' => $data ? json_encode($data) : null,
             ]);
 
-            $this->db->response(201, true, 'Notification created successfully', ['user_id' => $user_id]);
-            return;
+            return $new_notification;
         }
 
-        $this->db->response(401, false, 'Unathorized Access', ['user_id' => $this->current_user_id]);
-        return;
+        return false;
     }
 
     /**
      * Get all notifications for a user
      * @return array
      */
-    public function index() {
+    public function getNotifications() {
 
         if($this->current_user_id) {
 
@@ -105,9 +103,8 @@ class NotificationService {
      * Delete a notification
      * @return void
      */
-    public function destroy(int $id): void {
+    public function destroyNotification(int $id): void {
         
-
         if(!$this->current_user_id) {
             $this->db->response(401, false, 'Unathorized Access', ['user_id' => $this->current_user_id]);
             return;
