@@ -23,7 +23,7 @@ class LeaveReviewService implements LeaveReviewInterface {
         $this->notificationService = App::resolve(NotificationService::class);
     }
 
-    public function getLeaveRequest(): array {
+    public function getLeaveRequest($leave_type, $start_date, $end_date, $status): array {
 
         try {
 
@@ -42,7 +42,7 @@ class LeaveReviewService implements LeaveReviewInterface {
             if(!$role) {
                 throw new Exception('Role not found');
             }
-
+            
             $params = [];
 
             $sql = "
@@ -60,6 +60,28 @@ class LeaveReviewService implements LeaveReviewInterface {
                 LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id 
                 WHERE lr.deleted_at IS NULL
             ";
+
+
+            if (!empty($leave_type)) {
+                $sql .= " AND lt.name = :leave_type";
+                $params['leave_type'] = $leave_type;
+            }
+
+            if (!empty($start_date)) {
+                $sql .= " AND lr.start_date = :start_date AND lr.start_date >= :start_date";
+                $params['start_date'] = $start_date;
+            }
+
+            if (!empty($end_date)) {
+                $sql .= " AND lr.end_date = :end_date AND lr.end_date <= :end_date";
+                $params['end_date'] = $end_date;
+            }
+
+            if (!empty($status)) {
+                $sql .= " AND lr.status = :status";
+                $params['status'] = $status;
+            }
+
 
             if ($role === 'admin') {
                 // Admins see all requests, except their own requests

@@ -10,6 +10,7 @@ use Exception;
 use App\Services\notifications\NotificationService;
 use App\Services\leaves\LeaveReviewService;
 use App\Contracts\LeaveReviewInterface;
+use App\Http\Forms\LeaveRequestForm;
 
 
 class LeaveReviewController {
@@ -45,8 +46,21 @@ class LeaveReviewController {
      */
     public function index() {
 
+
+        $leave_request_form = new LeaveRequestForm();
+
+        $leave_type = $_GET['leave_type'] ?? '';
+        $start_date = $_GET['start_date'] ?? '';
+        $end_date = $_GET['end_date'] ?? '';
+        $status = $_GET['status'] ?? '';
+
+        if(!$leave_request_form->validateQuery($leave_type, $start_date, $end_date, $status)) {
+            $this->db->response(422, false, $leave_request_form->errors(), ['errors' => $leave_request_form->errors()]);
+            return;
+        }
+
         try {
-            $leave_requests = $this->leave_review_service->getLeaveRequest();
+            $leave_requests = $this->leave_review_service->getLeaveRequest($leave_type, $start_date, $end_date, $status);
             $this->db->response(200, true, 'Leave requests fetched successfully.', ['leave_requests' => $leave_requests]);
             return $leave_requests;
         }catch (Exception $e) {
