@@ -39,22 +39,16 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
                     Authorization: `Bearer ${holder}`,
                 },
             })
-            setLeaveTypes(response.data.data.leave_types ?? []);
-            console.log(leaveTypes);
-        }catch (e) {
-            if (axios.isAxiosError(e)) {
-                setError(e.response?.data?.message ?? "Failed to fetch leave types");
-                setLeaveTypes([]);
-            } else {
-                setError("Failed to fetch leave types");
-                setLeaveTypes([]);
+            setLeaveTypes(response.data.data.leave_types);
+            setError(null);
+        }catch (e: any) {
+            if (axios.isCancel(e) || e.code === "ERR_CANCELED") {
+                return;
             }
+            setError(e.response?.data?.message ?? "Failed to fetch leave types");
+            setLeaveTypes([]);
         }
     }
-
-    useEffect(() => {
-        fetchLeaveTypes();
-    }, []);
 
     const statusOptions = [
         { value: 'all', label: 'All Status' },
@@ -63,6 +57,11 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
         { value: 'rejected', label: 'Rejected' },
     ]
     
+
+    useEffect(() => {
+        fetchLeaveTypes();
+    }, []);
+
     const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         onSearchSubmit();
