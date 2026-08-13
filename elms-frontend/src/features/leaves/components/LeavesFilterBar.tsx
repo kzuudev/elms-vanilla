@@ -72,7 +72,6 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
     return (
         <>
          <form method="GET" onSubmit={handleSearchSubmit} className="flex items-center gap-4" >
-           
             <div>
                 <Select name="leave_type" value={leaveTypeQuery} onValueChange={(value) => setLeaveTypeQuery(value)}>
                     <SelectTrigger>
@@ -133,6 +132,8 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
                     Search
                 </Button>
             </div>
+
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
          </form>
          </>
     )

@@ -84,7 +84,7 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
         fetchLeaveTypes();
     }, []);
 
-    // after fetchLeaveRequestDetails updates context, fill THIS form
+    // after fetchLeaveRequestDetails updates context, fill the form with the leave request details
     useEffect(() => {
         if (!handleSubmit || !leaveRequestDetails?.id) {
             return;

@@ -51,7 +51,7 @@ export default function LeavesDashboard({role}: {role: string}) {
                         Authorization: `Bearer ${holder}`,
                     },
                 });
-                setReviewerLeaveRequests(response.data.data.leaves.data);
+                setReviewerLeaveRequests(response.data.data.leave_requests);
             }catch (e) {
 
                 // Ignore the error if it was intentionally canceled by React
@@ -66,7 +66,7 @@ export default function LeavesDashboard({role}: {role: string}) {
                     setError("Failed to fetch leave requests");
                 }
             }
-        }
+    }
 
 
     const fetchLeaveRequestDetails = async (id: number) => {
@@ -147,13 +147,13 @@ export default function LeavesDashboard({role}: {role: string}) {
                   </div>
                     
                   <AdminLeaveTable/>
-              </div>
 
-          {error && (
-                <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg">
-                    {error}
-                </div>
-            )}
+                  {error && (
+                    <div className="text-red-500 text-sm mt-2">
+                        {error}
+                    </div>
+                  )}
+              </div>
           </LeaveContext.Provider>
         </>
     )
