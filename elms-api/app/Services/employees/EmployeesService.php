@@ -40,11 +40,6 @@ class EmployeesService {
         $department = $_GET['department'] ?? "";
         $role = $_GET['role'] ?? "";
 
-        if(!$employee_form->validateQuery($search, $status, $department, $role)) {
-            $this->db->response(422, false, $employee_form->errors(), ['errors' => $employee_form->errors()]);
-            return;
-        }
-
         $query = "
                 SELECT id,
                     first_name, 

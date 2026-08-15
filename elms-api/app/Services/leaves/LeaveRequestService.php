@@ -158,6 +158,8 @@ class LeaveRequestService implements LeaveRequestInterface {
             'user_id' => $user_id,
         ];
 
+        
+
         if (!empty($search_type)) {
             $query .= " AND lt.name = :leave_type";
             $params['leave_type'] = $search_type;

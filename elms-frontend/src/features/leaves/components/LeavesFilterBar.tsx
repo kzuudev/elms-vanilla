@@ -9,7 +9,7 @@ import type { LeaveType } from "@/types/leave";
 import {Button} from "@/components/ui/button.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 
 interface LeavesFilterBarProps {
@@ -22,11 +22,12 @@ interface LeavesFilterBarProps {
     statusQuery: string;
     setStatusQuery: (query: string) => void;
     onSearchSubmit: () => void;
+    onClearFilters: () => void;
 }
 
 export default function LeavesFilterBar(props: LeavesFilterBarProps) {
 
-    const {leaveTypeQuery, setLeaveTypeQuery, startDateQuery, setStartDateQuery, endDateQuery, setEndDateQuery, statusQuery, setStatusQuery, onSearchSubmit} = props;
+    const {leaveTypeQuery, setLeaveTypeQuery, startDateQuery, setStartDateQuery, endDateQuery, setEndDateQuery, statusQuery, setStatusQuery, onSearchSubmit, onClearFilters} = props;
     const [error, setError] = useState<string | null>(null);
 
     const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
@@ -65,6 +66,11 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
     const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         onSearchSubmit();
+    }
+
+    const handleClearFilters = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        onClearFilters();
     }
 
 
@@ -125,10 +131,15 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
                 </Select>
             </div>
 
-            <div>
-                <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">
+            <div className="flex items-center gap-2">
+                <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md" onClick={(e: React.FormEvent<HTMLFormElement>) => handleSearchSubmit(e)}>
                     <Search className="w-4 h-4" />
                     Search
+                </Button>
+
+                <Button type="button" className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md" onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClearFilters(e)}>
+                    <X className="w-4 h-4" />
+                    Clear
                 </Button>
             </div>
 

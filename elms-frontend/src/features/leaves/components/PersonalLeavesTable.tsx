@@ -1,46 +1,30 @@
 "use client";
 
 
-import {useContext, useEffect, useState} from "react";
-import {LeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
+import {useEffect, useState} from "react";
 
+import {useLeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
 import LeaveRequestDetailsModal from "@/features/leaves/components/LeaveRequestDetailsModal.tsx";
 import LeaveBalanceSection from "@/features/leaves/components/LeaveBalanceSection.tsx";
 
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
-import {format} from "date-fns";
 import {Button} from "@/components/ui/button.tsx";
+
+
+import {format} from "date-fns";
 import {Eye} from "lucide-react";
-import {api} from "@/lib/api.ts";
-import type {PersonalLeaveRequest} from "@/types/leave.ts";
+
+
+
 
 export default function PersonalLeavesTable() {
 
-    const { fetchLeaveRequestDetails, fetchLeaveRequests } = useContext(LeaveContext);
+    const { fetchLeaveRequestDetails, fetchLeaveRequests, personalLeaveRequests } = useLeaveContext();
 
     const tableHeaders = ['Leave Type', 'Start Date', 'End Date', 'Reason', 'Assigned To', 'Status','Actions']
-
-    const [personalLeaveRequests, setPersonalLeaveRequests] = useState<PersonalLeaveRequest[]>([]);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
-    const fetchPersonalLeaveRequests = async () => {
-
-        try {
-            const holder = localStorage.getItem("token");
-            const response = await api.get(`/leave-requests/me`, {
-                headers: {
-                    Authorization: `Bearer ${holder}`,
-                },
-            });
-
-            if(response.data.success) {
-                setPersonalLeaveRequests(response.data.data.leave_requests.data);
-            }
-        }catch (e) {
-            setError(e.response.data.message);
-        }
-    }
+  
 
     const handleViewLeaveRequest = async (id: number) => {
         await fetchLeaveRequestDetails(id);
@@ -48,20 +32,19 @@ export default function PersonalLeavesTable() {
 
     }
 
-
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchPersonalLeaveRequests();
         fetchLeaveRequests();
     }, []);
 
     return (
         <>
-            <LeaveRequestDetailsModal isViewMode={isViewModalOpen} setIsViewMode={setIsViewModalOpen} />
 
             <div className="my-7">
                 <LeaveBalanceSection />
             </div>
+
+            <LeaveRequestDetailsModal isViewMode={isViewModalOpen} setIsViewMode={setIsViewModalOpen} />
 
             <div className="border border-border rounded-lg bg-white overflow-hidden">
                 <Table>
@@ -83,14 +66,14 @@ export default function PersonalLeavesTable() {
                                     Loading leave requests...
                                 </TableCell>
                             </TableRow>
-                        ) : personalLeaveRequests.length === 0 ? (
+                        ) : personalLeaveRequests?.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={tableHeaders.length} className="text-center py-8 text-muted-foreground">
                                     No leave requests found.
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            personalLeaveRequests.map((leave) => (
+                            personalLeaveRequests?.map((leave) => (
                                 <TableRow key={leave.id}>
                                     <TableCell>{leave.leave_type}</TableCell>
                                     <TableCell>{format(new Date(leave.start_date), 'MMMM dd, yyyy')}</TableCell>

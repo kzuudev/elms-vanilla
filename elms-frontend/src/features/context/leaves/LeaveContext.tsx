@@ -5,7 +5,8 @@ export type LeaveContextType = {
     fetchLeaveRequests: () => void;
     fetchLeaveRequestDetails: (id: number) => void;
     reviewerLeaveRequests: ReviewerLeaveData[] | null;
-    leaveRequests: TableData[] | null;
+    leaveRequests: TableData[] | [];
+    personalLeaveRequests: TableData[] | [];
     leaveRequestDetails: LeaveRequest | null;
 };
 

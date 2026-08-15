@@ -1,16 +1,18 @@
 "use client"
 
-import {useState } from "react";
+import {useState} from "react";
+
+import {useLeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
 
 import PersonalLeavesTable from "@/features/leaves/components/PersonalLeavesTable.tsx";
 import ReviewerLeaveTable from "@/features/leaves/components/ReviewerLeaveTable.tsx";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+
 export default function AdminLeaveTable() {
 
     const [activeTab, setActiveTab] = useState('employee_leaves');
-
 
     return (
         <>
@@ -19,7 +21,8 @@ export default function AdminLeaveTable() {
                     <TabsTrigger value="employee_leaves">Employee Leaves</TabsTrigger>
                     <TabsTrigger value="personal_leaves">Personal Leaves</TabsTrigger>
                 </TabsList>
-
+                
+            
                 <TabsContent value="employee_leaves">
                     {activeTab === 'employee_leaves' && (
                         <ReviewerLeaveTable />

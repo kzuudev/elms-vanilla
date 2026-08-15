@@ -6,9 +6,11 @@ import axios from "axios";
 import {api} from "@/lib/api.ts";
 import { buildQueryString } from "@/utils/query-string.ts";
 import type {LeaveRequest, ReviewerLeaveData} from "@/types/leave.ts";
+import type {TableData} from "@/types/leave.ts";
 
-import AdminLeaveTable from "@/features/leaves/components/AdminLeaveTable.tsx";
 import { LeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
+
+import ReviewerLeaveTab from "@/features/leaves/components/ReviewerLeaveTab";
 import LeaveRequestForm from "@/features/leaves/components/LeaveRequestForm.tsx";
 import LeavesFilterBar from "@/features/leaves/components/LeavesFilterBar.tsx";
 
@@ -26,6 +28,8 @@ import {Button} from "@/components/ui/button.tsx";
 
 export default function LeavesDashboard({role}: {role: string}) {
 
+    const [personalLeaveRequests, setPersonalLeaveRequests] = useState<TableData[]>([]);
+
     const [reviewerLeaveRequests, setReviewerLeaveRequests] = useState<ReviewerLeaveData[] | null>(null);
     const [leaveRequestDetails, setLeaveRequestDetails] = useState<LeaveRequest>({} as LeaveRequest);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -36,15 +40,15 @@ export default function LeavesDashboard({role}: {role: string}) {
     const [endDateQuery, setEndDateQuery] = useState<string>("");
     const [statusQuery, setStatusQuery] = useState<string>("");
 
-    const fetchLeaveRequests = async () => {
+    const fetchLeaveRequests = async ({leave_type, start_date, end_date, status}: {leave_type: string, start_date: string, end_date: string, status: string}) => {
 
             try {
                 const holder = localStorage.getItem("token");
                 const queryString = buildQueryString({
-                    leaveType: leaveTypeQuery,
-                    startDate: startDateQuery,
-                    endDate: endDateQuery,
-                    status: statusQuery,
+                    leave_type,
+                    start_date,
+                    end_date,
+                    status,
                 });
                 const  response = await api.get(`/leave-requests${queryString}`, {
                     headers: {
@@ -52,22 +56,46 @@ export default function LeavesDashboard({role}: {role: string}) {
                     },
                 });
                 setReviewerLeaveRequests(response.data.data.leave_requests);
+
             }catch (e) {
 
                 // Ignore the error if it was intentionally canceled by React
-                if (axios.isCancel(e)) {
-                    console.log("First duplicate request was cancelled successfully.");
-                    return;
+                if (axios.isCancel?.(e) || (e as any)?.code === "ERR_CANCELED") {
+                    return; // ignore abort
                 }
 
                 if (axios.isAxiosError(e)) {
-                    setError(e.response?.data?.message || "Failed to fetch leave requests");
-                } else {
-                    setError("Failed to fetch leave requests");
+                    setError(e.response?.data?.message ?? "Failed to fetch personal leave requests");
+                    return;
                 }
             }
     }
 
+    const fetchPersonalLeaveRequests = async ({leave_type, start_date, end_date, status}: {leave_type: string, start_date: string, end_date: string, status: string}) => {
+        try {
+            const holder = localStorage.getItem("token");
+            const queryString = buildQueryString({
+                leave_type,
+                start_date,
+                end_date,
+                status,
+            });
+            const response = await api.get(`/leave-requests/me${queryString}`, {
+                headers: {
+                    Authorization: `Bearer ${holder}`,
+                },
+            });
+            setPersonalLeaveRequests(response.data.data.leave_requests);
+        }catch (e) {
+            if (axios.isCancel?.(e) || (e as any)?.code === "ERR_CANCELED") {
+                return; // ignore abort
+            }
+            if (axios.isAxiosError(e)) {
+                setError(e.response?.data?.message ?? "Failed to fetch personal leave requests");
+                return;
+            }
+        }
+    }
 
     const fetchLeaveRequestDetails = async (id: number) => {
 
@@ -93,20 +121,47 @@ export default function LeavesDashboard({role}: {role: string}) {
 
     }
 
-
-    const onSearchSubmit = () => {
-        fetchLeaveRequests();
+    const filters = {
+        leave_type: leaveTypeQuery,
+        start_date: startDateQuery,
+        end_date: endDateQuery,
+        status: statusQuery,
     }
+
+    const emptyFilters = {
+        leave_type: '',
+        start_date: '',
+        end_date: '',
+        status: '',
+    }
+    
+    const onSearchSubmit = () => {
+        fetchLeaveRequests(filters);
+        fetchPersonalLeaveRequests(filters);
+    }
+
+    const onClearFilters = () => {
+        setLeaveTypeQuery('');
+        setStartDateQuery('');
+        setEndDateQuery('');
+        setStatusQuery('All Status');
+        fetchLeaveRequests(emptyFilters);
+        fetchPersonalLeaveRequests(emptyFilters);
+    }
+
+
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchLeaveRequests();
+        fetchLeaveRequests(filters);
+        fetchPersonalLeaveRequests(filters);
     }, []);
+    
 
 
     return (
         <>
-        <LeaveContext.Provider value={{ fetchLeaveRequests, fetchLeaveRequestDetails, leaveRequests: [], leaveRequestDetails, reviewerLeaveRequests}}>
+        <LeaveContext.Provider value={{ fetchLeaveRequests: () => fetchLeaveRequests(filters), fetchLeaveRequestDetails, leaveRequests: [], personalLeaveRequests, leaveRequestDetails, reviewerLeaveRequests}}>
               <div className="flex flex-col gap-4 mt-8">
                   <div className="flex justify-between items-center">
                       {role === "admin" ? (
@@ -143,10 +198,11 @@ export default function LeavesDashboard({role}: {role: string}) {
                         statusQuery={statusQuery}
                         setStatusQuery={setStatusQuery}
                         onSearchSubmit={onSearchSubmit}
+                        onClearFilters={onClearFilters}
                     />
                   </div>
                     
-                  <AdminLeaveTable/>
+                  <ReviewerLeaveTab />
 
                   {error && (
                     <div className="text-red-500 text-sm mt-2">

@@ -16,6 +16,7 @@ export const buildQueryString = (params: FilterParams) : string => {
         // Skip empty, null, or undefined values so the URL stays clean
         if(value !== null && value !== undefined && value !== "") {
             searchParams.append(key, value.toString());
+            console.log(key, value);
         }
     })
 
