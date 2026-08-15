@@ -34,6 +34,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
         { value: 'IT Support', label: 'IT Support' },
         { value: 'manager', label: 'Manager' },
         { value: 'admin', label: 'Admin' },
+        { value: 'super-admin', label: 'Super Admin' },
     ];
 
     const [managers, setManagers] = useState<{value: string, label: string}[]>([]);
@@ -270,43 +271,54 @@ export default function Register({closeDialog}: RegisterFormProps) {
                         </div>
 
                         <div className='flex flex-col gap-2'>
-                            <Controller name="assigned_to" control={form.control} render={({field, fieldState}) => (
-                                        <Field data-invalid={fieldState.invalid}>
-                                            <FieldLabel htmlFor="assigned_to">
-                                                Assigned Manager
-                                            </FieldLabel>
-
-                                            <Select
-                                                value={field.value}
-                                                onValueChange={field.onChange}
-                                                disabled={managers.length === 0}
-                                            >
-                                                <SelectTrigger id="assigned_to" aria-invalid={fieldState.invalid}>
-                                                    <SelectValue placeholder={
-                                                        managers.length === 0
-                                                            ? "No managers found"
-                                                            : "Select a manager"
-                                                    } />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {managers.map((manager) => (
-                                                        <SelectItem key={manager.value} value={manager.value}>
-                                                            {manager.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-
-                                            {managersError && (
-                                                <p className="text-red-500 text-sm">{managersError}</p>
-                                            )}
-
-                                            {fieldState.invalid && (
-                                                <FieldError errors={[fieldState.error]} />
-                                            )}
+                            {form.watch('role') === 'super-admin' ? (
+                                <Controller name="assigned_to" control={form.control} render={({field, fieldState}) => (
+                                    <Field data-invalid={fieldState.invalid}>
+                                        <FieldLabel htmlFor="assigned_to">
+                                            Assigned Manager
+                                        </FieldLabel>
                                         </Field>
                                     )}
-                                    />
+                                />
+                            ) : 
+                            <Controller name="assigned_to" control={form.control} render={({field, fieldState}) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="assigned_to">
+                                        Assigned Manager
+                                    </FieldLabel>
+
+                                    <Select
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                        disabled={managers.length === 0}
+                                    >
+                                        <SelectTrigger id="assigned_to" aria-invalid={fieldState.invalid}>
+                                            <SelectValue placeholder={
+                                                managers.length === 0
+                                                    ? "No managers found"
+                                                    : "Select a manager"
+                                            } />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {managers.map((manager) => (
+                                                <SelectItem key={manager.value} value={manager.value}>
+                                                    {manager.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+
+                                    {managersError && (
+                                        <p className="text-red-500 text-sm">{managersError}</p>
+                                    )}
+
+                                    {fieldState.invalid && (
+                                        <FieldError errors={[fieldState.error]} />
+                                    )}
+                                </Field>
+                            )}
+                            />
+                            }
                             </div>
                     </FieldGroup>
 

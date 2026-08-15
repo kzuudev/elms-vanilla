@@ -17,12 +17,14 @@ import { type LeaveBalance} from "@/types/leave-balance.ts";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute.tsx";
 import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
-import ManagerLeavesDashboard from "@/pages/manager/ManagerLeavesDashboard.tsx";
 
 import EmployeesDashboard from "@/features/employees/components/EmployeesDashboard.tsx";
+import ManagerLeavesDashboard from "@/pages/manager/ManagerLeavesDashboard.tsx";
 import AdminLeavesDashboard from "@/pages/admin/AdminLeavesDashboard.tsx";
+import SuperAdminDashboard from './pages/super-admin/Dashboard.tsx';
 
 import VerifyEmail from "@/pages/auth/verify-email.tsx";
+
 
 
 function App() {
@@ -178,7 +180,15 @@ function App() {
                                 }
                             />
 
-
+                            <Route
+                                path="super-admin/dashboard"
+                                element={
+                                    <ProtectedRoute allowedRoles={['super-admin']}>
+                                        <SuperAdminDashboard />
+                                    </ProtectedRoute>
+                                }
+                            
+                            />
                         </Routes>
                     </LeaveBalanceContext.Provider>
                 </AuthContext.Provider>

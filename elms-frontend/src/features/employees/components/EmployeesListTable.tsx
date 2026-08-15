@@ -129,7 +129,7 @@
         }
 
         const handleViewEmployeeDetails = async (id: number) => {
-            setEmployeeDetails(null); // Clear old state so previous user data doesn't flash
+            setEmployeeDetails({} as EmployeeDetails); // Clear old state so previous user data doesn't flash
             const data = await fetchEmployeeDetails(id);
 
             if (data) {
@@ -140,7 +140,7 @@
 
         const handleEditEmployeeForm = async (id: number) => {
             setActiveUserId(id);
-            setEmployeeDetails(null); // Clear old state
+            setEmployeeDetails({} as EmployeeDetails); // Clear old state
 
             // Fetch fresh data
             const data = await fetchEmployeeDetails(id);

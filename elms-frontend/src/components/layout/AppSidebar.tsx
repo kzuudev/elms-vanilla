@@ -208,9 +208,22 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                   </SidebarMenuItem>
                               </SidebarMenu>
                           </SidebarContent>
+                        ) : role === "super-admin" ? (
+                            <SidebarContent>
+                                <SidebarMenu>
+                                    <SidebarMenuItem>
+                                        <SidebarMenuButton asChild className="hover:bg-gray-100">
+                                          <Link to="/super-admin/dashboard" className="flex items-center gap-2">
+                                              <LayoutDashboard />
+                                              <span>Dashboard</span>
+                                          </Link>
+                                      </SidebarMenuButton>
+                                  </SidebarMenuItem>
+                              </SidebarMenu>
+                          </SidebarContent>
                       ) : null}
 
-                      <SidebarFooter>
+                      <SidebarFooter>       
                           <SidebarContent>
                               <SidebarMenu>
                                   <SidebarMenuItem>
