@@ -68,8 +68,7 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
         onSearchSubmit();
     }
 
-    const handleClearFilters = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
+    const handleClearFilters = () => {
         onClearFilters();
     }
 
@@ -132,12 +131,12 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
             </div>
 
             <div className="flex items-center gap-2">
-                <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md" onClick={(e: React.FormEvent<HTMLFormElement>) => handleSearchSubmit(e)}>
+                <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md">
                     <Search className="w-4 h-4" />
                     Search
                 </Button>
 
-                <Button type="button" className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md" onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleClearFilters(e)}>
+                <Button type="button" className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md" onClick={() => handleClearFilters()}>
                     <X className="w-4 h-4" />
                     Clear
                 </Button>
