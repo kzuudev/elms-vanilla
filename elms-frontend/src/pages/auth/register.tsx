@@ -1,23 +1,14 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import * as z from 'zod';
+import { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
-import {zodResolver} from "@hookform/resolvers/zod";
-import {Controller, useForm} from "react-hook-form";
+
 import {api} from "@/lib/api.ts";
 import "react-phone-number-input/style.css";
-import PhoneInput from "react-phone-number-input";
 
-import {Button} from "@/components/ui/button";
-import {
-    Field,
-    FieldError,
-    FieldGroup,
-    FieldLabel,
-} from "@/components/ui/field"
-import {Input} from "@/components/ui/input"
-import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem} from "@/components/ui/select"
+import { AuthContext } from '@/features/context/auth/AuthContext';
+import AdminRegisterForm from '@/features/register/AdminRegisterForm';
+import SuperAdminRegisterForm from '@/features/register/SuperAdminRegisterForm';
 
 
 
@@ -27,45 +18,19 @@ interface RegisterFormProps {
 
 export default function Register({closeDialog}: RegisterFormProps) {
 
-    const roleOptions: {value: string, label: string}[] = [
-        { value: 'Software Engineer', label: 'Software Engineer' },
-        { value: 'Marketing', label: 'Marketing' },
-        { value: 'Accounting', label: 'Accounting' },
-        { value: 'IT Support', label: 'IT Support' },
-        { value: 'manager', label: 'Manager' },
-        { value: 'admin', label: 'Admin' },
-        { value: 'super-admin', label: 'Super Admin' },
-    ];
+
+    const { user } = useContext(AuthContext);
+
+    const role = user?.role;
+
+    const isAdmin = role === 'admin';
+    const isSuperAdmin = role === 'super-admin';
 
     const [managers, setManagers] = useState<{value: string, label: string}[]>([]);
     const [managersError, setManagersError] = useState<string | null>(null);
 
-    // rules for registration form
-    const schema = z.object({
-        first_name: z.string().min(1, {message: "First Name is required"}),
-        last_name: z.string().min(1, {message: "Last Name is required"}),
-        email: z.string().email("Please enter a valid email address"),
-        phone: z.string().min(1, {message: "Phone number is required"}),
-        role: z.string().min(1, {message: "Role is required"}),
-        assigned_to: z.string().optional().nullable(),
-    })
-
-    type RegisterFormData = z.infer<typeof schema>;
-
-    // Set up the form with zod
-    const form = useForm<RegisterFormData>({
-        resolver: zodResolver(schema),
-        defaultValues: {
-            first_name: "",
-            last_name: "",
-            email: "",
-            phone: "",
-            role: "",
-            assigned_to: null,
-        }
-    })
-
-    const {setError, formState: {errors}} = form;
+    const [admins, setAdmins] = useState<{value: string, label: string}[]>([]);
+    const [adminsError, setAdminsError] = useState<string | null>(null);
 
     // Fetch managers — EmployeesController@managers
     useEffect(() => {
@@ -104,7 +69,40 @@ export default function Register({closeDialog}: RegisterFormProps) {
         fetchManagers();
     }, []);
 
-    const onSubmit = async (data: RegisterFormData) => {
+    // Fetch admins — EmployeesController@admins
+    useEffect(() => {
+        const fetchAdmins = async () => {
+            try {
+                const holder = localStorage.getItem("token");
+                const response = await api.get("/employees/admins", {
+                    headers: { Authorization: `Bearer ${holder}` },
+                });
+
+                setAdmins(
+                    (response.data.data.admins ?? []).map(
+                        (admin: { id: number; first_name: string; last_name: string }) => ({
+                            value: String(admin.id),
+                            label: `${admin.first_name} ${admin.last_name}`,
+                        })
+                    )
+                );
+                setAdminsError(null);
+            } catch (e) {
+                if (axios.isCancel(e)) return;
+                setAdmins([]);
+                if (axios.isAxiosError(e)) {
+                    setAdminsError(e.response?.data?.error || e.response?.data?.message || "Failed to load admins from the server");
+                } else {
+                    setAdminsError("Failed to load admins from the server");
+                    setAdmins([]);
+                }
+            }
+        };
+
+        fetchAdmins();
+    }, []);
+
+    const onSubmit = async (data) => {
 
         const token = localStorage.getItem("token");
 
@@ -118,16 +116,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
             window.dispatchEvent(new Event('user-mutated'));
             closeDialog();
         } catch (e) {
-            let errorMessage = "An error occurred during registration";
-
-            if (axios.isAxiosError(e)) {
-                errorMessage = e.response?.data?.message || errorMessage;
-            }
-
-            setError("root", {
-                type: "server",
-                message: errorMessage,
-            });
+            
         }
     }
 
@@ -138,207 +127,13 @@ export default function Register({closeDialog}: RegisterFormProps) {
                     <h1 className="text-lg font-bold">Register</h1>
                     <h2 className="text-sm text-gray-500">Fill up the form to register a new user</h2>
                 </div>
-                <form id="login" onSubmit={form.handleSubmit(onSubmit)}>
-                    <FieldGroup className="mb-8">
-                        <div className="flex flex-col gap-2">
-                            <Controller name="first_name" control={form.control}
-                                        render={({field, fieldState}) => (
-                                            <Field data-invalid={fieldState.invalid}>
-                                                <FieldLabel htmlFor="first_name" className="m-0">
-                                                    First Name
-                                                </FieldLabel>
 
-                                                <Input
-                                                    {...field}
-                                                    id="first_name"
-                                                    aria-invalid={fieldState.invalid}
-                                                    autoComplete="off"
-
-                                                />
-
-                                                {fieldState.invalid && (
-                                                    <FieldError errors={[fieldState.error]}/>
-                                                )}
-                                            </Field>
-                                        )}
-                            />
-
-                            <Controller name="last_name" control={form.control}
-                                        render={({field, fieldState}) => (
-                                            <Field data-invalid={fieldState.invalid}>
-                                                <FieldLabel htmlFor="last_name" className="m-0">
-                                                    Last Name
-                                                </FieldLabel>
-
-                                                <Input
-                                                    {...field}
-                                                    id="last_name"
-                                                    aria-invalid={fieldState.invalid}
-                                                    autoComplete="off"
-
-                                                />
-
-                                                {fieldState.invalid && (
-                                                    <FieldError errors={[fieldState.error]}/>
-                                                )}
-                                            </Field>
-                                        )}
-                            />
-                        </div>
-
-
-                        <div className="flex flex-col gap-2">
-                            <Controller name="email" control={form.control} render={({field, fieldState}) => (
-                                <Field data-invalid={fieldState.invalid}>
-                                    <FieldLabel htmlFor="email">
-                                        Email Address
-                                    </FieldLabel>
-
-                                    <Input
-                                        {...field}
-                                        id="email"
-                                        aria-invalid={fieldState.invalid}
-                                        autoComplete="off"
-
-                                    />
-
-                                    {fieldState.invalid && (
-                                        <FieldError errors={[fieldState.error]}/>
-                                    )}
-                                </Field>
-                            )}
-                            />
-                        </div>
-
-                        <div className="">
-                            <Controller
-                                name="phone"
-                                control={form.control}
-                                render={({ field, fieldState }) => (
-                                    <Field data-invalid={fieldState.invalid}>
-                                        <FieldLabel htmlFor="phone">
-                                            Contact No.
-                                        </FieldLabel>
-
-                                        <PhoneInput
-                                            className="w-full border-gray-300 rounded-md p-2"
-                                            {...field}
-                                            id="phone"
-                                            aria-invalid={fieldState.invalid}
-                                            autoComplete="tel"
-                                            placeholder="e.g., +63 917 123 4567"
-                                            defaultCountry="PH"
-                                        />
-
-                                        {fieldState.invalid && (
-                                            <FieldError errors={[fieldState.error]} />
-                                        )}
-                                    </Field>
-                                )}
-                            />
-                        </div>
-                        
-                        <div className='flex flex-col gap-2'>
-
-                            <Controller name="role" control={form.control} render={({field, fieldState}) => (
-                                    <Field data-invalid={fieldState.invalid}>
-                                        <FieldLabel htmlFor="role">
-                                            Role
-                                        </FieldLabel>
-
-                                        <Select
-                                            value={field.value}
-                                            onValueChange={field.onChange}
-                                        >
-                                            <SelectTrigger id="role" aria-invalid={fieldState.invalid}>
-                                                <SelectValue placeholder="Select a role" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {roleOptions.map((role) => (
-                                                    <SelectItem key={role.value} value={role.value}>
-                                                        {role.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-
-                                        {fieldState.invalid && (
-                                            <FieldError errors={[fieldState.error]} />
-                                        )}
-                                    </Field>
-                                )}
-                                />
-                        </div>
-
-                        <div className='flex flex-col gap-2'>
-                            {form.watch('role') === 'super-admin' ? (
-                                <Controller name="assigned_to" control={form.control} render={({field, fieldState}) => (
-                                    <Field data-invalid={fieldState.invalid}>
-                                        <FieldLabel htmlFor="assigned_to">
-                                            Assigned Manager
-                                        </FieldLabel>
-                                        </Field>
-                                    )}
-                                />
-                            ) : 
-                            <Controller name="assigned_to" control={form.control} render={({field, fieldState}) => (
-                                <Field data-invalid={fieldState.invalid}>
-                                    <FieldLabel htmlFor="assigned_to">
-                                        Assigned Manager
-                                    </FieldLabel>
-
-                                    <Select
-                                        value={field.value}
-                                        onValueChange={field.onChange}
-                                        disabled={managers.length === 0}
-                                    >
-                                        <SelectTrigger id="assigned_to" aria-invalid={fieldState.invalid}>
-                                            <SelectValue placeholder={
-                                                managers.length === 0
-                                                    ? "No managers found"
-                                                    : "Select a manager"
-                                            } />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {managers.map((manager) => (
-                                                <SelectItem key={manager.value} value={manager.value}>
-                                                    {manager.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-
-                                    {managersError && (
-                                        <p className="text-red-500 text-sm">{managersError}</p>
-                                    )}
-
-                                    {fieldState.invalid && (
-                                        <FieldError errors={[fieldState.error]} />
-                                    )}
-                                </Field>
-                            )}
-                            />
-                            }
-                            </div>
-                    </FieldGroup>
-
-                    {errors.root && (
-                        <div className="text-red-500 text-sm mb-4 text-center">
-                            {errors.root.message}
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-3 justify-end">
-                        <Button type="button" onClick={closeDialog} className="rounded-md bg-black text-white text-center"  variant="outline">
-                            Cancel
-                        </Button>
-
-                        <Button type="submit" className="rounded-md bg-black text-white text-center"
-                                variant="outline">
-                            Register
-                        </Button>
-                    </div>
-                </form>
+                {isAdmin && (
+                    <AdminRegisterForm managers={managers} onSubmit={() => onSubmit({})} onCancel={closeDialog} />
+                )}
+                {isSuperAdmin && (
+                    <SuperAdminRegisterForm managers={managers} admins={admins} onSubmit={() => onSubmit({})} onCancel={closeDialog} />
+                )}
             </div>
         </>
     )

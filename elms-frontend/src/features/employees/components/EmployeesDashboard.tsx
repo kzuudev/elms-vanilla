@@ -43,6 +43,7 @@ export default function EmployeesDashboard({role} : {role: string}) {
 
     role = user.role;
     const isAdmin = role === 'admin';
+    const isSuperAdmin = role === 'super-admin';
 
     const fetchEmployees = async ({searchQuery, statusFilter, departmentFilter, roleFilter} : {searchQuery: string, statusFilter: string, departmentFilter: string, roleFilter: string}) => {
         try {
@@ -123,8 +124,17 @@ export default function EmployeesDashboard({role} : {role: string}) {
                     <div className="w-full flex flex-col gap-8 mb-8">
                         <div className="flex justify-between items-center">
                             <div>
-                                <h1 className="text-xl font-semibold text-blue-400">Employees</h1>
-                                <p className="text-gray-500 text-xs">Manage all employees</p>
+                               {isAdmin ? (
+                                    <>
+                                    <h1 className="text-xl font-semibold text-blue-400">Employees</h1>
+                                    <p className="text-gray-500 text-xs">Manage your employees</p>
+                                    </>
+                                ) : isSuperAdmin ? (
+                                    <>
+                                    <h1 className="text-xl font-semibold text-blue-400">Users</h1>
+                                    <p className="text-gray-500 text-xs">Manage all users</p>
+                                    </>
+                                ) : null}
                             </div>
 
                             <div className="flex items-center gap-4">
@@ -151,7 +161,7 @@ export default function EmployeesDashboard({role} : {role: string}) {
                                 onClearFilters={onClearFilters}
                             />
 
-                            {isAdmin && (
+                            {(isAdmin || isSuperAdmin) &&  (
                                 <Dialog open={isFormOpen} onOpenChange={setIsOpenForm}>
                                     <DialogTrigger asChild>
                                         <Button className="text-sm rounded-md bg-blue-500 text-white px-4 py-2">
@@ -169,7 +179,7 @@ export default function EmployeesDashboard({role} : {role: string}) {
 
                 <div>
                     {employees?.some(employee => employee.first_name.toLowerCase().includes(searchQuery.toLowerCase())) ? (
-                        <EmployeesListTable employees={employees} onUserMutated={fetchEmployees} />
+                        <EmployeesListTable employees={employees} onUserMutated={() => fetchEmployees(filters)} />
                     ) : (
                         <div className="text-center text-gray-500">
                             0 users found for "{searchQuery}"

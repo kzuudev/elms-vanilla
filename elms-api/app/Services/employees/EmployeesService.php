@@ -65,8 +65,8 @@ class EmployeesService {
                 'department' => $this->current_user_department,
                 'current_user_id' => $this->current_user_id
             ];
-        }else if ($this->current_user_role === 'super admin') {
-            $query .= " AND role != 'super admin' AND id != :current_user_id";
+        }else if ($this->current_user_role === 'super-admin') {
+            $query .= " AND role != 'super-admin' AND id != :current_user_id";
             $params = [
                 'current_user_id' => $this->current_user_id
             ];
@@ -277,7 +277,7 @@ class EmployeesService {
 
     public function getProfile($id) {
 
-        if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super admin', 'manager'], true)) {
+        if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super-admin', 'manager'], true)) {
            
             $user = $this->db->query("
                 SELECT u.id,

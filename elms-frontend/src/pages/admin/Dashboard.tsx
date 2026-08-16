@@ -56,8 +56,6 @@ export default function AdminDashboard() {
             setTeamAvailability(response.data.data.team_availability);
             setTotalUsers(response.data.data.total_users);
             setRecentActivity(response.data.data.recent_activity);
-
-
         }catch (e) {
             setError(e.response.data.message);
         }

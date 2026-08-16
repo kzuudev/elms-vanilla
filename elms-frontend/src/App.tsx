@@ -189,16 +189,21 @@ function App() {
                                 }
                             
                             />
+
+                            <Route 
+                                path="/super-admin/users"
+                                element={
+                                    <ProtectedRoute allowedRoles={['super-admin']}>
+                                        <EmployeesDashboard role={role} />
+                                    </ProtectedRoute>
+                                }
+                            />
                         </Routes>
                     </LeaveBalanceContext.Provider>
                 </AuthContext.Provider>
             </BrowserRouter>
-
-        {error && (
-            <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg">{error}</div>
-        )}
-    </>
-  )
+        </>
+    )
 }
 
 export default App

@@ -34,6 +34,8 @@
 
         const isManager = user?.role === 'manager';
         const isAdmin = user?.role === 'admin';
+        const isSuperAdmin = user?.role === 'super-admin';
+        
 
         const tableHeaders = ["First Name", "Last Name", "Email", "Phone", "Role", "Department", "Status", "Actions"];
 
@@ -169,7 +171,10 @@
 
         const fetchUpdateEmployee = async (id: number, data: EditEmployeeDetailsFormData) => {
 
-            form.setError("root", null);
+            form.setError("root", {
+                type: "server",
+                message: "A network error occurred.",
+            });
 
             try {
                 const holder = localStorage.getItem("token");
@@ -594,7 +599,7 @@
                                                     )}
 
                                                     {/* Admin Actions */}
-                                                    {isAdmin && (
+                                                    {isAdmin || isSuperAdmin && (
                                                         <>
                                                             <Button
                                                                 onClick={() => handleEditEmployeeForm(employee.id)}

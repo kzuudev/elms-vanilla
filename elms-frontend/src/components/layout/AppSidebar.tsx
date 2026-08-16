@@ -44,7 +44,6 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
     const navigate = useNavigate();
 
     const { user, setUser } = useContext(AuthContext) as { user: Profile, setUser: (user: Profile | null) => void };
-
     const [error, setError] = useState<string | null>(null);
 
     const role = user?.role;
