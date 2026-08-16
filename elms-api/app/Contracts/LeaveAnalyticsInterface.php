@@ -3,6 +3,7 @@
 
 
 namespace App\Contracts;
+
 interface LeaveAnalyticsInterface {
 
     public function getTeamAvailability(): array;

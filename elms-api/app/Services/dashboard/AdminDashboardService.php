@@ -15,57 +15,57 @@ class AdminDashboardService implements LeaveAnalyticsInterface {
     use HasSharedAnalytics;
 
     private $db;
-    private int $adminId;
+    private int $current_user_id;
 
-    private string $userRole;
-    private string $userDepartment;
+    private string $current_user_role;
+    private string $current_user_department;
 
     public function __construct() {
 
         $this->db = App::resolve(Database::class);
-        $this->adminId = Auth::authenticate()['id'];
-        $this->userRole = Auth::authenticate()['role'];
-        $this->userDepartment = Auth::authenticate()['department'];
+        $this->current_user_id = Auth::authenticate()['id'];
+        $this->current_user_role = Auth::authenticate()['role'];
+        $this->current_user_department = Auth::authenticate()['department'];
 
     }
 
 
     public function getRemainingTotalBalance(): array
     {
-        return $this->executeRemainingTotalBalance($this->adminId);
+        return $this->executeRemainingTotalBalance($this->current_user_id);
     }
 
     public function getPendingApprovalMetrics(): array
     {
-        return $this->executePendingApprovalMetrics($this->adminId);
+        return $this->executePendingApprovalMetrics($this->current_user_id);
     }
 
     public function getUsedDays(): array
     {
-        return $this->executeUsedDays($this->adminId);
+        return $this->executeUsedDays($this->current_user_id);
     }
 
     public function getTeamAvailability(): array
     {
 
-        return $this->executeTeamAvailabilityQuery($this->userRole, $this->adminId);
+        return $this->executeTeamAvailabilityQuery($this->current_user_role, $this->current_user_id, $this->current_user_department);
 
     }
 
     public function getMonthlyConsumption(): array {
 
-        return $this->executeMonthlyConsumptionQuery($this->userRole, $this->adminId);
+        return $this->executeMonthlyConsumptionQuery($this->current_user_role, $this->current_user_id);
     }
 
     public function getBacklogRequests(): array {
 
-        return $this->executeBacklogQuery($this->userRole, $this->adminId);
+        return $this->executeBacklogQuery($this->current_user_role, $this->current_user_id);
 
     }
 
     public function getTeamOverlap(): array {
 
-        $pendingRequest = $this->db->query("
+        $pending_requests = $this->db->query("
             SELECT lr.*, 
                    lr.user_id AS user_id,
                    u.first_name AS first_name, 
@@ -78,14 +78,14 @@ class AdminDashboardService implements LeaveAnalyticsInterface {
             FROM leave_requests lr
             LEFT JOIN users u ON lr.user_id = u.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
-            WHERE lr.status = 'pending' AND lr.assigned_to != :admin_id
+            WHERE lr.status = 'pending' AND lr.assigned_to != :current_user_id
         ", [
-            'admin_id' => $this->adminId,
+            'current_user_id' => $this->current_user_id,
         ])->all();
 
         $data = [];
 
-        foreach ($pendingRequest as $request) {
+        foreach ($pending_requests as $request) {
             $overlap = $this->executeTeamOverlapQuery(
                 $request['department'],
                 $request['user_id'],
@@ -111,7 +111,7 @@ class AdminDashboardService implements LeaveAnalyticsInterface {
     
 
     public function getRecentActivity(): array {
-        $recentActivity = $this->db->query("
+        $recent_activity = $this->db->query("
             SELECT lr.id,
                    CONCAT(u.first_name, ' ', u.last_name) AS employee_name,
                    lt.name AS leave_type,
@@ -124,14 +124,14 @@ class AdminDashboardService implements LeaveAnalyticsInterface {
             INNER JOIN users u ON lr.user_id = u.id
             INNER JOIN leave_types lt ON lr.leave_type_id = lt.id
             WHERE u.department = :department 
-              AND u.id != :admin_id 
+              AND u.id != :current_user_id 
             ORDER BY lr.created_at ASC
             ", [
-            'admin_id' => $this->adminId,
-            'department' => $this->userDepartment,
+            'current_user_id' => $this->current_user_id,
+            'department' => $this->current_user_department,
         ])->all();
 
-        return $recentActivity;
+        return $recent_activity;
     }
 
 }

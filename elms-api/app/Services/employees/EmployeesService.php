@@ -31,7 +31,7 @@ class EmployeesService {
         $employee_form = new EmployeeForm();
 
         if(!$this->current_user_id) {
-            $this->db->response(401, false, 'Admin not found', ['id' => $this->current_user_id]);
+            $this->db->response(401, false, 'Authorized user not found', ['id' => $this->current_user_id]);
             return;
         }
 
@@ -60,9 +60,14 @@ class EmployeesService {
             $query .= " AND assigned_to = :current_user_id ";
             $params = ['current_user_id' => $this->current_user_id];
         }else if ($this->current_user_role === 'admin') {
-            $query .= " AND department = :department AND role != 'super admin' AND id != :current_user_id";
+            $query .= " AND department = :department AND role != 'super-admin' AND id != :current_user_id";
             $params = [
                 'department' => $this->current_user_department,
+                'current_user_id' => $this->current_user_id
+            ];
+        }else if ($this->current_user_role === 'super admin') {
+            $query .= " AND role != 'super admin' AND id != :current_user_id";
+            $params = [
                 'current_user_id' => $this->current_user_id
             ];
         }

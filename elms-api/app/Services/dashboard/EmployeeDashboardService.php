@@ -13,23 +13,23 @@ class EmployeeDashboardService {
     use HasSharedAnalytics;
     private $db;
 
-    private int $userId;
+    private int $user_id;
 
-    private string $userRole;
-    private string $userDepartment;
+    private string $user_role;
+    private string $user_department;
 
 
     public function __construct() {
         $this->db = App::resolve(Database::class);
-        $this->userId = Auth::authenticate()['id'];
-        $this->userRole = Auth::authenticate()['role'];
-        $this->userDepartment = Auth::authenticate()['department'];
+        $this->user_id = Auth::authenticate()['id'];
+        $this->user_role = Auth::authenticate()['role'];
+        $this->user_department = Auth::authenticate()['department'];
     }
 
     public function getRemainingTotalBalance(): array
     {
 
-        return $this->executeRemainingTotalBalance($this->userId);
+        return $this->executeRemainingTotalBalance($this->user_id);
 
     }
 
@@ -37,19 +37,19 @@ class EmployeeDashboardService {
     public function getPendingApprovalMetrics(): array
     {
 
-        return $this->executePendingApprovalMetrics($this->userId);
+        return $this->executePendingApprovalMetrics($this->user_id);
     }
 
     public function getUsedDays(): array
     {
 
-        return $this->executeUsedDays($this->userId);
+        return $this->executeUsedDays($this->user_id);
 
     }
 
-    public function getMonthlyLeaveConsumption($user_id) {
+    public function getMonthlyLeaveConsumption() {
 
-        $monthlyLeaveConsumption = $this->db->query("
+        $monthly_leave_consumption = $this->db->query("
             SELECT
                 DATE_FORMAT(lr.start_date, '%b') AS month_name,
                 MONTH(lr.start_date) AS month_num,
@@ -62,12 +62,12 @@ class EmployeeDashboardService {
             'user_id' => $user_id,
         ])->all();
 
-        return $monthlyLeaveConsumption;
+        return $monthly_leave_consumption;
     }
 
     public function getTeamAvailability($user_id, $role) {
 
-        $teamStatus = $this->db->query("
+        $team_status = $this->db->query("
             SELECT u.*,
                 CONCAT(u.first_name, ' ', u.last_name) AS name,   
                 lr.status AS leave_status,
@@ -81,12 +81,12 @@ class EmployeeDashboardService {
             'role' => $role
         ])->all();
 
-        return $teamStatus;
+        return $team_status;
     }
 
     public function getRecentActivity($user_id) {
 
-        $recentActivity = $this->db->query("
+        $recent_activity = $this->db->query("
             SELECT lr.*,
                    CONCAT(u.first_name, ' ', u.last_name) AS employee_name,
                    lt.name AS leave_type,
@@ -105,7 +105,7 @@ class EmployeeDashboardService {
             'user_id' => $user_id,
         ])->all();
 
-        return $recentActivity;
+        return $recent_activity;
     }
 
 

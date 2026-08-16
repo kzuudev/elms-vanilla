@@ -15,52 +15,52 @@ class ManagerDashboardService implements LeaveAnalyticsInterface
     use HasSharedAnalytics;
 
     private $db;
-    private int $managerId;
+    private int $current_user_id;
 
-    private string $userRole;
+    private string $current_user_role;
 
 
     public function __construct()
     {
 
         $this->db = App::resolve(Database::class);
-        $this->managerId = Auth::authenticate()['id'];
-        $this->userRole = Auth::authenticate()['role'];
+        $this->current_user_id = Auth::authenticate()['id'];
+        $this->current_user_role = Auth::authenticate()['role'];
 
     }
 
 
     public function getRemainingTotalBalance(): array
     {
-        return $this->executeRemainingTotalBalance($this->managerId);
+        return $this->executeRemainingTotalBalance($this->current_user_id);
     }
 
     public function getPendingApprovalMetrics(): array
     {
-        return $this->executePendingApprovalMetrics($this->managerId);
+        return $this->executePendingApprovalMetrics($this->current_user_id);
     }
 
     public function getUsedDays(): array
     {
-        return $this->executeUsedDays($this->managerId);
+        return $this->executeUsedDays($this->current_user_id);
     }
 
     public function getTeamAvailability(): array
     {
 
-        return $this->executeTeamAvailabilityQuery($this->userRole, $this->managerId);
+        return $this->executeTeamAvailabilityQuery($this->current_user_role, $this->current_user_id, $this->current_user_department);
 
     }
 
     public function getMonthlyConsumption(): array
     {
 
-        return $this->executeMonthlyConsumptionQuery($this->userRole, $this->managerId);
+        return $this->executeMonthlyConsumptionQuery($this->current_user_role, $this->current_user_id);
     }
 
     public function getBacklogRequests(): array
     {
-        return $this->executeBacklogQuery($this->userRole, $this->managerId);
+        return $this->executeBacklogQuery($this->current_user_role, $this->current_user_id);
 
     }
 
@@ -87,16 +87,16 @@ class ManagerDashboardService implements LeaveAnalyticsInterface
 
         $params = [];
 
-        if ($this->userRole === 'manager') {
+        if ($this->current_user_role === 'manager') {
             $query .= " AND lr.assigned_to = :manager_id";
-            $params['manager_id'] = $this->managerId;
+            $params['manager_id'] = $this->current_user_id;
         }
 
-        $pendingRequests = $this->db->query($query, $params)->all();
+        $pending_requests = $this->db->query($query, $params)->all();
 
         $data = [];
 
-        foreach ($pendingRequests as $request) {
+        foreach ($pending_requests as $request) {
 
             $overlap = $this->executeTeamOverlapQuery(
                 $request['department'],
@@ -127,7 +127,7 @@ class ManagerDashboardService implements LeaveAnalyticsInterface
     public function getRecentActivity(): array
     {
 
-        $recentActivity = $this->db->query("
+        $recent_activity = $this->db->query("
          SELECT lr.*,
                 lt.name AS leave_type_name,
                 u.first_name AS first_name,
@@ -139,33 +139,33 @@ class ManagerDashboardService implements LeaveAnalyticsInterface
             FROM leave_requests lr
             LEFT JOIN users u ON lr.user_id = u.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
-            WHERE lr.assigned_to = :manager_id
+            WHERE lr.assigned_to = :current_user_id
         ", [
-            'manager_id' => $this->managerId,
+            'current_user_id' => $this->current_user_id,
         ])->all();
 
-        $formattedActivity = array_map([self::class, 'getActivityData'], $recentActivity);
+        $formatted_activity = array_map([$this, 'getActivityData'], $recent_activity);
 
-        return $formattedActivity;
+        return $formatted_activity;
     }
 
 
     public static function getActivityData($activity) : array {
 
-        $employeeName = $activity['first_name'] . ' ' . $activity['last_name'];
-        $leaveType = $activity['leave_type_name'] ?? ['No leave type'];
-        $startDate = $activity['start_date'] ?? ['No start date'];
-        $endDate = $activity['end_date'] ?? ['No end date'];
+        $employee_name = $activity['first_name'] . ' ' . $activity['last_name'];
+        $leave_type = $activity['leave_type_name'] ?? ['No leave type'];
+        $start_date = $activity['start_date'] ?? ['No start date'];
+        $end_date = $activity['end_date'] ?? ['No end date'];
         $status = $activity['leave_status'] ?? ['No status'];
-        $createdAt = $activity['created_at'] ?? ['No date'];
+        $created_at = $activity['created_at'] ?? ['No date'];
 
         return [
-            'employee_name' => $employeeName,
-            'leave_type' => $leaveType,
-            'start_date' => $startDate,
-            'end_date' => $endDate,
+            'employee_name' => $employee_name,
+            'leave_type' => $leave_type,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
             'leave_status' => $status,
-            'created_at' => $createdAt,
+            'created_at' => $created_at,
         ];
 
     }

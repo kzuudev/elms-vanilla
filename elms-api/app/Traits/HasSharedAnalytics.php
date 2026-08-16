@@ -16,55 +16,55 @@ trait HasSharedAnalytics {
         return App::resolve(Database::class);
     }
 
-    public function executeRemainingTotalBalance(int $userId): array {
+    public function executeRemainingTotalBalance(int $user_id): array {
 
-        $totalBalance = $this->db->query("
+        $total_balance = $this->db->query("
             SELECT 
                 SUM(remaining_balance) AS grand_total
             FROM leave_balance lb
             WHERE user_id = :user_id
         ", [
-            'user_id' => $userId,
+            'user_id' => $user_id,
         ])->all();
 
-        return $totalBalance;
+        return $total_balance;
     }
 
-    public function executePendingApprovalMetrics(int $userId): array {
+    public function executePendingApprovalMetrics(int $user_id): array {
 
-        $pendingLeaveType = $this->db->query("
+        $pending_leave_type = $this->db->query("
             SELECT 
                 COALESCE(SUM(total_days), 0) as total_days,
                 COUNT(*) as queued_leave_count
             FROM leave_requests lr
             WHERE lr.user_id = :user_id AND lr.status = 'pending'
         ", [
-            'user_id' => $userId,
+            'user_id' => $user_id,
         ])->all();
 
 
-        return $pendingLeaveType;
+        return $pending_leave_type;
     }
 
-    public function executeUsedDays(int $userId): array {
-        $usedDays = $this->db->query("
+    public function executeUsedDays(int $user_id): array {
+        $used_days = $this->db->query("
             SELECT
                 SUM(used_days) as total_used_days,
                 SUM(allocated_days) as total_allocated_days
             FROM leave_balance lb
             WHERE lb.user_id = :user_id
         ", [
-            'user_id' => $userId,
+            'user_id' => $user_id,
         ])->all();
 
-        return $usedDays;
+        return $used_days;
     }
 
     /**
      * Shared SQL query for the team coverage roster stream
      */
 
-    protected function executeTeamAvailabilityQuery(string $userRole, int $currentUserId): array {
+    protected function executeTeamAvailabilityQuery(string $user_role, int $current_user_id, string $current_user_department): array {
 
         $query = "
             SELECT
@@ -90,13 +90,19 @@ trait HasSharedAnalytics {
         ";
 
         $params = [
-            'current_user_id' => $currentUserId,
+            'current_user_id' => $current_user_id,
         ];
 
-        if($userRole === 'manager') {
+        if($user_role === 'manager') {
             $query .= ' AND u.assigned_to = :manager_id';
-            $params['manager_id'] = $currentUserId;
+            $params['manager_id'] = $current_user_id;
+        }else if($user_role === 'admin') {
+            $query .= ' AND u.department = :department AND u.role != "super-admin"';
+            $params['department'] = $current_user_department;
+        }else if($user_role === 'super-admin') {
+        
         }
+
 
         return $this->db->query($query, $params)->all();
 
@@ -105,7 +111,7 @@ trait HasSharedAnalytics {
     /**
      * Shared SQL query for the monthly consumption metrics
      */
-    protected function executeMonthlyConsumptionQuery(string $userRole, int $currentUserId): array {
+    protected function executeMonthlyConsumptionQuery(string $user_role, int $current_user_id): array {
 
         $query = "
             SELECT 
@@ -123,12 +129,12 @@ trait HasSharedAnalytics {
         ";
 
         $params = [
-            'current_user_id' => $currentUserId,
+            'current_user_id' => $current_user_id,
         ];
 
-        if($userRole === 'manager') {
+        if($user_role === 'manager') {
             $query .= ' AND lr.assigned_to = :manager_id';
-            $params['manager_id'] = $currentUserId;
+            $params['manager_id'] = $current_user_id;
 
         }
 
@@ -144,7 +150,7 @@ trait HasSharedAnalytics {
     /**
      * Shared SQL query for the approval backlog counter
      */
-    protected function executeBacklogQuery(string $userRole, int $currentUserId): array
+    protected function executeBacklogQuery(string $user_role, int $current_user_id): array
     {
 
 
@@ -158,13 +164,13 @@ trait HasSharedAnalytics {
         ";
 
         $params = [
-            'current_user_id' => $currentUserId,
+            'current_user_id' => $current_user_id,
         ];
 
 
-        if ($userRole === 'manager') {
+        if ($user_role === 'manager') {
             $query .= ' AND lr.assigned_to = :manager_id';
-            $params['manager_id'] = $currentUserId;
+            $params['manager_id'] = $current_user_id;
         }
 
 
@@ -178,7 +184,7 @@ trait HasSharedAnalytics {
      * within the same department.
      */
 
-    protected function executeTeamOverlapQuery(string $department, int $applicantUserId, string $startDate, string $endDate): array {
+    protected function executeTeamOverlapQuery(string $department, int $applicant_user_id, string $start_date, string $end_date): array {
 
         $query = "
             SELECT
@@ -206,9 +212,9 @@ trait HasSharedAnalytics {
 
         $params = [
             'department'        => $department,
-            'applicant_user_id' => $applicantUserId,
-            'start_date'        => $startDate,
-            'end_date'          => $endDate,
+            'applicant_user_id' => $applicant_user_id,
+            'start_date'        => $start_date,
+            'end_date'          => $end_date,
         ];
 
         return $this->db->query($query, $params)->all();
