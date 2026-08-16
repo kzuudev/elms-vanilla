@@ -23,12 +23,13 @@ export const normalizeRole = (role: string | null | undefined): UserRole => {
 export const redirectPathByRole = (role: string | null | undefined) => {
     const userRole = normalizeRole(role);
 
-    if(userRole === 'admin') {
-        return "/admin/dashboard";
-    }
-
     if(userRole === 'manager') {
         return "/manager/dashboard";
+    }
+
+    
+    if(userRole === 'admin') {
+        return "/admin/dashboard";
     }
 
     if(userRole === 'super-admin') {

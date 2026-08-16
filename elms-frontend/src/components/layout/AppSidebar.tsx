@@ -27,7 +27,10 @@ import {
     Search,
     Settings,
     Users,
-    CircleUserRound
+    CircleUserRound,
+    CalendarDays,
+    Building,
+    FileText
 } from "lucide-react";
 import {Input} from "@/components/ui/input.tsx";
 
@@ -171,7 +174,7 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                   </SidebarMenuItem>
                               </SidebarMenu>
                           </SidebarContent>
-                      ) : role === "admin" ? (
+                      ) : role === "admin"  ? (
                           <SidebarContent>
                               <SidebarMenu>
                                   <SidebarMenuItem>
@@ -219,6 +222,51 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                           </Link>
                                       </SidebarMenuButton>
                                   </SidebarMenuItem>
+
+                                  <SidebarMenuItem>
+                                        <SidebarMenuButton asChild className="hover:bg-gray-100">
+                                          <Link to="/super-admin/users" className="flex items-center gap-2">
+                                              <Users />
+                                              <span>Total Users</span>
+                                          </Link>
+                                      </SidebarMenuButton>
+                                  </SidebarMenuItem>
+
+                                  <SidebarMenuItem>
+                                        <SidebarMenuButton asChild className="hover:bg-gray-100">
+                                          <Link to="/super-admin/leave-requests" className="flex items-center gap-2">
+                                              <CalendarOff />
+                                              <span>Leave Requests</span>
+                                          </Link>
+                                      </SidebarMenuButton>
+                                  </SidebarMenuItem>
+
+                                  <SidebarMenuItem>
+                                        <SidebarMenuButton asChild className="hover:bg-gray-100">
+                                          <Link to="/super-admin/leave-types" className="flex items-center gap-2">
+                                              <CalendarDays />
+                                              <span>Leave Types</span>
+                                          </Link>
+                                      </SidebarMenuButton>
+                                  </SidebarMenuItem>
+
+                                  <SidebarMenuItem>
+                                        <SidebarMenuButton asChild className="hover:bg-gray-100">
+                                          <Link to="/super-admin/departments" className="flex items-center gap-2">
+                                              <Building />
+                                              <span>Departments</span>
+                                          </Link>
+                                      </SidebarMenuButton>
+                                  </SidebarMenuItem>
+
+                                  <SidebarMenuItem>
+                                        <SidebarMenuButton asChild className="hover:bg-gray-100">
+                                          <Link to="/super-admin/audit-reports" className="flex items-center gap-2">
+                                              <FileText />
+                                              <span>Audit Reports</span>
+                                          </Link>
+                                      </SidebarMenuButton>
+                                  </SidebarMenuItem>
                               </SidebarMenu>
                           </SidebarContent>
                       ) : null}
@@ -243,6 +291,8 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                           </div>
                                       </SidebarMenuButton>
                                   </SidebarMenuItem>
+
+
                               </SidebarMenu>
                           </SidebarContent>
                       </SidebarFooter>
