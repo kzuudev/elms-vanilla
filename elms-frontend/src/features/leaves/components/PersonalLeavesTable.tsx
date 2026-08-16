@@ -25,11 +25,9 @@ export default function PersonalLeavesTable() {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   
-
     const handleViewLeaveRequest = async (id: number) => {
         await fetchLeaveRequestDetails(id);
         setIsViewModalOpen(true);
-
     }
 
     useEffect(() => {

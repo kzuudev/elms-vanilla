@@ -2,8 +2,6 @@
 
 import {useState} from "react";
 
-import {useLeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
-
 import PersonalLeavesTable from "@/features/leaves/components/PersonalLeavesTable.tsx";
 import ReviewerLeaveTable from "@/features/leaves/components/ReviewerLeaveTable.tsx";
 

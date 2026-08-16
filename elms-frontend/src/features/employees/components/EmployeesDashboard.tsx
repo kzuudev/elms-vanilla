@@ -44,10 +44,14 @@ export default function EmployeesDashboard({role} : {role: string}) {
     role = user.role;
     const isAdmin = role === 'admin';
 
-    const fetchEmployees = async () => {
+    const fetchEmployees = async ({searchQuery, statusFilter, departmentFilter, roleFilter} : {searchQuery: string, statusFilter: string, departmentFilter: string, roleFilter: string}) => {
         try {
             const holder = localStorage.getItem("token");
-            const queryString = buildQueryString({ search: searchQuery, status: statusFilter, department: departmentFilter, role: roleFilter });
+            const queryString = buildQueryString({ 
+                search: searchQuery ?? '', 
+                status: statusFilter ?? '', 
+                department: departmentFilter ?? '', 
+                role: roleFilter ?? '' });
             const response = await api.get(`/employees${queryString}`, {
                 headers: { Authorization: `Bearer ${holder}` },
             });
@@ -55,7 +59,7 @@ export default function EmployeesDashboard({role} : {role: string}) {
             setError(null);
         } catch (e) {
             if (axios.isCancel(e)) return;
-            setError((e as AxiosError)?.response?.data?.message || "A network error occurred.");
+            setError("Network error occurred.")
         }
     };
 
@@ -79,8 +83,35 @@ export default function EmployeesDashboard({role} : {role: string}) {
         }
     };
 
+    const filters = {
+        searchQuery: searchQuery ?? '',
+        statusFilter: statusFilter ?? '',
+        departmentFilter: departmentFilter ?? '',
+        roleFilter: roleFilter ?? '',
+    }
+
+    const emptyFilters = {
+        searchQuery: '',
+        statusFilter: '',
+        departmentFilter: '',
+        roleFilter: '',
+    }
+
+    const onSearchSubmit = () => {
+        fetchEmployees(filters);
+    }
+
+    const onClearFilters = () => {
+        setSearchQuery('');
+        setStatusFilter(null);
+        setDepartmentFilter(null);
+        setRoleFilter(null);
+        fetchEmployees(emptyFilters);
+    }
+
+
     useEffect(() => {
-        fetchEmployees();
+        fetchEmployees(filters);
         fetchEmployeeSummary();
     }, []);
 
@@ -116,7 +147,8 @@ export default function EmployeesDashboard({role} : {role: string}) {
                                 setRoleFilter={setRoleFilter}
                                 departmentFilter={departmentFilter ?? ''}
                                 setDepartmentFilter={setDepartmentFilter}
-                                onSearchSubmit={fetchEmployees}
+                                onSearchSubmit={onSearchSubmit}
+                                onClearFilters={onClearFilters}
                             />
 
                             {isAdmin && (

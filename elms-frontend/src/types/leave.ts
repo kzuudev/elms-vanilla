@@ -18,6 +18,7 @@ export type TableData = {
     assigned_to: number | null;
 };
 
+
 export type EmployeeDataTable = {
     id: number;
     employee_first_name: string;
@@ -82,19 +83,6 @@ export type ReviewerLeaveData = {
     total_days: number;
     status: string;
     assigned_to: string;
-};
-
-
-export type PersonalLeaveRequest = {
-    id: number;
-    user_id: number;
-    leave_type: string;
-    reason: string;
-    start_date: string;
-    end_date: string;
-    total_days: number;
-    status: string;
-    assigned_name: string;
 };
 
 

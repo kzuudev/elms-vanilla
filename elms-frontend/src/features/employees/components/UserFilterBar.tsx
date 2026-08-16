@@ -12,15 +12,20 @@ interface UserFilterBarProps {
     departmentFilter: string;
     setDepartmentFilter: (department: string) => void;
     onSearchSubmit: () => void;
+    onClearFilters: () => void;
 }
 
 export default function UserFilterBar(props: UserFilterBarProps) {
 
-    const {searchQuery, setSearchQuery, statusFilter, setStatusFilter, roleFilter, setRoleFilter, departmentFilter, setDepartmentFilter, onSearchSubmit} = props;
+    const {searchQuery, setSearchQuery, statusFilter, setStatusFilter, roleFilter, setRoleFilter, departmentFilter, setDepartmentFilter, onSearchSubmit, onClearFilters} = props;
 
     const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         onSearchSubmit();
+    }
+
+    const handleClearFilters = () => {
+        onClearFilters();
     }
 
     const roleOptions = [
@@ -118,7 +123,10 @@ export default function UserFilterBar(props: UserFilterBarProps) {
                     </select>
                 </div>
 
-                <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">Search</Button>
+                <div className="flex items-center gap-2">
+                    <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md">Search</Button>
+                    <Button type="button" variant="outline" className="px-3 py-2 rounded-md" onClick={handleClearFilters}>Clear Filters</Button>
+                </div>
             </form>
         </>
     )
