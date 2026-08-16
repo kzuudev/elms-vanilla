@@ -101,7 +101,7 @@ class EmployeesService {
     public function getEmployee($id) {
 
         if(!$this->current_user_id) {
-            $this->db->response(401, false, 'Admin not found', ['id' => $this->current_user_id]);
+            $this->db->response(401, false, 'Authorized user not found', ['id' => $this->current_user_id]);
             return;
         }
 
@@ -272,7 +272,7 @@ class EmployeesService {
 
     public function getProfile($id) {
 
-        if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super admin'], true)) {
+        if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super admin', 'manager'], true)) {
            
             $user = $this->db->query("
                 SELECT u.id,

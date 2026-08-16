@@ -143,7 +143,7 @@ class LeaveReviewService implements LeaveReviewInterface {
             $params = ['id' => $id];
 
 
-            if($role === 'super_admin') {
+            if($role === 'super admin') {
                 $sql .= " AND e.department = :department AND lr.user_id != :current_user_id";
                 $params['department'] = $current_user['department'];
                 $params['current_user_id'] = $current_user_id;
