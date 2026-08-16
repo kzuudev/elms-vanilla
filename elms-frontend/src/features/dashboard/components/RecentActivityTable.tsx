@@ -15,15 +15,15 @@ import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import type {ColumnConfig} from "@/types/table.ts";
 import type {LeaveActivityRecord} from "@/types/dashboard.ts";
 import {ActivityTable} from "@/features/dashboard/components/ActivityTable.tsx";
-import {currentUserRole} from "@/utils/current-user-role.ts";
-import type {UserRole} from "@/utils/current-user-role.ts";
+import {normalizeRole} from "@/utils/roles";
+import type {UserRole} from "@/utils/roles";
 
 export default function RecentActivityTable() {
 
     const {user} = useContext(AuthContext);
     const role = user.role || "";
 
-    const currentRole = currentUserRole(role);
+    const currentRole = normalizeRole(role);
 
     const employeeAnalytics = useContext(EmployeeAnalyticsContext);
     const managerAnalytics = useContext(ManagerAnalyticsContext);

@@ -146,7 +146,7 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                   </SidebarMenuItem>
                               </SidebarMenu>
                           </SidebarContent>
-                      ) : role !== 'admin' && role !== 'manager' ? (
+                      ) : role !== 'admin' && role !== 'manager' && role !== 'super-admin' ? (
                           <SidebarContent>
                               <SidebarMenu>
                                   <SidebarMenuItem>

@@ -10,7 +10,7 @@ import type {RowConfig} from "@/types/card.ts";
 import CoverageWidget from "@/features/dashboard/components/CoverageWidget.tsx";
 import {employeeRow, managerRow, adminRow} from "@/utils/team-coverage-row.tsx";
 
-import {currentUserRole, type UserRole} from "@/utils/current-user-role.ts";
+import {normalizeRole, type UserRole} from "@/utils/roles";
 import type { TeamAvailability} from "@/types/dashboard.ts";
 
 
@@ -24,7 +24,7 @@ export default function TeamCoverageWidget() {
     const managerAnalytics = useContext(ManagerAnalyticsContext);
     const adminAnalytics = useContext(AdminAnalyticsContext);
 
-    const currentRole = currentUserRole(role);
+    const currentRole = normalizeRole(role);
 
     const titleByRole : Record<UserRole, RowConfig<TeamAvailability>[]> = {
         employee: employeeRow,

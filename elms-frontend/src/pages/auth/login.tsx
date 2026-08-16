@@ -11,6 +11,7 @@ import type { Profile } from "@/types/leave";
 
 import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
 import {LeaveBalanceContext} from "@/features/context/leaves/LeaveBalanceContext.tsx";
+import { redirectPathByRole } from "@/utils/roles.ts";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,9 +28,6 @@ import {
     FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-
-
-
 
 
 export default function Login() {
@@ -85,23 +83,10 @@ export default function Login() {
                 return; 
             }
 
-            if(userRole !== 'admin' && userRole !== 'manager') {
-                navigate("/employee/dashboard");
-                return;
-            }
-
-            if(userRole === 'manager') {
-                navigate("/manager/dashboard");
-                return;
-            }
-
-            if(userRole === 'admin') {
-                navigate("/admin/dashboard");
-                return;
-            }
-
-
-
+            const redirectPath = redirectPathByRole(userRole);
+            navigate(redirectPath);
+            return;
+           
         }catch (e) {
             setError("root", {
                 type: "server",

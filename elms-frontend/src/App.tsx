@@ -142,7 +142,7 @@ function App() {
                             <Route
                                 path="/register"
                                 element={
-                                    <ProtectedRoute allowedRoles={['admin']}>
+                                    <ProtectedRoute allowedRoles={['admin', 'super-admin']}>
                                         <Register closeDialog={() => setIsOpenForm(false)} />
                                     </ProtectedRoute>
                                 }
@@ -165,7 +165,7 @@ function App() {
                             <Route
                                 path="/admin/employees"
                                 element={
-                                    <ProtectedRoute allowedRoles={['admin']}>
+                                    <ProtectedRoute allowedRoles={['admin', 'super-admin']}>
                                         <EmployeesDashboard role={role} />
                                     </ProtectedRoute>
                                 }
@@ -174,7 +174,7 @@ function App() {
                             <Route
                                 path="/admin/leaves"
                                 element={
-                                    <ProtectedRoute allowedRoles={['admin']}>
+                                    <ProtectedRoute allowedRoles={['admin', 'super-admin']}>
                                         <AdminLeavesDashboard />
                                     </ProtectedRoute>
                                 }
