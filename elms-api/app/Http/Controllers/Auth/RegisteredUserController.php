@@ -29,8 +29,7 @@ class RegisteredUserController {
             
             if(!$user || !in_array($user['role'], ['admin', 'super-admin'], true))  {
                 $this->db->response(403, false, 'Forbidden: You are not authorized to create a new user');
-                $this->db->rollBack();
-                exit;
+                return;
             }
 
             // check first the content type and see whether it is a JSON format
@@ -43,14 +42,16 @@ class RegisteredUserController {
                 $email = $input['email'] ?? '';
                 $phone = $input['phone'] ?? '';
                 $role = $input['role'] ?? '';
+                $department = $input['department'] ?? '';
+                $salary = $input['salary'] ?? '';
                 $assigned_to = $input['assigned_to'] ?? '';
 
                 $register = new RegisterForm();
 
-                if(!$register->validate($first_name, $last_name, $email, $phone, $role, $assigned_to)) {
-                    $this->db->response(422, false, 'Validation failed', $register->errors());
+                if(!$register->validate($first_name, $last_name, $email, $phone, $role, $department, $salary, $assigned_to)) {
                     $this->db->rollBack();
-                    exit;
+                    $this->db->response(422, false, 'Validation failed', $register->errors());
+                    return;
                 }
 
                 // check if email exists
@@ -59,12 +60,12 @@ class RegisteredUserController {
                 ])->find();
 
                 if($existing_user) {
-                    $this->db->response(422, false, 'User already exists', ['id' => $existing_user['id']]);
                     $this->db->rollBack();
-                    exit;
+                    $this->db->response(422, false, 'User already exists', ['id' => $existing_user['id']]);
+                    return;
                 }
 
-                $this->db->query("INSERT INTO users (first_name, last_name, email, phone, password, role, department, assigned_to) VALUES (:first_name, :last_name, :email, :phone, :password, :role, :department, :assigned_to)", [
+                $this->db->query("INSERT INTO users (first_name, last_name, email, phone, password, role, department, salary, assigned_to) VALUES (:first_name, :last_name, :email, :phone, :password, :role, :department, :salary, :assigned_to)", [
                     'first_name' => $first_name,
                     'last_name' => $last_name,
                     'email' => $email,
@@ -72,6 +73,7 @@ class RegisteredUserController {
                     'password' => null,
                     'role' => $role,
                     'department' => $department,
+                    'salary' => $salary,
                     'assigned_to' => ($assigned_to === '' || $assigned_to === null)
                     ? null
                     : (int) $assigned_to,
@@ -96,36 +98,34 @@ class RegisteredUserController {
 
                 try {
                     $email_verification_service->sendVerificationEmail($name, $email, $verification_token);
-                    $this->db->commit();
+                    $this->db->response(201, true, 'Registration successful! Please verify your email to activate your account.', [
+                        'user' => [
+                            'id' => $user_id,
+                            'first_name' => $first_name,
+                            'last_name' => $last_name,
+                            'email' => $email,
+                            'role' => $role,
+                        ],
+                    ]);
                 } catch (\Exception $e) {
-                    $this->db->response(500, false, 'User created but failed to send verification email', ['error' => $e->getMessage()]);
                     $this->db->rollBack();
-                    exit;
+                    $this->db->response(500, false, 'User created but failed to send verification email', ['error' => $e->getMessage()]);
+                    return;
                 }
 
-                $this->db->response(201, true, 'Registration successful! Please verify your email to activate your account.', [
-                    'user' => [
-                        'id' => $user_id,
-                        'first_name' => $first_name,
-                        'last_name' => $last_name,
-                        'email' => $email,
-                        'role' => $role,
-                        'department' => $department,
-                        'assigned_to' => (int) $assigned_to,
-                    ],
-                ]);
+                // commit the transaction
                 $this->db->commit();
-                exit;
+                return;
             }
 
-        $this->db->response(400, false, 'Invalid Registration Request', ['id' => $user_id]);
         $this->db->rollBack();
+        $this->db->response(400, false, 'Invalid Registration Request', ['id' => $user_id]);
         return;
 
         }catch (Exception $e) {
             $this->db->rollBack();
             $this->db->response(500, false, $e->getMessage());
-            exit;
+            return;
         }
      
     }

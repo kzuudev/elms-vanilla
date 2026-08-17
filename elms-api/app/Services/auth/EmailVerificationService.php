@@ -22,7 +22,7 @@ class EmailVerificationService {
         $phpmailer = new PHPMailer(true);
 
     try {
-        $phpmailer->SMTPDebug = SMTP::DEBUG_SERVER;
+        $phpmailer->SMTPDebug = SMTP::DEBUG_OFF;
         $phpmailer->isSMTP();
         $phpmailer->SMTPAuth = true;
 

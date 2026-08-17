@@ -8,7 +8,7 @@ class RegisterForm
 {
     protected array $errors = [];
 
-    public function validate($first_name, $last_name, $email, $phone, $role, $assigned_to): bool
+    public function validate($first_name, $last_name, $email, $phone, $role, $department, $salary, $assigned_to): bool
     {
         $this->errors = [];
 
@@ -29,7 +29,15 @@ class RegisterForm
         }
 
         if (!Validator::string($role, 1, 50)) {
-            $this->errors['role'] = 'Role is required';
+            $this->errors['role'] = 'Role is required and must be a valid role';
+        }
+
+        if (!Validator::string($department, 1, 50)) {
+            $this->errors['department'] = 'Department is not a valid department';
+        }
+
+        if (!Validator::string($salary, 1, 50)) {
+            $this->errors['salary'] = 'Salary is not a valid number';
         }
 
         // Optional for some roles; if provided must be numeric id
