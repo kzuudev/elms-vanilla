@@ -11,7 +11,6 @@ import AdminRegisterForm from '@/features/register/AdminRegisterForm';
 import SuperAdminRegisterForm from '@/features/register/SuperAdminRegisterForm';
 
 
-
 interface RegisterFormProps {
     closeDialog: () => void;
 }
@@ -27,10 +26,10 @@ export default function Register({closeDialog}: RegisterFormProps) {
     const isSuperAdmin = role === 'super-admin';
 
     const [managers, setManagers] = useState<{value: string, label: string}[]>([]);
-    const [managersError, setManagersError] = useState<string | null>(null);
-
     const [admins, setAdmins] = useState<{value: string, label: string}[]>([]);
-    const [adminsError, setAdminsError] = useState<string | null>(null);
+
+    const [error, setError] = useState<string | null>(null);
+
 
     // Fetch managers — EmployeesController@managers
     useEffect(() => {
@@ -49,18 +48,18 @@ export default function Register({closeDialog}: RegisterFormProps) {
                         })
                     )
                 );
-                setManagersError(null);
+                setError(null);
             } catch (e) {
                 if (axios.isCancel(e)) return;
                 setManagers([]);
                 if (axios.isAxiosError(e)) {
-                    setManagersError(
+                    setError(
                         e.response?.data?.error ||
                         e.response?.data?.message ||
                         "Failed to load managers from the server"
                     );
                 } else {
-                    setManagersError("Failed to load managers from the server");
+                    setError("Failed to load managers from the server");
                     setManagers([]);
                 }
             }
@@ -86,14 +85,14 @@ export default function Register({closeDialog}: RegisterFormProps) {
                         })
                     )
                 );
-                setAdminsError(null);
+                setError(null);
             } catch (e) {
                 if (axios.isCancel(e)) return;
                 setAdmins([]);
                 if (axios.isAxiosError(e)) {
-                    setAdminsError(e.response?.data?.error || e.response?.data?.message || "Failed to load admins from the server");
+                    setError(e.response?.data?.error || e.response?.data?.message || "Failed to load admins from the server");
                 } else {
-                    setAdminsError("Failed to load admins from the server");
+                    setError("Failed to load admins from the server");
                     setAdmins([]);
                 }
             }
@@ -135,6 +134,12 @@ export default function Register({closeDialog}: RegisterFormProps) {
                     <SuperAdminRegisterForm managers={managers} admins={admins} onSubmit={() => onSubmit({})} onCancel={closeDialog} />
                 )}
             </div>
+
+            {error && (
+                <div className="flex justify-center items-center">
+                    <p className="text-red-500">{error}</p>
+                </div>
+            )}
         </>
     )
 }
