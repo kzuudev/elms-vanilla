@@ -53,13 +53,14 @@ $router->get('/leave-requests/{id}/overlaps', [LeaveReviewController::class, 'ch
 $router->get('/manager-dashboard', [ManagerDashboardController::class, 'index'])->only('auth');
 
 
-// admin and manager
+// admin and manager and super admin
 $router->get('/employees', [EmployeesController::class, 'index'])->only('auth');
 $router->get('/employees/summary', [EmployeesSummaryController::class, 'summary'])->only('auth');
 $router->get('/employees/managers', [EmployeesController::class, 'managers'])->only('auth');
+$router->get('/employees/admins', [EmployeesController::class, 'admins'])->only('auth');
 $router->post('/register', [RegisteredUserController::class, 'store'])->only('auth');
-$router->get('/employees/{id}/profile', [EmployeesController::class, 'profile'])->only('auth');
-$router->get('/employees/{id}', [EmployeesController::class, 'show'])->only('auth');
+$router->get('/employees/{id}/profile', [EmployeesController::class, 'show'])->only('auth');
+// $router->get('/employees/{id}', [EmployeesController::class, 'show'])->only('auth');
 $router->patch('/employees/{id}', [EmployeesController::class, 'patch'])->only('auth');
 $router->delete('/employees/{id}', [EmployeesController::class, 'destroy'])->only('auth');
 
@@ -77,6 +78,9 @@ $router->get('/leave-types', [LeaveTypesController::class, 'index'])->only('auth
 // notifications
 $router->get('/notifications', [NotificationController::class, 'index'])->only('auth');
 $router->patch('/notifications/{id}', [NotificationController::class, 'patch'])->only('auth');
+
+
+
 
 // return the router with existing routes inside it
 return $router;

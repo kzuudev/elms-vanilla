@@ -27,7 +27,7 @@ class RegisteredUserController {
             // Department comes from the logged-in admin (department-scoped invite)
             $department = $user['department'] ?? null;
             
-            if(!$user || !in_array($user['role'], ['admin', 'super admin'], true))  {
+            if(!$user || !in_array($user['role'], ['admin', 'super-admin'], true))  {
                 $this->db->response(403, false, 'Forbidden: You are not authorized to create a new user');
                 $this->db->rollBack();
                 exit;

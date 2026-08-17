@@ -46,7 +46,6 @@ class LeaveReviewController {
      */
     public function index() {
 
-
         $leave_request_form = new LeaveRequestForm();
 
         $leave_type = $_GET['leave_type'] ?? '';

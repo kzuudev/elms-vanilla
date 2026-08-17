@@ -11,47 +11,78 @@ use Core\Database;
 
 class EmployeesController {
 
+
+
     private EmployeesService $employees_service;
+    private Database $db;
 
     public function __construct() {
         $this->employees_service = App::resolve(EmployeesService::class);
+        $this->db = App::resolve(Database::class);
     }
 
     public function index() {
     
-        return $this->employees_service->getEmployees();
+        try{
+            $employees = $this->employees_service->getEmployees();
+            $this->db->response(200, true, 'Employees fetched successfully.', ['employees' => $employees]);
+            return;
+        } catch(Exception $e) {
+            $this->db->response(422, false, $e->getMessage());
+            return;
+        }
        
     }
 
     public function show($id) {
       
-       return $this->employees_service->getEmployee($id);
+       try{
+            $employee = $this->employees_service->getProfile($id);
+            $this->db->response(200, true, 'Employee fetched successfully.', ['employee' => $employee]);
+            return;
+       } catch(Exception $e) {
+            $this->db->response(422, false, $e->getMessage());
+            return;
+       }
     }
 
 
     public function patch($id) {
 
-       return $this->employees_service->updateEmployee($id);
+       try{
+            $updated_employee = $this->employees_service->updateEmployee($id);
+            $this->db->response(200, true, 'Employee updated successfully.', ['employee' => $updated_employee]);
+            return $updated_employee;
+       } catch(Exception $e) {
+            $this->db->response(422, false, $e->getMessage());
+            return;
+       }
     }
-
-
-    public function destroy($id) {
-
-       return $this->employees_service->deleteEmployee($id); 
-
-    }
-
-    public function profile($id) {
-
-       return $this->employees_service->getProfile($id);
-    }
-
     /**
      * Managers for the invite form (department-scoped for department admins).
      */
     public function managers() {
         
-        return $this->employees_service->getManagers();
+        try{
+            $managers = $this->employees_service->getManagers();
+            $this->db->response(200, true, 'Managers fetched successfully.', ['managers' => $managers]);
+            return $managers;
+        } catch(Exception $e) {
+            $this->db->response(422, false, $e->getMessage());
+            return;
+        }
+    }
+
+    public function admins() {
+
+        try{
+            $admins = $this->employees_service->getAdmins();
+            $this->db->response(200, true, 'Admins fetched successfully.', ['admins' => $admins]);
+            return $admins;
+        } catch(Exception $e) {
+            $this->db->response(422, false, $e->getMessage());
+            return;
+        }
     }
 
 
