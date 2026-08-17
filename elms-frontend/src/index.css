@@ -128,3 +128,45 @@
     @apply font-sans;
     }
 }
+
+.phone-input {
+    --PhoneInput-color--focus: var(--ring);
+    --PhoneInputCountrySelect-marginRight: 0px;
+    --PhoneInputCountrySelectArrow-color: var(--muted-foreground);
+    --PhoneInputCountrySelectArrow-opacity: 1;
+    --PhoneInputCountryFlag-borderColor: transparent;
+    --PhoneInputCountryFlag-borderColor--focus: transparent;
+    --PhoneInputCountryFlag-height: 1rem;
+}
+
+.phone-input .PhoneInputCountry {
+    height: 100%;
+    margin-right: 0;
+    padding-left: 0.625rem;
+    padding-right: 0.5rem;
+    border-right: 1px solid var(--input);
+    gap: 0.375rem;
+}
+
+.phone-input .PhoneInputCountryIcon--border {
+    background-color: transparent;
+    box-shadow: none;
+    overflow: hidden;
+    border-radius: 2px;
+}
+
+.phone-input .PhoneInputInput {
+    height: 100%;
+    border: 0;
+    background: transparent;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--foreground);
+    outline: none;
+    box-shadow: none;
+}
+
+.phone-input .PhoneInputInput::placeholder {
+    color: var(--muted-foreground);
+}

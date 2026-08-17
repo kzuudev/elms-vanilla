@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import * as z from 'zod';
-import axios from 'axios';
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Controller, useForm} from "react-hook-form";
 
@@ -10,41 +8,40 @@ import {Controller, useForm} from "react-hook-form";
 import { roleOptions } from "@/config/role-options";
 import { departmentOptions } from "@/config/department-options";
 
-import "react-phone-number-input/style.css";
-import PhoneInput from "react-phone-number-input";
-
 import {
     Field,
+    FieldDescription,
     FieldError,
     FieldGroup,
     FieldLabel,
 } from "@/components/ui/field"
+import { PhoneNumberInput } from "@/components/ui/phone-input"
 import {Input} from "@/components/ui/input"
 import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem} from "@/components/ui/select"
 import {Button} from "@/components/ui/button";
 
+ // rules for registration form
+ const schema = z.object({
+    first_name: z.string().min(1, {message: "First Name is required"}),
+    last_name: z.string().min(1, {message: "Last Name is required"}),
+    email: z.string().email("Please enter a valid email address"),
+    phone: z.string().min(1, {message: "Phone number is required"}),
+    role: z.string().min(1, {message: "Role is required"}),
+    department: z.string().min(1, {message: "Department is required"}),
+    salary: z.string().min(1, {message: "Salary is required"}),
+    assigned_to: z.string().nullable(),
+});
+
+type SuperAdminRegisterFormData = z.infer<typeof schema>;
 
 export default function SuperAdminRegisterForm({managers, admins, onSubmit, onCancel}: {
     managers: {value: string, label: string}[], 
     admins: {value: string, label: string}[],
-    onSubmit: () => void,
+    onSubmit: (data: SuperAdminRegisterFormData) => void,
     onCancel: () => void
 }) {
 
-    // rules for registration form
-    const schema = z.object({
-        first_name: z.string().min(1, {message: "First Name is required"}),
-        last_name: z.string().min(1, {message: "Last Name is required"}),
-        email: z.string().email("Please enter a valid email address"),
-        phone: z.string().min(1, {message: "Phone number is required"}),
-        role: z.string().min(1, {message: "Role is required"}),
-        department: z.string().min(1, {message: "Department is required"}),
-        salary: z.number().min(1, {message: "Salary is required"}),
-        assigned_to: z.string().optional().nullable(),
-    });
-
-    type SuperAdminRegisterFormData = z.infer<typeof schema>;
-
+   
     const form = useForm<SuperAdminRegisterFormData>({
         resolver: zodResolver(schema),
         defaultValues: {
@@ -54,7 +51,7 @@ export default function SuperAdminRegisterForm({managers, admins, onSubmit, onCa
             phone: "",
             role: "",
             department: "",
-            salary: 0,
+            salary: "",
             assigned_to: null,
         }
     })
@@ -64,7 +61,7 @@ export default function SuperAdminRegisterForm({managers, admins, onSubmit, onCa
 
     return (
         <>
-         <form onSubmit={form.handleSubmit(onSubmit)}>
+         <form onSubmit={form.handleSubmit((data) => onSubmit(data))}>
             <FieldGroup className="mb-8">
                 <div className="flex flex-col gap-2">
                     <Controller name="first_name" control={form.control}
@@ -137,13 +134,18 @@ export default function SuperAdminRegisterForm({managers, admins, onSubmit, onCa
                                 <FieldLabel htmlFor="phone" className="m-0">
                                     Phone
                                 </FieldLabel>
-                                <PhoneInput
-                                    {...field}
+                                <PhoneNumberInput
                                     id="phone"
-                                    aria-invalid={fieldState.invalid}
-                                    autoComplete="off"
-                                    placeholder="Enter your phone number"
+                                    name={field.name}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    invalid={fieldState.invalid}
+                                    placeholder="917 123 4567"
                                 />
+                                <FieldDescription className="text-xs">
+                                    Philippines (+63) is selected by default. Enter the number without the leading 0.
+                                </FieldDescription>
                                 {fieldState.error && (
                                     <FieldError>{fieldState.error.message}</FieldError>
                                 )}
@@ -159,7 +161,10 @@ export default function SuperAdminRegisterForm({managers, admins, onSubmit, onCa
                                 <FieldLabel htmlFor="role" className="m-0">
                                     Role
                                 </FieldLabel>
-                                <Select>
+                                <Select 
+                                    value={field.value ?? undefined}
+                                    onValueChange={field.onChange}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a role" />
                                     </SelectTrigger>
@@ -171,6 +176,10 @@ export default function SuperAdminRegisterForm({managers, admins, onSubmit, onCa
                                         ))}
                                     </SelectContent>
                                 </Select>
+
+                                {fieldState.error && (
+                                    <FieldError>{fieldState.error.message}</FieldError>
+                                )}
                             </Field>
                         )}
                     />
@@ -183,7 +192,10 @@ export default function SuperAdminRegisterForm({managers, admins, onSubmit, onCa
                                 <FieldLabel htmlFor="department" className="m-0">
                                     Department
                                 </FieldLabel>
-                                <Select>
+                                <Select 
+                                    value={field.value ?? undefined}
+                                    onValueChange={field.onChange}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a department" />
                                     </SelectTrigger>
@@ -195,6 +207,10 @@ export default function SuperAdminRegisterForm({managers, admins, onSubmit, onCa
                                         ))}
                                     </SelectContent>
                                 </Select>
+
+                                {fieldState.error && (
+                                    <FieldError>{fieldState.error.message}</FieldError>
+                                )}
                             </Field>
                         )}
                     />
@@ -208,7 +224,11 @@ export default function SuperAdminRegisterForm({managers, admins, onSubmit, onCa
                                     Salary
                                 </FieldLabel>
                                 <Input
+                                    type="number"
                                     {...field}
+                                    value={field.value ?? undefined}
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
                                     id="salary"
                                     aria-invalid={fieldState.invalid}
                                     autoComplete="off"
@@ -229,23 +249,26 @@ export default function SuperAdminRegisterForm({managers, admins, onSubmit, onCa
                                 <FieldLabel htmlFor="assigned_to" className="m-0">
                                     Assigned To
                                 </FieldLabel>
-                                <Select>
+                                <Select value={field.value ?? undefined} onValueChange={field.onChange}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a manager or admin" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {managers.map((manager) => (
                                             <SelectItem key={manager.value} value={manager.value}>
-                                                {manager.label}
+                                                {manager.label} (Manager)
                                             </SelectItem>
                                         ))}
                                         {admins.map((admin) => (
                                             <SelectItem key={admin.value} value={admin.value}>
-                                                {admin.label}
+                                                {admin.label} (Admin)
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <FieldError>{fieldState.error.message}</FieldError>
+                                )}
                             </Field>
                         )}
                     />

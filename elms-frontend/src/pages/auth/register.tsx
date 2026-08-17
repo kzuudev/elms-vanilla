@@ -4,7 +4,6 @@ import { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 
 import {api} from "@/lib/api.ts";
-import "react-phone-number-input/style.css";
 
 import { AuthContext } from '@/features/context/auth/AuthContext';
 import AdminRegisterForm from '@/features/register/AdminRegisterForm';
@@ -13,6 +12,17 @@ import SuperAdminRegisterForm from '@/features/register/SuperAdminRegisterForm';
 
 interface RegisterFormProps {
     closeDialog: () => void;
+}
+
+interface RegisterFormData {
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    role: string;
+    department: string;
+    salary: string;
+    assigned_to: string | null;
 }
 
 export default function Register({closeDialog}: RegisterFormProps) {
@@ -101,7 +111,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
         fetchAdmins();
     }, []);
 
-    const onSubmit = async (data) => {
+    const onSubmit = async (data: RegisterFormData) => {
 
         const token = localStorage.getItem("token");
 
@@ -111,11 +121,16 @@ export default function Register({closeDialog}: RegisterFormProps) {
                     Authorization: `Bearer ${token}`
                 }
             });
-            console.log(response.data);
-            window.dispatchEvent(new Event('user-mutated'));
-            closeDialog();
+            if(response.data.success) {
+                window.dispatchEvent(new Event('user-mutated'));
+                closeDialog();
+            }
         } catch (e) {
-            
+            if (axios.isAxiosError(e)) {
+                setError(e.response?.data?.error || e.response?.data?.message || "Failed to register user");
+            } else {
+                setError("Failed to register user");
+            }
         }
     }
 
@@ -128,10 +143,11 @@ export default function Register({closeDialog}: RegisterFormProps) {
                 </div>
 
                 {isAdmin && (
-                    <AdminRegisterForm managers={managers} onSubmit={() => onSubmit({})} onCancel={closeDialog} />
+                    <AdminRegisterForm managers={managers} onSubmit={onSubmit} onCancel={closeDialog} />
                 )}
+                    
                 {isSuperAdmin && (
-                    <SuperAdminRegisterForm managers={managers} admins={admins} onSubmit={() => onSubmit({})} onCancel={closeDialog} />
+                    <SuperAdminRegisterForm managers={managers} admins={admins}  onSubmit={onSubmit} onCancel={closeDialog} />
                 )}
             </div>
 
