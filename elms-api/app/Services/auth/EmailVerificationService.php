@@ -3,10 +3,13 @@
 namespace App\Services\Auth;
 
 use Core\Database;
+use Throwable;
 use Core\App;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
+use App\Exceptions\VerificationEmailException;
+
 
 
 class EmailVerificationService {
@@ -54,8 +57,8 @@ class EmailVerificationService {
 
         $phpmailer->send();
         return true;
-    }catch (Exception $e) {
-        throw new \Exception('Failed to send verification email: ' . $e->getMessage());
+    }catch (Throwable $e) {
+        throw new VerificationEmailException($e->getMessage());
     }
 
     }

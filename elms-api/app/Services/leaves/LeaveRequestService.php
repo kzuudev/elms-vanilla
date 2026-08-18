@@ -28,8 +28,6 @@ class LeaveRequestService implements LeaveRequestInterface {
     public function createLeaveRequest(int $user_id, string $role, string $leave_type, string $start_date, string $end_date, string $reason) {
 
         try{
-            
-            $this->db->beginTransaction();
 
             $assigned_to = $this->db->query(
                 "SELECT 
@@ -103,6 +101,8 @@ class LeaveRequestService implements LeaveRequestInterface {
                 throw new Exception('Role not found.');
             }
 
+            $this->db->beginTransaction();
+            
             // insert the leave request into the database
             $this->db->query("INSERT INTO leave_requests (user_id, leave_type_id, start_date, end_date, total_days, reason, status, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date, :total_days, :reason, :status, :assigned_to)", [
                 'user_id' => $user_id,

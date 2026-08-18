@@ -50,14 +50,12 @@ class LeaveRequestController
         }
 
         try {
-            
             $leave_request = $this->leave_request_service->createLeaveRequest($this->user_id, $this->role, $leave_type, $start_date, $end_date, $reason);
             $this->db->response(201, true, 'Leave request submitted successfully.', ['leave_request_id' => $leave_request]);
         }catch (Exception $e) {
             $this->db->response(422, false, $e->getMessage());
         }
 
-        throw new Exception('Failed to submit leave request.');
     }
 
     public function index(): void
@@ -80,6 +78,7 @@ class LeaveRequestController
             $this->db->response(200, true, 'Leave requests fetched successfully.', ['leave_requests' => $leave_requests]);
         }catch (Exception $e) {
             $this->db->response(422, false, $e->getMessage());
+            return;
         }
 
     }
@@ -91,6 +90,7 @@ class LeaveRequestController
             $this->db->response(200, true, 'Leave request fetched successfully.', ['leave_request' => $leave_request]);
         }catch (Exception $e) {
             $this->db->response(403, false, $e->getMessage(), ['leave_request_id' => $id]);
+            return;
         }
 
     }
@@ -117,6 +117,7 @@ class LeaveRequestController
             return;
         }catch (Exception $e) {
             $this->db->response(422, false, $e->getMessage(), ['leave_request_id' => $id]);
+            return;
         }
 
     }

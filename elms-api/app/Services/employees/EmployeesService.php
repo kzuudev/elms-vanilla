@@ -28,7 +28,6 @@ class EmployeesService {
 
     public function getEmployees() {
 
-        $this->db->beginTransaction();
 
         if(!$this->current_user_id) {
             throw new Exception('Authorized user not found');
@@ -93,16 +92,12 @@ class EmployeesService {
 
         $employees = $this->db->query($query, $params)->all();
 
-         $this->db->commit();
          return $employees;
     }
 
     public function getEmployee($id) {
 
-        $this->db->beginTransaction();
-
         if(!$this->current_user_id) {
-            $this->db->rollBack();
             throw new Exception('Authorized user not found');
         }
 
@@ -125,7 +120,6 @@ class EmployeesService {
         ])->find();
 
         if (!$user) {
-            $this->db->rollBack();
             throw new Exception('Employee not found');
         }
 
@@ -136,15 +130,14 @@ class EmployeesService {
             WHERE role = 'manager' AND is_active = 1
         ")->all();
 
-        $this->db->commit();
         return $user;
     }
 
     public function updateEmployee($id) {
 
-        $this->db->beginTransaction();
 
         try{
+
             if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super admin'], true)) {
 
                 $existing_user = $this->db->query("SELECT * FROM users WHERE id = :id", [
@@ -178,6 +171,8 @@ class EmployeesService {
                 if(!$employee_form->validate($first_name, $last_name, $email, $phone, $role, $department, $salary, $manager_id, $is_active, $hired_date)) {
                     throw new Exception('Invalid inputs.');
                 }
+
+                $this->db->beginTransaction();
                 
                 $this->db->query("
                 UPDATE 
@@ -220,18 +215,16 @@ class EmployeesService {
                 $this->db->commit();
                 return $edited_user;
             }
+
+            throw new Exception('Unauthorized access');
         }catch(Exception $e) {
             $this->db->rollBack();
             throw $e;
         }
 
-       $this->db->rollBack();
-       throw new Exception('Unauthorized access');
     }
 
     public function deleteEmployee($id) {
-
-        $this->db->beginTransaction();
 
         try{
 
@@ -249,7 +242,8 @@ class EmployeesService {
                 throw new Exception('You are not authorized to delete this employee (admin).');
             }
     
-    
+            $this->db->beginTransaction();
+
             $delete_user = $this->db->query("UPDATE users SET is_active = 0 AND deleted_at = CURRENT_TIMESTAMP WHERE id = :id", [
                 'id' => $id
             ]);
@@ -257,6 +251,8 @@ class EmployeesService {
             $this->db->commit();
             return $delete_user;
         }
+
+        throw new Exception('Unauthorized Access.');
 
         }catch(Exception $e) {
             $this->db->rollBack();
@@ -267,8 +263,6 @@ class EmployeesService {
     }
 
     public function getProfile($id) {
-
-        $this->db->beginTransaction();
 
         if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super-admin', 'manager'], true)) {
            
@@ -328,17 +322,13 @@ class EmployeesService {
                 }
             }
 
-            $this->db->commit();
             return $structured_data;
         }
 
-        $this->db->rollBack();
         throw new Exception('Unauthorized Access');
     }
 
     public function getManagers() {
-
-        $this->db->beginTransaction();
 
         if ($this->current_user_id && in_array($this->current_user_role, ['admin', 'super-admin'], true)) {
 
@@ -365,19 +355,19 @@ class EmployeesService {
 
             $managers = $this->db->query($query, $params)->all();
 
-            $this->db->commit();
+            if(!$managers) {
+                throw new Exception('No managers found');
+            }
+
+        
             return $managers; 
             
         }
 
-
-        $this->db->rollBack();
         throw new Exception('Unauthorized Access');  
     }
 
     public function getAdmins() {
-
-        $this->db->beginTransaction();
 
         if($this->current_user_id && in_array($this->current_user_role, ['super-admin'], true)) {
 
@@ -394,13 +384,15 @@ class EmployeesService {
 
             $admins = $this->db->query($query, $params)->all();
 
-            $this->db->commit();
+            if(!$admins) {
+                throw new Exception('No admins found');
+            }
+
             return $admins;
 
         }
 
-        $this->db->rollBack();
         throw new Exception('Unauthorized Access');
     }
 
-}
+    }

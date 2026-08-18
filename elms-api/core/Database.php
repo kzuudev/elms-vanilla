@@ -79,7 +79,6 @@ class Database {
 
     public static function response($code, $status, $message, $data = null) {
         http_response_code($code);
-        
         echo json_encode([
             "success" => $status,
             "message" => $message,
