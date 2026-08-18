@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Leave;
 use App\Http\Middleware\Auth;
 use Core\App;
 use Core\Database;
-use Exception;
+use App\Exceptions\domain\DomainException;
 use App\Services\notifications\NotificationService;
 use App\Services\leaves\LeaveReviewService;
 use App\Contracts\LeaveReviewInterface;
@@ -42,7 +42,9 @@ class LeaveReviewController {
     }
 
     /**
-     * @throws \Exception
+     * @throws NotFoundException
+     * @throws ForbiddenException
+     * @throws BadRequestException
      */
     public function index() {
 
@@ -62,8 +64,12 @@ class LeaveReviewController {
             $leave_requests = $this->leave_review_service->getLeaveRequest($leave_type, $start_date, $end_date, $status);
             $this->db->response(200, true, 'Leave requests fetched successfully.', ['leave_requests' => $leave_requests]);
             return $leave_requests;
-        }catch (Exception $e) {
-            $this->db->response(422, false, $e->getMessage());
+        }catch (DomainException $e) {
+            $this->db->response($e->getStatus(), false, $e->getMessage());
+            return;
+        }catch(Throwable $e) {
+            $this->db->response(500, false, 'Something went wrong. Please try again later.');
+            return;
         }
     }
 
@@ -72,16 +78,16 @@ class LeaveReviewController {
         $status = $this->input['status'] ?? '';
         $rejection_reason = $this->input['rejection_reason'] ?? '';
 
-        if(!in_array($status, ['approved', 'rejected'])) {
-            throw new Exception('Invalid status. Must be approved or rejected.');
-            return;
-        }
-
         try{
             $updated_leave_request = $this->leave_review_service->reviewLeaveRequest($id, $this->user_id, $this->role, $this->department, $status, $rejection_reason);
-            
-        }catch (Exception $e) {
-            $this->db->response(422, false, $e->getMessage());
+            $this->db->response(200, true, 'Leave request updated successfully.', ['leave_request' => $updated_leave_request]);
+            return;
+        }catch (DomainException $e) {
+            $this->db->response($e->getStatus(), false, $e->getMessage());
+            return;
+        }catch(Throwable $e) {
+            $this->db->response(500, false, 'Something went wrong. Please try again later.');
+            return;
         }
 
     }
@@ -91,8 +97,13 @@ class LeaveReviewController {
         try{
             $check_overlap = $this->leave_review_service->getCheckOverlap($id, $this->user_id, $this->role, $this->department);
             $this->db->response(200, true, 'Check overlap fetched successfully.', ['check_overlap' => $check_overlap]);
-        }catch (Exception $e) {
-            $this->db->response(422, false, $e->getMessage());
+            return;
+        }catch (DomainException $e) {
+            $this->db->response($e->getStatus(), false, $e->getMessage());
+            return;
+        }catch(Throwable $e) {
+            $this->db->response(500, false, 'Something went wrong. Please try again later.');
+            return;
         }
 
     }

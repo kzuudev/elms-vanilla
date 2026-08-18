@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Leave;
 
 use Core\App;
 use Throwable;
-use Exception;
+
 use App\Exceptions\domain\DomainException;
 use Core\Database;
 use App\Http\Middleware\Auth;
@@ -101,8 +101,8 @@ class LeaveRequestController
             $leave_request = $this->leave_request_service->getLeaveRequest($id, $this->user_id, $this->role);
             $this->db->response(200, true, 'Leave request fetched successfully.', ['leave_request' => $leave_request]);
             return;
-        }catch (Exception $e) {
-            $this->db->response(403, false, $e->getMessage(), ['leave_request_id' => $id]);
+        }catch (DomainException $e) {
+            $this->db->response($e->getStatus(), false, $e->getMessage(), ['leave_request_id' => $id]);
             return;
         }catch (Throwable $e) {
             $this->db->response(500, false, 'Something went wrong. Please try again later.');
@@ -131,8 +131,8 @@ class LeaveRequestController
             $updated_leave_request = $this->leave_request_service->updateLeaveRequest($id, $this->user_id, $this->role, $leave_type, $start_date, $end_date, $reason);
             $this->db->response(200, true, 'Leave request updated successfully.', ['leave_request' => $updated_leave_request]);
             return;
-        }catch (Exception $e) {
-            $this->db->response(422, false, $e->getMessage(), ['leave_request_id' => $id]);
+        }catch (DomainException $e) {
+            $this->db->response($e->getStatus(), false, $e->getMessage(), ['leave_request_id' => $id]);
             return;
         }catch(Throwable $e) {
             $this->db->response(500, false, 'Something went wrong. Please try again later.');
@@ -148,8 +148,8 @@ class LeaveRequestController
             $deleted_leave_request_id = $this->leave_request_service->deleteLeaveRequest($id, $this->user_id, $this->role);
             $this->db->response(200, true, 'Leave request deleted successfully.', ['leave_request_id' => $deleted_leave_request_id]);
             return;
-        }catch (Exception $e) {
-            $this->db->response(422, false, $e->getMessage(), ['leave_request_id' => $id]);
+        }catch (DomainException $e) {
+            $this->db->response($e->getStatus(), false, $e->getMessage(), ['leave_request_id' => $id]);
             return;
         }catch(Throwable $e) {
             $this->db->response(500, false, 'Something went wrong. Please try again later.');

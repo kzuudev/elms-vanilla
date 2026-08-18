@@ -155,7 +155,8 @@ class LeaveRequestService implements LeaveRequestInterface {
             LEFT JOIN users u ON lr.user_id = u.id
             LEFT JOIN users m ON lr.assigned_to = m.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
-            WHERE lr.user_id = :user_id AND lr.deleted_at IS NULL
+            WHERE lr.deleted_at IS NULL
+            AND (lr.user_id = :user_id OR lr.assigned_to = :user_id)
         ";
 
         $params = [
@@ -194,23 +195,24 @@ class LeaveRequestService implements LeaveRequestInterface {
     public function getLeaveRequest($id, $user_id, $role) {
 
         $leave_request = $this->db->query("
-        SELECT 
-            lr.*,
-            lt.name as leave_type
-        FROM leave_requests lr
-        LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
-        WHERE lr.user_id = :user_id AND lr.id = :id AND lr.deleted_at IS NULL
+            SELECT 
+                lr.*,
+                lt.name as leave_type
+            FROM leave_requests lr
+            LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
+            WHERE lr.deleted_at IS NULL
+            AND (lr.user_id = :user_id OR lr.assigned_to = :user_id)
         ", [
-                'id' => $id,
-                'user_id' => $user_id
+            'id' => $id,
+            'user_id' => $user_id
         ])->find();
 
         if(!$leave_request) {
-            throw new Exception('Leave request not found.');
+            throw new NotFoundException('Leave request not found.');
         }
 
         if($leave_request['user_id'] !== $user_id && $leave_request['assigned_to'] !== $user_id && $role !== 'admin') {
-            throw new Exception('You are not authorized to fetch this leave request.');
+            throw new ForbiddenException('You are not authorized to fetch this leave request.');
         }
 
         return $leave_request;
@@ -232,11 +234,11 @@ class LeaveRequestService implements LeaveRequestInterface {
             ])->find();
 
             if (!$existing_leave_request) {
-                throw new Exception('Leave request not found.');
+                throw new NotFoundException('Existing leave request not found.');
             }
 
             if($existing_leave_request['user_id'] !== $user_id && $existing_leave_request['assigned_to'] !== $user_id && $role !== 'admin') {
-                throw new Exception('You are not authorized to update this leave request.');
+                throw new ForbiddenException('You are not authorized to update this leave request.');
             }
 
              // validate if the leave request is approved or rejected
@@ -244,12 +246,12 @@ class LeaveRequestService implements LeaveRequestInterface {
 
              // if the leave request is approved, return an error
              if($current_status === 'approved') {
-                 throw new Exception('You cannot update an approved leave request.');
+                 throw new BadRequestException('You cannot update an approved leave request.');
              }
  
              // if the leave request is rejected, return an error
              if($current_status === 'rejected') {
-                 throw new Exception('You cannot update a rejected leave request.');
+                 throw new BadRequestException('You cannot update a rejected leave request.');
              }
  
              // existing leave type name (rather than id) since the user will be submitting the leave type name
@@ -258,7 +260,7 @@ class LeaveRequestService implements LeaveRequestInterface {
              ])->find();
  
              if (!$existing_leave_type) {
-                 throw new Exception('Existing leave type not found.');
+                 throw new NotFoundException('Existing leave type not found.');
              }
  
              // validate the leave type
@@ -267,11 +269,11 @@ class LeaveRequestService implements LeaveRequestInterface {
              ])->find();
  
              if (!$new_leave_type) {
-                 throw new Exception('New leave type not found.');
+                 throw new NotFoundException('New leave type not found.');
              }
  
              if ($start_date > $end_date) {
-                 throw new Exception('Start date must be before end date.');
+                 throw new BadRequestException('Start date must be before end date.');
              }
  
              // convert the start and end date to DateTime objects
@@ -296,7 +298,7 @@ class LeaveRequestService implements LeaveRequestInterface {
              ])->find();
  
              if (!$remaining_balance || $remaining_balance['remaining_balance'] < $days_requested) {
-                 throw new Exception('Insufficient leave balance for this leave type.');
+                 throw new BadRequestException('Insufficient leave balance for this leave type.');
              }
  
              // validate if there's already an existing leave request in the date range
@@ -317,7 +319,7 @@ class LeaveRequestService implements LeaveRequestInterface {
              ])->find();
  
              if ($overlap_request) {
-                 throw new Exception('You already have a pending or approved request for this leave type during the selected dates.');
+                 throw new BadRequestException('You already have a pending or approved request for this leave type during the selected dates.');
              }
  
             try{
@@ -350,16 +352,16 @@ class LeaveRequestService implements LeaveRequestInterface {
         ])->find();
 
         if(!$leave_request) {
-            throw new Exception('Leave request not found.');
+            throw new NotFoundException('Leave request not found.');
         }
 
         // validate if the user is the owner of the leave request (tightes just in case admin or super admin wants to delete the leave request)
         if($leave_request['user_id'] !== $user_id && $leave_request['assigned_to'] !== $user_id && $role !== 'admin') {
-            throw new Exception('You are not authorized to delete this leave request.');
+            throw new ForbiddenException('You are not authorized to delete this leave request.');
         }
 
         if (in_array($leave_request['status'], ['approved', 'rejected'], true)) {
-            throw new Exception('Only pending leave requests can be deleted.');
+            throw new BadRequestException('Only pending leave requests can be deleted.');
         }
 
         try{

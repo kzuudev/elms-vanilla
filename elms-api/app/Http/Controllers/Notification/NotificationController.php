@@ -13,23 +13,23 @@ class NotificationController {
     private Database $db;
     private Auth $auth;
 
-    private NotificationService $notificationService;
+    private NotificationService $notification_service;
 
     public function __construct() {
 
         $this->db = App::resolve(Database::class);
         $this->auth = App::resolve(Auth::class);
-        $this->notificationService = App::resolve(NotificationService::class);
+        $this->notification_service = App::resolve(NotificationService::class);
     }
 
     public function index() {
 
-        return $this->notificationService->getNotifications();
+        return $this->notification_service->getNotifications();
     }
 
     public function patch(int $id) {
         
-        $mark_as_read = $this->notificationService->markAsRead($id);
+        $mark_as_read = $this->notification_service->markAsRead($id);
 
         if(!$mark_as_read) {
             return $this->db->response(400, false, 'Failed to mark as read');
