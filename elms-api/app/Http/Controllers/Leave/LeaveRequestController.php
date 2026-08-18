@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Leave;
 
 use Core\App;
+use Throwable;
+use Exception;
+use App\Exceptions\domain\DomainException;
 use Core\Database;
-use App\Services\leaves\LeaveRequestService;
 use App\Http\Middleware\Auth;
 use App\Http\Forms\LeaveRequestForm;
-use Exception;
+use App\Services\leaves\LeaveRequestService;
 
 
 class LeaveRequestController
@@ -49,11 +51,16 @@ class LeaveRequestController
             return;
         }
 
-        try {
+        try{
             $leave_request = $this->leave_request_service->createLeaveRequest($this->user_id, $this->role, $leave_type, $start_date, $end_date, $reason);
             $this->db->response(201, true, 'Leave request submitted successfully.', ['leave_request_id' => $leave_request]);
-        }catch (Exception $e) {
-            $this->db->response(422, false, $e->getMessage());
+            return;
+        }catch(DomainException $e) {
+            $this->db->response($e->getStatus(), false, $e->getMessage(), ['errors' => $e->getMessage()]);
+            return;
+        }catch(Throwable $e) {
+            $this->db->response(500, false, 'Something went wrong. Please try again later,');
+            return;
         }
 
     }
@@ -76,8 +83,12 @@ class LeaveRequestController
         try{
             $leave_requests = $this->leave_request_service->getLeaveRequests($this->user_id, $this->role, $this->department, $leave_type, $start_date, $end_date, $status);
             $this->db->response(200, true, 'Leave requests fetched successfully.', ['leave_requests' => $leave_requests]);
+            return;
         }catch (Exception $e) {
             $this->db->response(422, false, $e->getMessage());
+            return;
+        }catch(Throwable $e) {
+            $this->db->response(500, false, 'Something went wrong. Please try again later.');
             return;
         }
 
@@ -85,11 +96,16 @@ class LeaveRequestController
 
     public function show($id): void
     {
+
         try{
             $leave_request = $this->leave_request_service->getLeaveRequest($id, $this->user_id, $this->role);
             $this->db->response(200, true, 'Leave request fetched successfully.', ['leave_request' => $leave_request]);
+            return;
         }catch (Exception $e) {
             $this->db->response(403, false, $e->getMessage(), ['leave_request_id' => $id]);
+            return;
+        }catch (Throwable $e) {
+            $this->db->response(500, false, 'Something went wrong. Please try again later.');
             return;
         }
 
@@ -118,6 +134,9 @@ class LeaveRequestController
         }catch (Exception $e) {
             $this->db->response(422, false, $e->getMessage(), ['leave_request_id' => $id]);
             return;
+        }catch(Throwable $e) {
+            $this->db->response(500, false, 'Something went wrong. Please try again later.');
+            return;
         }
 
     }
@@ -126,12 +145,15 @@ class LeaveRequestController
     {
 
         try{
-
             $deleted_leave_request_id = $this->leave_request_service->deleteLeaveRequest($id, $this->user_id, $this->role);
             $this->db->response(200, true, 'Leave request deleted successfully.', ['leave_request_id' => $deleted_leave_request_id]);
+            return;
         }catch (Exception $e) {
             $this->db->response(422, false, $e->getMessage(), ['leave_request_id' => $id]);
-            
+            return;
+        }catch(Throwable $e) {
+            $this->db->response(500, false, 'Something went wrong. Please try again later.');
+            return;
         }
         
     }

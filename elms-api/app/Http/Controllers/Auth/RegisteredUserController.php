@@ -7,7 +7,7 @@ use Core\Database;
 use App\Http\Middleware\Auth;
 use App\Http\Forms\RegisterForm;
 use App\Services\registration\RegisterUserService;
-use App\Exceptions\UserAlreadyExistsExceptions;
+use App\Exceptions\Auth\UserAlreadyExistsExceptions;
 use Throwable;
 
 class RegisteredUserController {

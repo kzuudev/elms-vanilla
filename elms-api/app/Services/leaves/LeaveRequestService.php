@@ -4,14 +4,18 @@
 namespace App\Services\leaves;
 
 use Core\App;
-use Core\Database;
-use App\Contracts\LeaveRequestInterface;
-use App\Http\Forms\LeaveRequestForm;
-use App\Services\notifications\NotificationService;
+use Throwable;
 use Exception;
 use DateTime;
-use DateInterval;
 use DatePeriod;
+use DateInterval;
+use Core\Database;
+use App\Http\Forms\LeaveRequestForm;
+use App\Contracts\LeaveRequestInterface;
+use App\Exceptions\domain\NotFoundException;
+use App\Exceptions\domain\BadRequestException;
+use App\Services\notifications\NotificationService;
+
 
 class LeaveRequestService implements LeaveRequestInterface {
 
@@ -27,8 +31,6 @@ class LeaveRequestService implements LeaveRequestInterface {
 
     public function createLeaveRequest(int $user_id, string $role, string $leave_type, string $start_date, string $end_date, string $reason) {
 
-        try{
-
             $assigned_to = $this->db->query(
                 "SELECT 
                     assigned_to AS approver_id, 
@@ -42,7 +44,7 @@ class LeaveRequestService implements LeaveRequestInterface {
         
             // validate if the start date is before the end date
             if ($start_date > $end_date) {
-                throw new Exception('Start date must be before end date.');
+                throw new BadRequestException('Start date cannot be after end date.');
             }
 
             // convert the start and end date to DateTime objects
@@ -67,7 +69,7 @@ class LeaveRequestService implements LeaveRequestInterface {
             ])->find();
 
             if (!$leave_type_record) {
-                throw new Exception('Leave type not found.');
+                throw new NotFoundException('Leave type not found.');
             }
 
             // query the remaining balance and leave types
@@ -90,48 +92,50 @@ class LeaveRequestService implements LeaveRequestInterface {
             ])->find();
 
             if ($overlap) {
-                throw new Exception('You already have a pending or approved request for this leave type during the selected dates.');
+                throw new BadRequestException('You already have a pending or approved request for this leave type during the selected dates.');
             }
 
             if (!$remaining_balance || $remaining_balance['remaining_balance'] < $days_requested) {
-                throw new Exception('Insufficient leave balance for this leave type.');
+                throw new BadRequestException('Insufficient leave balance for this leave type.');
             }
 
             if (!$role) {
-                throw new Exception('Role not found.');
+                throw new NotFoundException('Role not found.');
             }
 
-            $this->db->beginTransaction();
+            if(!$reason) {
+                throw new BadRequestException('Please provide a reason for your leave request.');
+            }
+
+            try{
+                $this->db->beginTransaction();
             
-            // insert the leave request into the database
-            $this->db->query("INSERT INTO leave_requests (user_id, leave_type_id, start_date, end_date, total_days, reason, status, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date, :total_days, :reason, :status, :assigned_to)", [
-                'user_id' => $user_id,
-                'leave_type_id' => $leave_type_record['id'],
-                'start_date' => $start_date,
-                'end_date' => $end_date,
-                'total_days' => $days_requested,
-                'reason' => $reason,
-                'status' => 'pending',
-                'assigned_to' => $assigned_to['approver_id'] ?? null
-            ]);
+                // insert the leave request into the database
+                $this->db->query("INSERT INTO leave_requests (user_id, leave_type_id, start_date, end_date, total_days, reason, status, assigned_to) VALUES (:user_id, :leave_type_id, :start_date, :end_date, :total_days, :reason, :status, :assigned_to)", [
+                    'user_id' => $user_id,
+                    'leave_type_id' => $leave_type_record['id'],
+                    'start_date' => $start_date,
+                    'end_date' => $end_date,
+                    'total_days' => $days_requested,
+                    'reason' => $reason,
+                    'status' => 'pending',
+                    'assigned_to' => $assigned_to['approver_id'] ?? null
+                ]);
 
-            $notification_service = new NotificationService();
-            $notification_service->createNotification(
-                $assigned_to['approver_id'],
-                'New Leave Request Submitted',
-                'leave_request_submitted',
-                'A new leave request has been submitted for your approval. Please review it and take appropriate action.'
-            );
+                $notification_service = new NotificationService();
+                $notification_service->createNotification(
+                    $assigned_to['approver_id'],
+                    'New Leave Request Submitted',
+                    'leave_request_submitted',
+                    'A new leave request has been submitted for your approval. Please review it and take appropriate action.'
+                );
 
-            $this->db->commit();
-            return $this->db->lastInsertId();
-
-        }catch (Exception $e) {
-            $this->db->rollBack();
-            throw $e;
-        }
-
-        
+                $this->db->commit();
+                return $this->db->lastInsertId();
+            }catch(Throwable $e) {
+                $this->db->rollBack();
+                throw $e;
+            }
 
     }
 
@@ -214,9 +218,7 @@ class LeaveRequestService implements LeaveRequestInterface {
 
     public function updateLeaveRequest($id, $user_id, $role, $leave_type, $start_date, $end_date, $reason) {
 
-        try{
-            $this->db->beginTransaction();
-
+    
             $existing_leave_request = $this->db->query("
             SELECT 
                 lr.*,
@@ -318,23 +320,26 @@ class LeaveRequestService implements LeaveRequestInterface {
                  throw new Exception('You already have a pending or approved request for this leave type during the selected dates.');
              }
  
-            $this->db->query("UPDATE leave_requests SET start_date = :start_date, end_date = :end_date, reason = :reason, leave_type_id = :leave_type_id WHERE id = :id", [
-                 'id' => $id,
-                 'start_date' => $start_date,
-                 'end_date' => $end_date,
-                 'reason' => $reason,
-                 'leave_type_id' => $new_leave_type['id']
-             ]);
+            try{
+
+                $this->db->beginTransaction();
+
+                $this->db->query("UPDATE leave_requests SET start_date = :start_date, end_date = :end_date, reason = :reason, leave_type_id = :leave_type_id WHERE id = :id", [
+                    'id' => $id,
+                    'start_date' => $start_date,
+                    'end_date' => $end_date,
+                    'reason' => $reason,
+                    'leave_type_id' => $new_leave_type['id']
+                 ]);
              
-             $this->db->commit();
-             return $id;    
+                $this->db->commit();
+                return $id;    
 
+            }catch(Throwable $e) {
+                $this->db->rollBack();
+                throw $e;
+            }
 
-           
-        }catch (Exception $e) {
-            $this->db->rollBack();
-            throw $e;
-        }
 
     }
 
@@ -357,11 +362,20 @@ class LeaveRequestService implements LeaveRequestInterface {
             throw new Exception('Only pending leave requests can be deleted.');
         }
 
-        $this->db->query("UPDATE leave_requests SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id", [
-            'id' => $id
-        ]);
+        try{
+            $this->db->beginTransaction();
 
-        return $id;
+            $this->db->query("UPDATE leave_requests SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id", [
+                'id' => $id
+            ]);
+
+            $this->db->commit();
+            return $id;
+        }catch(Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+
     }
 
 

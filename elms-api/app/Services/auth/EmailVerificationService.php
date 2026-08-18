@@ -8,7 +8,7 @@ use Core\App;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
-use App\Exceptions\VerificationEmailException;
+use App\Exceptions\Auth\VerificationEmailException;
 
 
 
