@@ -161,7 +161,7 @@ export default function ReviewerLeaveTable() {
     }
 
     const handleViewLeaveRequest = async (id: number) => {
-        await fetchLeaveRequestDetails(id);
+        fetchLeaveRequestDetails(id);
         setIsViewModalOpen(true);
     }
 

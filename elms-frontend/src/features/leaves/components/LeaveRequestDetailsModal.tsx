@@ -8,7 +8,7 @@ import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/
 import {Button} from "@/components/ui/button.tsx";
 import {Pencil, Trash} from "lucide-react";
 import type { LeaveContextType } from "@/features/context/leaves/LeaveContext.tsx";
-import { formatDate } from "@/utils/date.ts";
+import { formatDate, formatDateTime, formatDateRange } from "@/utils/date.ts";
 
 interface Props {
     isViewMode: boolean;
@@ -34,13 +34,8 @@ export default function LeaveRequestDetailsModal({isViewMode, setIsViewMode} : P
                                 </div>
 
                                 <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Start Date:</span>
-                                    <span>{leaveRequestDetails?.start_date}</span>
-                                </div>
-
-                                <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">End Date:</span>
-                                    <span>{leaveRequestDetails?.end_date}</span>
+                                    <span className="text-sm text-muted-foreground">Date Range</span>
+                                    <span>{formatDateRange(leaveRequestDetails?.start_date ?? '', leaveRequestDetails?.end_date ?? '')}</span>
                                 </div>
 
                                 <div className="flex justify-between">
@@ -60,7 +55,7 @@ export default function LeaveRequestDetailsModal({isViewMode, setIsViewMode} : P
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Created At:</span>
-                                    <span>{formatDate(leaveRequestDetails?.created_at ?? '')}</span>
+                                    <span>{formatDateTime(leaveRequestDetails?.created_at ?? '')}</span>
                                 </div>
 
                                 <div className="flex justify-between">
