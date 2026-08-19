@@ -9,7 +9,7 @@ import { AuthContext } from '@/features/context/auth/AuthContext';
 import AdminRegisterForm from '@/features/register/AdminRegisterForm';
 import SuperAdminRegisterForm from '@/features/register/SuperAdminRegisterForm';
 
-
+import { type Manager, type Admin } from '@/types/employees';
 interface RegisterFormProps {
     closeDialog: () => void;
 }
@@ -35,81 +35,79 @@ export default function Register({closeDialog}: RegisterFormProps) {
     const isAdmin = role === 'admin';
     const isSuperAdmin = role === 'super-admin';
 
-    const [managers, setManagers] = useState<{value: string, label: string}[]>([]);
-    const [admins, setAdmins] = useState<{value: string, label: string}[]>([]);
+    const [managers, setManagers] = useState<Manager[]>([]);
+    const [admins, setAdmins] = useState<Admin[]>([]);
 
     const [error, setError] = useState<string | null>(null);
 
 
-    // Fetch managers — EmployeesController@managers
-    useEffect(() => {
-        const fetchManagers = async () => {
-            try {
-                const holder = localStorage.getItem("token");
-                const response = await api.get("/employees/managers", {
-                    headers: { Authorization: `Bearer ${holder}` },
-                });
+    const fetchManagers = async () => {
+        try {
+            const holder = localStorage.getItem("token");
+            const response = await api.get("/employees/managers", {
+                headers: { Authorization: `Bearer ${holder}` },
+            });
 
-                setManagers(
-                    (response.data.data.managers ?? []).map(
-                        (manager: { id: number; first_name: string; last_name: string }) => ({
-                            value: String(manager.id),
-                            label: `${manager.first_name} ${manager.last_name}`,
-                        })
-                    )
+            setManagers(
+                (response.data.data.managers ?? []).map(
+                    (manager: Manager) => ({
+                        id: manager.id,
+                        first_name: manager.first_name,
+                        last_name: manager.last_name,
+                    })
+                )
+            );
+            setError(null);
+        } catch (e) {
+            if (axios.isCancel(e)) return;
+            setManagers([]);
+            if (axios.isAxiosError(e)) {
+                setError(
+                    e.response?.data?.error ||
+                    e.response?.data?.message ||
+                    "Failed to load managers from the server"
                 );
-                setError(null);
-            } catch (e) {
-                if (axios.isCancel(e)) return;
+            } else {
+                setError("Failed to load managers from the server");
                 setManagers([]);
-                if (axios.isAxiosError(e)) {
-                    setError(
-                        e.response?.data?.error ||
-                        e.response?.data?.message ||
-                        "Failed to load managers from the server"
-                    );
-                } else {
-                    setError("Failed to load managers from the server");
-                    setManagers([]);
-                }
             }
-        };
+        }
+    };
 
-        fetchManagers();
-    }, []);
+    const fetchAdmins = async () => {
+        try {
+            const holder = localStorage.getItem("token");
+            const response = await api.get("/employees/admins", {
+                headers: { Authorization: `Bearer ${holder}` },
+            });
 
-    // Fetch admins — EmployeesController@admins
-    useEffect(() => {
-        const fetchAdmins = async () => {
-            try {
-                const holder = localStorage.getItem("token");
-                const response = await api.get("/employees/admins", {
-                    headers: { Authorization: `Bearer ${holder}` },
-                });
-
-                setAdmins(
-                    (response.data.data.admins ?? []).map(
-                        (admin: { id: number; first_name: string; last_name: string }) => ({
-                            value: String(admin.id),
-                            label: `${admin.first_name} ${admin.last_name}`,
-                        })
-                    )
-                );
-                setError(null);
-            } catch (e) {
-                if (axios.isCancel(e)) return;
+            setAdmins(
+                (response.data.data.admins ?? []).map(
+                    (admin: Admin) => ({
+                        id: admin.id,
+                        first_name: admin.first_name,
+                        last_name: admin.last_name,
+                    })
+                )
+            );
+            setError(null);
+        } catch (e) {
+            if (axios.isCancel(e)) return;
+            setAdmins([]);
+            if (axios.isAxiosError(e)) {
+                setError(e.response?.data?.error || e.response?.data?.message || "Failed to load admins from the server");
+            } else {
+                setError("Failed to load admins from the server");
                 setAdmins([]);
-                if (axios.isAxiosError(e)) {
-                    setError(e.response?.data?.error || e.response?.data?.message || "Failed to load admins from the server");
-                } else {
-                    setError("Failed to load admins from the server");
-                    setAdmins([]);
-                }
             }
-        };
+        }
+    };
 
+    useEffect(() => {
+        fetchManagers();
         fetchAdmins();
     }, []);
+
 
     const onSubmit = async (data: RegisterFormData) => {
 
@@ -143,11 +141,11 @@ export default function Register({closeDialog}: RegisterFormProps) {
                 </div>
 
                 {isAdmin && (
-                    <AdminRegisterForm managers={managers} onSubmit={onSubmit} onCancel={closeDialog} />
+                    <AdminRegisterForm managers={managers.map(manager => ({ value: String(manager.id), label: `${manager.first_name} ${manager.last_name}` }))} onSubmit={onSubmit} onCancel={closeDialog} />
                 )}
                     
                 {isSuperAdmin && (
-                    <SuperAdminRegisterForm managers={managers} admins={admins}  onSubmit={onSubmit} onCancel={closeDialog} />
+                    <SuperAdminRegisterForm managers={managers.map(manager => ({ value: String(manager.id), label: `${manager.first_name} ${manager.last_name}` }))} admins={admins.map(admin => ({ value: String(admin.id), label: `${admin.first_name} ${admin.last_name}` }))} onSubmit={onSubmit} onCancel={closeDialog} />
                 )}
             </div>
 

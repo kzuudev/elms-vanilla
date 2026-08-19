@@ -44,5 +44,12 @@ export type EmployeeSummary = {
 
 export type Manager = {
     id: number;
-    name: string;
+    first_name: string;
+    last_name: string;
+}
+
+export type Admin = {
+    id: number;
+    first_name: string;
+    last_name: string;
 }

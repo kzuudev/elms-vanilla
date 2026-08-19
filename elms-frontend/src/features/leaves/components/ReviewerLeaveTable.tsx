@@ -123,18 +123,21 @@ export default function ReviewerLeaveTable() {
         let confirmationMessage = "Are you sure you want to approve this leave?";
 
         if(data.has_critical_overlap) {
-            confirmationMessage = `This leaves ${data.department} with ${data.remaining_staff} active staff member(s).\n\nAre you absolutely sure you want to approve this?`;
-        }else if (data.overlapping_employees.length > 0 && data.overlapping_employees.length < data.total_active_staff) {
-            confirmationMessage = `Notice: ${data.overlapping_employees.length} coworker(s) are already off during this window. Proceed with approval?`;
+            confirmationMessage = `This leaves ${data.department} with ${data.remaining_staff?.toString()} active staff member(s).\n\nAre you absolutely sure you want to approve this?`;
+        }else if (data.overlapping_employees?.length && data.overlapping_employees?.length > 0 && data.total_active_staff && data.total_active_staff > 0) {
+            confirmationMessage = `Notice: ${data.overlapping_employees?.length?.toString()} coworker(s) are already off during this window. Proceed with approval?`;
         }
 
 
-        if(window.confirm(confirmationMessage)) {
-            await handleUpdateStatus(id, "approved", "");
-            setActiveLeaveId(null);
-            setIsDialogOpen(false);
+        try {
+            if(window.confirm(confirmationMessage)) {
+                await handleUpdateStatus(id, "approved", "");
+                setActiveLeaveId(null);
+                setIsDialogOpen(false);
+            }
+        }catch (e) {
+            setError(e.response.data.message);
         }
-
     }
 
     // Handles submission when the manager clicks "Confirm Rejection" inside the modal form
