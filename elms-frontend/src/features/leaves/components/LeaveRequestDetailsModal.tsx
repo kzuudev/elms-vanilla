@@ -8,6 +8,7 @@ import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/
 import {Button} from "@/components/ui/button.tsx";
 import {Pencil, Trash} from "lucide-react";
 import type { LeaveContextType } from "@/features/context/leaves/LeaveContext.tsx";
+import { formatDate } from "@/utils/date.ts";
 
 interface Props {
     isViewMode: boolean;
@@ -59,7 +60,7 @@ export default function LeaveRequestDetailsModal({isViewMode, setIsViewMode} : P
 
                                 <div className="flex justify-between">
                                     <span className="text-sm text-muted-foreground">Created At:</span>
-                                    <span>{leaveRequestDetails?.created_at}</span>
+                                    <span>{formatDate(leaveRequestDetails?.created_at ?? '')}</span>
                                 </div>
 
                                 <div className="flex justify-between">
@@ -78,10 +79,12 @@ export default function LeaveRequestDetailsModal({isViewMode, setIsViewMode} : P
                             <DialogFooter className="p-2">
                                 <div className="w-full flex justify-between items-center">
                                     <Button variant="outline" className="p-2 text-red-500"><Trash/></Button>
-                                    <div className="flex gap-2 items-center">
+                                    {leaveRequestDetails?.status === "pending" ? (
+                                        <div className="flex gap-2 items-center">
                                         <Button variant="outline" className="text-sm p-2 mr-1">Cancel</Button>
                                         <Button variant="outline" className="p-2 mr-1"><Pencil /></Button>
                                     </div>
+                                    ) : null}
                                 </div>
                             </DialogFooter>
                         </div>

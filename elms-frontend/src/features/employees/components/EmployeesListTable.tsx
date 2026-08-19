@@ -296,8 +296,14 @@ export default function EmployeesListTable({ employees, onUserMutated }: Employe
     };
 
     useEffect(() => {
-        fetchManagers();
-        fetchAdmins();
+        if (isSuperAdmin) {
+            fetchAdmins();
+            fetchManagers();
+        }
+
+        if(isAdmin) {
+            fetchManagers();
+        }
     }, []);
 
     const options = [

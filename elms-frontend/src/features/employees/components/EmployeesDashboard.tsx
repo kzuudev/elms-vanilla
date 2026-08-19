@@ -8,7 +8,7 @@ import type { EmployeeSummary, EmployeeData } from "@/types/employees.ts";
 import UserFilterBar from "@/features/employees/components/UserFilterBar.tsx";
 import { buildQueryString } from "@/utils/query-string.ts";
 import { SummaryEmployeeContext } from "@/features/context/employees/SummaryEmployeesContext.tsx";
-import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
+import { AuthContext } from "@/features/context/auth/AuthContext.tsx";
 
 import EmployeesListTable from "@/features/employees/components/EmployeesListTable.tsx";
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
@@ -20,7 +20,7 @@ import Notifications from "@/components/layout/Notifications.tsx";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 
-export default function EmployeesDashboard({role} : {role: string}) {
+export default function EmployeesDashboard({ role }: { role: string }) {
 
     const { user } = useContext(AuthContext);
 
@@ -45,14 +45,15 @@ export default function EmployeesDashboard({role} : {role: string}) {
     const isAdmin = role === 'admin';
     const isSuperAdmin = role === 'super-admin';
 
-    const fetchEmployees = async ({searchQuery, statusFilter, departmentFilter, roleFilter} : {searchQuery: string, statusFilter: string, departmentFilter: string, roleFilter: string}) => {
+    const fetchEmployees = async ({ searchQuery, statusFilter, departmentFilter, roleFilter }: { searchQuery: string, statusFilter: string, departmentFilter: string, roleFilter: string }) => {
         try {
             const holder = localStorage.getItem("token");
-            const queryString = buildQueryString({ 
-                search: searchQuery ?? '', 
-                status: statusFilter ?? '', 
-                department: departmentFilter ?? '', 
-                role: roleFilter ?? '' });
+            const queryString = buildQueryString({
+                search: searchQuery ?? '',
+                status: statusFilter ?? '',
+                department: departmentFilter ?? '',
+                role: roleFilter ?? ''
+            });
             const response = await api.get(`/employees${queryString}`, {
                 headers: { Authorization: `Bearer ${holder}` },
             });
@@ -124,17 +125,22 @@ export default function EmployeesDashboard({role} : {role: string}) {
                     <div className="w-full flex flex-col gap-8 mb-8">
                         <div className="flex justify-between items-center">
                             <div>
-                               {isAdmin ? (
+                                {isAdmin ? (
                                     <>
-                                    <h1 className="text-xl font-semibold text-blue-400">Employees</h1>
-                                    <p className="text-gray-500 text-xs">Manage your employees</p>
+                                        <h1 className="text-xl font-semibold text-blue-400">Employees</h1>
+                                        <p className="text-gray-500 text-xs">Manage your department employees</p>
                                     </>
                                 ) : isSuperAdmin ? (
                                     <>
-                                    <h1 className="text-xl font-semibold text-blue-400">Users</h1>
-                                    <p className="text-gray-500 text-xs">Manage all users</p>
+                                        <h1 className="text-xl font-semibold text-blue-400">Users</h1>
+                                        <p className="text-gray-500 text-xs">Manage all users</p>
                                     </>
-                                ) : null}
+                                ) : 
+                                <>
+                                    <h1 className="text-xl font-semibold text-blue-400">Employees</h1>
+                                    <p className="text-gray-500 text-xs">Manage your employees</p>
+                                </>
+                                }
                             </div>
 
                             <div className="flex items-center gap-4">
@@ -161,7 +167,7 @@ export default function EmployeesDashboard({role} : {role: string}) {
                                 onClearFilters={onClearFilters}
                             />
 
-                            {(isAdmin || isSuperAdmin) &&  (
+                            {(isAdmin || isSuperAdmin) && (
                                 <Dialog open={isFormOpen} onOpenChange={setIsOpenForm}>
                                     <DialogTrigger asChild>
                                         <Button className="text-sm rounded-md bg-blue-500 text-white px-4 py-2">
@@ -175,6 +181,7 @@ export default function EmployeesDashboard({role} : {role: string}) {
                             )}
                         </div>
                     </div>
+                    
                 </div>
 
                 <div>
@@ -182,7 +189,7 @@ export default function EmployeesDashboard({role} : {role: string}) {
                         <EmployeesListTable employees={employees} onUserMutated={() => fetchEmployees(filters)} />
                     ) : (
                         <div className="text-center text-gray-500">
-                            0 users found for "{searchQuery}"
+                            <p>No employees found for {`"${filters.searchQuery + ' ' + filters.statusFilter + ' ' + filters.departmentFilter + ' ' + filters.roleFilter}"`}</p>
                         </div>
                     )}
                 </div>

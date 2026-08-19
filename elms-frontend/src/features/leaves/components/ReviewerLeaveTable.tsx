@@ -1,12 +1,12 @@
 "use client";
 
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import * as z from 'zod';
-import {Controller, useForm} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-import {api} from "@/lib/api.ts";
-import {useLeaveContext} from "@/features/context/leaves/LeaveContext.tsx";
+import { api } from "@/lib/api.ts";
+import { useLeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
 
 import LeaveRequestDetailsModal from "@/features/leaves/components/LeaveRequestDetailsModal.tsx";
 
@@ -18,21 +18,21 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {format} from "date-fns";
-import {Button} from "@/components/ui/button.tsx";
-import {CircleCheck, Eye, X} from "lucide-react";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button.tsx";
+import { CircleCheck, Eye, X } from "lucide-react";
 
 
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog.tsx";
-import {Field, FieldError, FieldGroup, FieldLabel} from "@/components/ui/field.tsx";
-import {Textarea} from "@/components/ui/textarea.tsx";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog.tsx";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field.tsx";
+import { Textarea } from "@/components/ui/textarea.tsx";
 
 export default function ReviewerLeaveTable() {
 
-    const { reviewerLeaveRequests, fetchLeaveRequestDetails, fetchLeaveRequests} = useLeaveContext();
+    const { reviewerLeaveRequests, fetchLeaveRequestDetails, fetchLeaveRequests } = useLeaveContext();
 
 
-    const tableHeaders = ['Name', 'Role', 'Leave Type', 'Reason', 'Start Date', 'End Date', 'Days', 'Status','Actions']
+    const tableHeaders = ['Name', 'Role', 'Leave Type', 'Reason', 'Start Date', 'End Date', 'Days', 'Status', 'Actions']
 
     const [activeLeaveId, setActiveLeaveId] = useState<number | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -42,7 +42,7 @@ export default function ReviewerLeaveTable() {
     const [overlappingEmployees, setOverlappingEmployees] = useState<string[]>([]);
 
     const schema = z.object({
-        rejection_reason: z.string().min(1, {message: "Rejection Reason is required"}),
+        rejection_reason: z.string().min(1, { message: "Rejection Reason is required" }),
     })
 
     type RejectionReasonFormData = z.infer<typeof schema>;
@@ -51,7 +51,6 @@ export default function ReviewerLeaveTable() {
         resolver: zodResolver(schema),
         defaultValues: {
             rejection_reason: '',
-
         }
     });
 
@@ -71,10 +70,10 @@ export default function ReviewerLeaveTable() {
                 }
             })
 
-            if(response.data.success) {
+            if (response.data.success) {
                 fetchLeaveRequests();
             }
-        }catch (e) {
+        } catch (e) {
             // error message based on review controller
             setError(e.response.data.message);
         }
@@ -92,11 +91,11 @@ export default function ReviewerLeaveTable() {
                     Authorization: `Bearer ${holder}`,
                 }
             });
-            if(response.data.success) {
+            if (response.data.success) {
                 setOverlappingEmployees(response.data.data.overlapping_employees || []);
                 return response.data.data
             }
-        }catch (e) {
+        } catch (e) {
             setError(e.response.data.message);
         }
 
@@ -118,24 +117,24 @@ export default function ReviewerLeaveTable() {
 
         const data = await validateOverlaps(id);
 
-        if(!data) return;
+        if (!data) return;
 
         let confirmationMessage = "Are you sure you want to approve this leave?";
 
-        if(data.has_critical_overlap) {
+        if (data.has_critical_overlap) {
             confirmationMessage = `This leaves ${data.department} with ${data.remaining_staff?.toString()} active staff member(s).\n\nAre you absolutely sure you want to approve this?`;
-        }else if (data.overlapping_employees?.length && data.overlapping_employees?.length > 0 && data.total_active_staff && data.total_active_staff > 0) {
+        } else if (data.overlapping_employees?.length && data.overlapping_employees?.length > 0 && data.total_active_staff && data.total_active_staff > 0) {
             confirmationMessage = `Notice: ${data.overlapping_employees?.length?.toString()} coworker(s) are already off during this window. Proceed with approval?`;
         }
 
 
         try {
-            if(window.confirm(confirmationMessage)) {
+            if (window.confirm(confirmationMessage)) {
                 await handleUpdateStatus(id, "approved", "");
                 setActiveLeaveId(null);
                 setIsDialogOpen(false);
             }
-        }catch (e) {
+        } catch (e) {
             setError(e.response.data.message);
         }
     }
@@ -145,18 +144,18 @@ export default function ReviewerLeaveTable() {
         setError(null);
 
         // destructure rejection reason from form
-        const {rejection_reason} = form.getValues();
+        const { rejection_reason } = form.getValues();
         const id = activeLeaveId;
 
         // check if there's a specific selected id and a rejection reason is not null
-        if(!id  || rejection_reason.trim() === "") {
+        if (!id || rejection_reason.trim() === "") {
             console.error(form.formState.errors);
             return;
         }
 
         await handleUpdateStatus(id, "rejected", rejection_reason);
         setActiveLeaveId(null);
-        setIsDialogOpen(    false);
+        setIsDialogOpen(false);
         form.reset();
 
     }
@@ -258,17 +257,17 @@ export default function ReviewerLeaveTable() {
                                     <TableCell><span className="bg-red-50 text-red-700 border border-red-200/60 px-2 py-1 rounded-md">{leave.status}</span></TableCell>
                                 )}
                                 <TableCell>
-                                  {leave.status !== "pending" ? (
-                                <>
-                                        <Button className="ml-2" onClick={() => handleViewLeaveRequest(leave.id)} variant="outline"><Eye /></Button>
-                                    </>
-                                  ) : (
-                                    <>
-                                        <Button onClick={() => handleViewLeaveRequest(leave.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>
-                                        <Button onClick={() => handleApproveSubmit(leave.id)} variant="outline" className="p-2 mr-1"><CircleCheck /></Button>
-                                        <Button onClick={() => handleRejectionReasonForm(leave.id)}  variant="outline" className="p-2 text-red-500"><X /></Button>
-                                    </>
-                                  )}
+                                    {leave.status !== "pending" ? (
+                                        <>
+                                            <Button className="ml-2" onClick={() => handleViewLeaveRequest(leave.id)} variant="outline"><Eye /></Button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Button onClick={() => handleViewLeaveRequest(leave.id)} variant="outline" className="p-2 mr-1"><Eye /></Button>
+                                            <Button onClick={() => handleApproveSubmit(leave.id)} variant="outline" className="p-2 mr-1"><CircleCheck /></Button>
+                                            <Button onClick={() => handleRejectionReasonForm(leave.id)} variant="outline" className="p-2 text-red-500"><X /></Button>
+                                        </>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))

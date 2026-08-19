@@ -3,7 +3,7 @@
 import { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 
-import {api} from "@/lib/api.ts";
+import { api } from "@/lib/api.ts";
 
 import { AuthContext } from '@/features/context/auth/AuthContext';
 import AdminRegisterForm from '@/features/register/AdminRegisterForm';
@@ -25,7 +25,7 @@ interface RegisterFormData {
     assigned_to: string | null;
 }
 
-export default function Register({closeDialog}: RegisterFormProps) {
+export default function Register({ closeDialog }: RegisterFormProps) {
 
 
     const { user } = useContext(AuthContext);
@@ -39,7 +39,6 @@ export default function Register({closeDialog}: RegisterFormProps) {
     const [admins, setAdmins] = useState<Admin[]>([]);
 
     const [error, setError] = useState<string | null>(null);
-
 
     const fetchManagers = async () => {
         try {
@@ -119,7 +118,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
                     Authorization: `Bearer ${token}`
                 }
             });
-            if(response.data.success) {
+            if (response.data.success) {
                 window.dispatchEvent(new Event('user-mutated'));
                 closeDialog();
             }
@@ -143,7 +142,7 @@ export default function Register({closeDialog}: RegisterFormProps) {
                 {isAdmin && (
                     <AdminRegisterForm managers={managers.map(manager => ({ value: String(manager.id), label: `${manager.first_name} ${manager.last_name}` }))} onSubmit={onSubmit} onCancel={closeDialog} />
                 )}
-                    
+
                 {isSuperAdmin && (
                     <SuperAdminRegisterForm managers={managers.map(manager => ({ value: String(manager.id), label: `${manager.first_name} ${manager.last_name}` }))} admins={admins.map(admin => ({ value: String(admin.id), label: `${admin.first_name} ${admin.last_name}` }))} onSubmit={onSubmit} onCancel={closeDialog} />
                 )}

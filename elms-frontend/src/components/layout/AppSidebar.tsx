@@ -173,7 +173,7 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                   </SidebarMenuItem>
                               </SidebarMenu>
                           </SidebarContent>
-                      ) : role === "admin"  ? (
+                      ) : role === "admin" ? (
                           <SidebarContent>
                               <SidebarMenu>
                                   <SidebarMenuItem>
@@ -233,7 +233,7 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
 
                                   <SidebarMenuItem>
                                         <SidebarMenuButton asChild className="hover:bg-gray-100">
-                                          <Link to="/super-admin/leave-requests" className="flex items-center gap-2">
+                                          <Link to="/super-admin/leaves" className="flex items-center gap-2">
                                               <CalendarOff />
                                               <span>Leave Requests</span>
                                           </Link>

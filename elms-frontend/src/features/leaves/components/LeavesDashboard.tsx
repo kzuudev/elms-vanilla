@@ -165,9 +165,11 @@ export default function LeavesDashboard({role}: {role: string}) {
               <div className="flex flex-col gap-4 mt-8">
                   <div className="flex justify-between items-center">
                       {role === "admin" ? (
-                        <h2 className="text-xl font-semibold">Admin Leave Request History</h2>
+                        <h2 className="text-xl font-semibold">Department Leave Requests</h2>
+                      ) : role === "super-admin" ? (
+                        <h2 className="text-xl font-semibold">Company Leave Requests</h2>
                       ) : (
-                        <h2 className="text-xl font-semibold">Manager Leave Request History</h2>
+                        <h2 className="text-xl font-semibold">Team Leave Requests</h2>
                       )}
                       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                           <DialogTrigger asChild>

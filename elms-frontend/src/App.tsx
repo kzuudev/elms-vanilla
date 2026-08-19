@@ -21,9 +21,11 @@ import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
 import EmployeesDashboard from "@/features/employees/components/EmployeesDashboard.tsx";
 import ManagerLeavesDashboard from "@/pages/manager/ManagerLeavesDashboard.tsx";
 import AdminLeavesDashboard from "@/pages/admin/AdminLeavesDashboard.tsx";
-import SuperAdminDashboard from './pages/super-admin/Dashboard.tsx';
+import SuperAdminDashboard from '@/pages/super-admin/SuperAdminLeavesDashboard.tsx';
+
 
 import VerifyEmail from "@/pages/auth/verify-email.tsx";
+import SuperAdminLeavesDashboard from '@/pages/super-admin/SuperAdminLeavesDashboard.tsx';
 
 
 
@@ -195,6 +197,15 @@ function App() {
                                 element={
                                     <ProtectedRoute allowedRoles={['super-admin']}>
                                         <EmployeesDashboard role={role} />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+                            <Route 
+                                path="/super-admin/leaves"
+                                element={
+                                    <ProtectedRoute allowedRoles={['super-admin']}>
+                                        <SuperAdminLeavesDashboard />
                                     </ProtectedRoute>
                                 }
                             />
