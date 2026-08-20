@@ -6,7 +6,7 @@ use App\Http\Middleware\Auth;
 use App\Http\Forms\EmployeeForm;
 use Core\App;
 use Core\Database;
-
+use Exception;
 
 
 class EmployeesService {

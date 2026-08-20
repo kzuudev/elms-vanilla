@@ -10,7 +10,7 @@ use DateTime;
 use DatePeriod;
 use DateInterval;
 use Core\Database;
-use App\Http\Forms\LeaveRequestForm;
+use App\Exceptions\domain\ForbiddenException;
 use App\Contracts\LeaveRequestInterface;
 use App\Exceptions\domain\NotFoundException;
 use App\Exceptions\domain\BadRequestException;
@@ -197,11 +197,13 @@ class LeaveRequestService implements LeaveRequestInterface {
         $leave_request = $this->db->query("
             SELECT 
                 lr.*,
-                lt.name as leave_type
+                CONCAT(m.first_name, ' ', m.last_name) AS assigned_name,
+                lt.name as leave_type   
             FROM leave_requests lr
+            LEFT JOIN users m ON lr.assigned_to = m.id
             LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
             WHERE lr.deleted_at IS NULL
-            AND (lr.user_id = :user_id OR lr.assigned_to = :user_id)
+            AND lr.id = :id AND (lr.user_id = :user_id OR lr.assigned_to = :user_id)
         ", [
             'id' => $id,
             'user_id' => $user_id

@@ -31,15 +31,10 @@ class LeaveReviewService implements LeaveReviewInterface {
             $current_user = $this->auth->authenticate();
 
             $current_user_id = $current_user['id'] ?? null;
-
-            if (!$current_user_id) {
-                throw new NotFoundException('User not found');
-            }
-
             $role = $current_user['role'] ?? null;
 
-            if(!$role) {
-                throw new NotFoundException('User role not found');
+            if (!$current_user_id || !$role) {
+                throw new NotFoundException('User not found');
             }
             
             $params = [];
@@ -49,7 +44,6 @@ class LeaveReviewService implements LeaveReviewInterface {
                 lr.*, 
                 e.first_name as employee_name, 
                 m.first_name as manager_name,
-
                 e.role as employee_role,
                 lt.name as leave_type_name,
                 DATEDIFF(lr.end_date, lr.start_date) + 1 as total_days
@@ -81,11 +75,13 @@ class LeaveReviewService implements LeaveReviewInterface {
                 $params['status'] = $status;
             }
 
-
-            if ($role === 'admin') {
+            if($role === 'super-admin') {
+                
+            }else if ($role === 'admin') {
                 // Admins see all requests, except their own requests
-                $sql .= " AND lr.user_id != :reviewer_id";
+                $sql .= " AND lr.user_id != :reviewer_id AND e.department = :department";
                 $params['reviewer_id'] = $current_user_id;
+                $params['department'] = $current_user['department'];
             } elseif ($role === 'manager') {
                 // Managers only see requests assigned to them
                 $sql .= " AND lr.assigned_to = :reviewer_id";
