@@ -1,12 +1,13 @@
 <?
 
-namespace App\Services\departments;
+namespace App\Services\department;
 
 use Core\App;
 use Core\Database;
 use App\Http\Middleware\Auth;
 use App\Exceptions\domain\NotFoundException;
 use App\Exceptions\domain\ForbiddenException;
+use Throwable;
 
 class DepartmentService {
 
@@ -42,13 +43,23 @@ class DepartmentService {
             throw new ForbiddenException('You are not authorized to create a department');
         }
 
-        $create_department = $this->db->query("
-            INSERT INTO departments (name) VALUES (:name)
-        ", [
-            'name' => $name
-        ])->lastInsertId();
+        try{
+            $this->db->beginTransaction();
 
-        return $create_department;
+            $create_department = $this->db->query("
+                INSERT INTO departments (name) VALUES (:name)
+            ", [
+                'name' => $name
+            ]);
+            
+            $this->db->commit();
+            return $create_department;
+
+        }catch(Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+        
 
     }
 
@@ -63,6 +74,10 @@ class DepartmentService {
             SELECT * FROM departments WHERE id = :id AND deleted_at IS NULL
             ORDER BY created_at DESC
         ", ['id' => $id])->find();
+        
+        if(!$department) {
+            throw new NotFoundException('Department not found');
+        }
 
         return $department;
 
@@ -74,14 +89,27 @@ class DepartmentService {
             throw new ForbiddenException('You are not authorized to update a department');
         }
 
-        $update_department = $this->db->query("
-            UPDATE departments SET name = :name WHERE id = :id AND deleted_at IS NULL
-        ", [
-            'id' => $id,
-            'name' => $name
-        ])->lastInsertId();
+        try{
+            $this->db->beginTransaction();
 
-        return $update_department;
+            $update_department = $this->db->query("
+                UPDATE departments SET name = :name WHERE id = :id AND deleted_at IS NULL
+            ", [
+                'id' => $id,
+                'name' => $name
+            ]);
+
+            if(!$update_department) {
+                throw new NotFoundException('Department not found');
+            }
+
+            $this->db->commit();
+            return $update_department;
+
+        }catch(Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
 
     }
 
@@ -91,11 +119,23 @@ class DepartmentService {
             throw new ForbiddenException('You are not authorized to delete a department');
         }
 
-        $delete_department = $this->db->query("
-            UPDATE departments SET deleted_at = NOW() WHERE id = :id AND deleted_at is NULL
-        ", ['id' => $id]);
+        try{
+            $this->db->beginTransaction();
 
-        return $delete_department;
+            $delete_department = $this->db->query("
+                UPDATE departments SET deleted_at = NOW() WHERE id = :id AND deleted_at is NULL
+            ", ['id' => $id]);
 
+            if(!$delete_department) {
+                throw new NotFoundException('Department not found');
+            }
+
+            $this->db->commit();
+            return $delete_department;
+
+        }catch(Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 }

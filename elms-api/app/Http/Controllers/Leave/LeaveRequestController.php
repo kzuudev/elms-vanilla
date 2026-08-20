@@ -18,10 +18,10 @@ class LeaveRequestController
     private LeaveRequestService $leave_request_service;
 
     private ?array $input = null;
-
     private int $user_id;
     private string $role;
     private string $department;
+    
     private Database $db;
 
     public function __construct()
@@ -84,17 +84,17 @@ class LeaveRequestController
             $leave_requests = $this->leave_request_service->getLeaveRequests($this->user_id, $this->role, $this->department, $leave_type, $start_date, $end_date, $status);
             $this->db->response(200, true, 'Leave requests fetched successfully.', ['leave_requests' => $leave_requests]);
             return;
-        }catch (Exception $e) {
-            $this->db->response(422, false, $e->getMessage());
+        }catch (DomainException $e) {
+            $this->db->response($e->getStatus(), false, $e->getMessage());
             return;
         }catch(Throwable $e) {
-            $this->db->response(500, false, 'Something went wrong. Please try again later.');
+            $this->db->response(500, false, 'Internal server error');
             return;
         }
 
     }
 
-    public function show($id): void
+    public function show(int $id): void
     {
 
         try{
@@ -105,13 +105,13 @@ class LeaveRequestController
             $this->db->response($e->getStatus(), false, $e->getMessage(), ['leave_request_id' => $id]);
             return;
         }catch (Throwable $e) {
-            $this->db->response(500, false, 'Something went wrong. Please try again later.');
+            $this->db->response(500, false, 'Internal server error');
             return;
         }
 
     }
 
-    public function patch($id): void
+    public function patch(int $id): void
     {
 
         $leave_request_form = new LeaveRequestForm();
@@ -135,13 +135,13 @@ class LeaveRequestController
             $this->db->response($e->getStatus(), false, $e->getMessage(), ['leave_request_id' => $id]);
             return;
         }catch(Throwable $e) {
-            $this->db->response(500, false, 'Something went wrong. Please try again later.');
+            $this->db->response(500, false, 'Internal server error');
             return;
         }
 
     }
 
-    public function destroy($id): void
+    public function destroy(int $id): void
     {
 
         try{
@@ -152,7 +152,7 @@ class LeaveRequestController
             $this->db->response($e->getStatus(), false, $e->getMessage(), ['leave_request_id' => $id]);
             return;
         }catch(Throwable $e) {
-            $this->db->response(500, false, 'Something went wrong. Please try again later.');
+            $this->db->response(500, false, 'Internal server error');
             return;
         }
         
