@@ -46,7 +46,7 @@ class DepartmentService {
             INSERT INTO departments (name) VALUES (:name)
         ", [
             'name' => $name
-        ]);
+        ])->lastInsertId();
 
         return $create_department;
 
@@ -62,7 +62,7 @@ class DepartmentService {
         $department = $this->db->query("
             SELECT * FROM departments WHERE id = :id AND deleted_at IS NULL
             ORDER BY created_at DESC
-        ", ['id' => $id]);
+        ", ['id' => $id])->find();
 
         return $department;
 
