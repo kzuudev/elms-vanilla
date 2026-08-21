@@ -15,7 +15,7 @@ use App\Http\Controllers\Dashboard\ManagerDashboardController;
 use App\Http\Controllers\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Leave\LeaveTypesController;
-
+use App\Http\Controllers\Department\DepartmentController;
 use Core\Router;
 
 $router = new Router();
@@ -74,6 +74,17 @@ $router->get('/admin-dashboard', [AdminDashboardController::class, 'index'])->on
 
 // leave types
 $router->get('/leave-types', [LeaveTypesController::class, 'index'])->only('auth');
+$router->post('/leave-types', [LeaveTypesController::class, 'store'])->only('auth');
+$router->get('/leave-types/{id}', [LeaveTypesController::class, 'show'])->only('auth');
+$router->put('/leave-types/{id}', [LeaveTypesController::class, 'update'])->only('auth');
+$router->delete('/leave-types/{id}', [LeaveTypesController::class, 'destroy'])->only('auth');
+
+// departments
+$router->get('/departments', [DepartmentController::class, 'index'])->only('auth');
+$router->post('/departments', [DepartmentController::class, 'store'])->only('auth');
+$router->get('/departments/{id}', [DepartmentController::class, 'show'])->only('auth');
+$router->put('/departments/{id}', [DepartmentController::class, 'update'])->only('auth');
+$router->delete('/departments/{id}', [DepartmentController::class, 'destroy'])->only('auth');
 
 // notifications
 $router->get('/notifications', [NotificationController::class, 'index'])->only('auth');

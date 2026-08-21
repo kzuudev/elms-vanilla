@@ -21,19 +21,19 @@ class LeaveTypeService {
     }
 
     public function getLeaveTypes(int $user_id) {
+        
         if($this->current_user['role'] !== 'super-admin') {
             throw new UnauthorizedException('You are not authorized to access this resource');
         }
 
 
         $leave_types = $this->db->query("
-            SELECT * FROM leave_types WHERE deleted_at IS NULL AND default_allocated_days > 0
+            SELECT * FROM leave_types WHERE deleted_at IS NULL AND allocated_days > 0
             AND id IN (
                 SELECT leave_type_id
                 FROM leave_balance
                 WHERE user_id = :user_id
             )
-            ORDER BY created_at DESC
         ", ['user_id' => $user_id])->all();
 
         return $leave_types;
@@ -117,7 +117,7 @@ class LeaveTypeService {
 
     public function deleteLeaveType(int $id) {
 
-        if($this->current_user['role'] !== 'super-admin') {
+        if($this->current_user['role'] !== 'super-admin' ) {
             throw new UnauthorizedException('You are not authorized to delete a leave type');
         }
 

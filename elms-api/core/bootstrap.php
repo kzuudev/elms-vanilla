@@ -7,6 +7,8 @@ use App\Services\employees\EmployeesService;
 use App\Services\employees\EmployeeSummaryService;
 use App\Services\notifications\NotificationService;
 use App\Services\leaves\LeaveReviewService;
+use App\Services\department\DepartmentService;
+use App\Services\leaves\LeaveTypeService;
 
 use Core\App;
 use Core\Container;
@@ -54,6 +56,16 @@ $container->bind(LeaveReviewService::class, function() {
 $container->bind(EmployeesService::class, function() {
     return new EmployeesService();
 });
+
+$container->bind(DepartmentService::class, function() {
+    return new DepartmentService();
+});
+
+$container->bind(LeaveTypeService::class, function() {
+    return new LeaveTypeService();
+});
+
+
 
 App::setContainer($container);
 

@@ -13,11 +13,13 @@ class DepartmentController {
 
     private Database $db;
     private DepartmentService $department_service;
+    private ?array $input = null;
 
 
     public function __construct() {
         $this->db = App::resolve(Database::class);
         $this->department_service = App::resolve(DepartmentService::class);
+        $this->input = json_decode(file_get_contents('php://input'), true) ?? [];
 
     }
 
@@ -41,7 +43,7 @@ class DepartmentController {
 
     public function store() {
 
-        $name = $_POST['name'] ?? '';
+        $name = $this->input['name'] ?? '';
         
         if(empty($name)) {
             $this->db->response(422, false, 'Name is required');
@@ -79,7 +81,7 @@ class DepartmentController {
 
     public function update(int $id) {
 
-        $name = $_POST['name'] ?? '';
+        $name = $this->input['name'] ?? '';
             
         if(empty($name)) {
             $this->db->response(422, false, 'Name is required');

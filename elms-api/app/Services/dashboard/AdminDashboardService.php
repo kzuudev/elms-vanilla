@@ -14,7 +14,7 @@ class AdminDashboardService implements LeaveAnalyticsInterface {
 
     use HasSharedAnalytics;
 
-    private $db;
+    private Database $db;
     private int $current_user_id;
 
     private string $current_user_role;

@@ -13,15 +13,13 @@ use Throwable;
 class LeaveTypesController {
 
     private Database $db;
-    private Auth $auth;
     private ?array $user;
     private LeaveTypeService $leave_type_service;
     private ?array $input = null;
-    
+
     public function __construct() {
         $this->db = App::resolve(Database::class);
-        $this->auth = App::resolve(Auth::class);
-        $this->user = $this->auth->user();
+        $this->user = Auth::user();
         $this->input = json_decode(file_get_contents('php://input'), true) ?? [];
         $this->leave_type_service = App::resolve(LeaveTypeService::class);
     }
@@ -32,7 +30,7 @@ class LeaveTypesController {
 
     public function index() {
 
-       try {
+       try {    
         $leave_types = $this->leave_type_service->getLeaveTypes($this->user['id']);
         $this->db->response(200, true, 'Leave types fetched successfully', ['leave_types' => $leave_types]);
         return;
@@ -40,7 +38,7 @@ class LeaveTypesController {
          $this->db->response($e->getCode(), false, $e->getMessage());
          return;
        }catch (Throwable $e) {
-         $this->db->response(500, false, 'Internal server error');
+         $this->db->response(500, false, $e->getMessage());
          return;
        }
     }
@@ -75,7 +73,7 @@ class LeaveTypesController {
             $this->db->response($e->getCode(), false, $e->getMessage());
             return;
         }catch (Throwable $e) {
-            $this->db->response(500, false, 'Internal server error');
+            $this->db->response(500, false, $e->getMessage());
             return;
         }
     }
@@ -92,7 +90,7 @@ class LeaveTypesController {
             $this->db->response($e->getCode(), false, $e->getMessage());
             return;
         }catch (Throwable $e) {
-            $this->db->response(500, false, 'Internal server error');
+            $this->db->response(500, false, $e->getMessage());
             return;
         }
     }
@@ -128,7 +126,7 @@ class LeaveTypesController {
             return;
 
         }catch (Throwable $e) {
-            $this->db->response(500, false, 'Internal server error');
+            $this->db->response(500, false, $e->getMessage());
             return;
         }   
 
@@ -149,7 +147,7 @@ class LeaveTypesController {
             $this->db->response($e->getCode(), false, $e->getMessage());
             return;
         }catch (Throwable $e) {
-            $this->db->response(500, false, 'Internal server error');
+            $this->db->response(500, false, $e->getMessage());
             return;
         }
     }
