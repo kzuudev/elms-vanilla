@@ -16,6 +16,8 @@ use App\Http\Controllers\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Leave\LeaveTypesController;
 use App\Http\Controllers\Department\DepartmentController;
+use App\Http\Controllers\Dashboard\Department\DepartmentSummaryController;
+use App\Http\Controllers\Dashboard\department\DepartmentEmployeesController;
 use Core\Router;
 
 $router = new Router();
@@ -73,6 +75,8 @@ $router->patch('/leave-requests/{id}/review', [LeaveReviewController::class, 'pa
 $router->get('/admin-dashboard', [AdminDashboardController::class, 'index'])->only('auth');
 
 // leave types
+
+
 $router->get('/leave-types', [LeaveTypesController::class, 'index'])->only('auth');
 $router->post('/leave-types', [LeaveTypesController::class, 'store'])->only('auth');
 $router->get('/leave-types/{id}', [LeaveTypesController::class, 'show'])->only('auth');
@@ -80,6 +84,9 @@ $router->put('/leave-types/{id}', [LeaveTypesController::class, 'update'])->only
 $router->delete('/leave-types/{id}', [LeaveTypesController::class, 'destroy'])->only('auth');
 
 // departments
+// $router->get('/departments/summary', [DepartmentSummaryController::class, 'index'])->only('auth');
+$router->get('/departments/employees', [DepartmentEmployeesController::class, 'index'])->only('auth');
+
 $router->get('/departments', [DepartmentController::class, 'index'])->only('auth');
 $router->post('/departments', [DepartmentController::class, 'store'])->only('auth');
 $router->get('/departments/{id}', [DepartmentController::class, 'show'])->only('auth');

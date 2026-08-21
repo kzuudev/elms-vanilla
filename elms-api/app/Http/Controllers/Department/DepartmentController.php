@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Department;
 
 use Core\App;
 use Core\Database;
+
 use App\Services\department\DepartmentService;
 use App\Http\Middleware\Auth;
 use App\Exceptions\domain\DomainException;
@@ -65,6 +66,7 @@ class DepartmentController {
 
     public function show(int $id) {
 
+
         try{
             $department = $this->department_service->getDepartment($id);
             $this->db->response(200, true, 'Department fetched successfully', ['department' => $department]);
@@ -80,7 +82,6 @@ class DepartmentController {
     }   
 
     public function update(int $id) {
-
         $name = $this->input['name'] ?? '';
             
         if(empty($name)) {
@@ -103,7 +104,6 @@ class DepartmentController {
     }
 
     public function destroy(int $id) {
-
         try{
             $department = $this->department_service->deleteDepartment($id);
             $this->db->response(200, true, 'Department deleted successfully', ['department' => $department]);
@@ -116,4 +116,5 @@ class DepartmentController {
             return;
         }
     }
+
 }
