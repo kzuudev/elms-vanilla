@@ -5,15 +5,20 @@ import { api } from "@/lib/api";
 import axios from "axios";
 
 import { DepartmentContext } from "@/features/context/department/DepartmentContext";
-import type { Department } from "@/types/department";
+import type { Department, DepartmentSummary } from "@/types/department";
 
 import AppSidebar from "@/components/layout/AppSidebar";
 
-import DepartmentListTable from "./DepartmentListTable";
 import Notifications from "@/components/layout/Notifications";
 import UserProfile from "@/components/layout/UserProfile";
+import DepartmentSummaryGrid from "./DepartmentSummaryGrid";
+import DepartmentListTable from "./DepartmentListTable";
+import { DepartmentSummaryContext } from "../context/department/DepartmentSummaryContext";
 
 export default function DepartmentDashboard() {
+  const [departmentSummary, setDepartmentSummary] =
+    useState<DepartmentSummary | undefined>(undefined);
+
   const [departments, setDepartments] = useState<Department[]>([]);
   const [departmentDetails, setDepartmentDetails] = useState<Department | null>(
     null,
@@ -50,36 +55,69 @@ export default function DepartmentDashboard() {
     }
   };
 
+  const fetchDepartmentSummary = async () => {
+    try {
+      const response = await api.get("departments/summary");
+      setDepartmentSummary(response.data.data.department_summary);
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        setError(e.response?.data.message as string);
+      } else {
+        setError("An unknown error occurred");
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchDepartmentSummary();
+  }, []);
+
   return (
     <>
-      <DepartmentContext.Provider
+      <DepartmentSummaryContext.Provider
         value={{
-          departments,
-          setDepartments,
-          fetchDepartments,
-          departmentDetails,
-          setDepartmentDetails,
-          fetchDepartmentDetails,
+          departmentSummary,
+          setDepartmentSummary,
+          fetchDepartmentSummary,
         }}
       >
-        <AppSidebar>
-          <div>
-            <div className="flex justify-between items-center">
-              <div className="flex flex-col">
-                <h1 className="text-xl font-semibold text-blue-400">
-                  Department Dashboard
-                </h1>
-                <p className="text-gray-500 text-xs">Manage your departments</p>
+        <DepartmentContext.Provider
+          value={{
+            departments,
+            setDepartments,
+            fetchDepartments,
+            departmentDetails,
+            setDepartmentDetails,
+            fetchDepartmentDetails,
+          }}
+        >
+          <AppSidebar>
+            <div>
+              <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col">
+                  <h1 className="text-xl font-semibold text-blue-400">
+                    Department Dashboard
+                  </h1>
+                  <p className="text-gray-500 text-xs">
+                    Manage your departments
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Notifications />
+                  <UserProfile />
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Notifications />
-                <UserProfile />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <DepartmentSummaryGrid />
               </div>
             </div>
-          </div>
-        </AppSidebar>
-      </DepartmentContext.Provider>
+
+            {error && <div className="text-red-500">{error}</div>}
+          </AppSidebar>
+        </DepartmentContext.Provider>
+      </DepartmentSummaryContext.Provider>
     </>
   );
 }

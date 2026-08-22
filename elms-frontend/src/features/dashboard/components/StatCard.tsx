@@ -12,19 +12,21 @@ type StatCardProps = {
 
 export default function StatCard({ icon, title, value, hint }: StatCardProps) {
 
-
-
     return (
         <>
          <Card>
             <CardHeader>    
-                <CardTitle> {title} </CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-500 mb-6"> {title} </CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="flex items-center justify-between">
-                    <div className="text-2xl font-bold"> {value} </div>
-                    <div className="text-sm text-gray-500"> {icon} </div>
-                    <div className="text-sm text-gray-500"> {hint} </div>
+                    <div className="flex items-center gap-2">
+                        <div className="text-xl font-bold">{value}</div>
+                        {hint ? (
+                            <div className="text-sm font-medium text-gray-500">{hint}</div>
+                        ) : null}
+                    </div>
+                    <div className="text-xl">{icon}</div>
                 </div>
             </CardContent>
         </Card>

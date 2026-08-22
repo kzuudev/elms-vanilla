@@ -13,9 +13,20 @@ export interface DepartmentOptions {
 }
 
 export interface DepartmentSummary {
-    total_departments: number;
-    total_employees_by_department: number;
-    largest_department: number;
-    total_employees_assigned_to_department: number;
-    total_employees_not_assigned_to_department: number;
+    total_departments: {
+        total_department: number;
+    };
+    largest_department: {
+        id: number;
+        department_name: string;
+        total_employees_in_department: number;
+    };
+    total_employees_assigned_to_department: {
+        department_id: number;
+        total_employees_assigned_to_department: number;
+    }[];
+    total_employees_not_assigned_to_department: {
+        department_id: number;
+        total_employees_not_assigned_to_department: number;
+    }[];
 }
