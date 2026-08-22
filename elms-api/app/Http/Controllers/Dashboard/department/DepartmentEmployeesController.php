@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Dashboard\department;
 use App\Services\dashboard\department\DepartmentEmployeesService;
 use Core\App;
 use Core\Database;
-use App\Http\Middleware\Auth;
 use App\Exceptions\domain\DomainException;
 use Throwable;
 
@@ -24,9 +23,13 @@ class DepartmentEmployeesController {
         try {
             $active_employees_by_department = $this->department_employees_service->getDepartmentActiveEmployees();
             $inactive_employees_by_department = $this->department_employees_service->getDepartmentInactiveEmployees();
+            $total_employees_assigned_to_department = $this->department_employees_service->getTotalEmployeesAssignedToDepartment();
+            $total_employees_not_assigned_to_department = $this->department_employees_service->getTotalEmployeesNotAssignedToDepartment();
             $this->db->response(200, true, 'Employees by department fetched successfully', [
                 'active_employees_by_department' => $active_employees_by_department,
                 'inactive_employees_by_department' => $inactive_employees_by_department,
+                'total_employees_assigned_to_department' => $total_employees_assigned_to_department,
+                'total_employees_not_assigned_to_department' => $total_employees_not_assigned_to_department,
             ]);
             return;
         }catch(DomainException $e) {
