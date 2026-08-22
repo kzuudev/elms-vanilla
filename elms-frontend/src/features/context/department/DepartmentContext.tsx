@@ -11,4 +11,11 @@ interface DepartmentContextType {
     fetchDepartmentDetails: (id: number) => void;
 }
 
-export const DepartmentContext = createContext<DepartmentContextType>({} as DepartmentContextType);
+export const DepartmentContext = createContext<DepartmentContextType>({
+    departments: [],
+    setDepartments: () => {},
+    fetchDepartments: () => {},
+    departmentDetails: null,
+    setDepartmentDetails: () => {},
+    fetchDepartmentDetails: () => {}
+});

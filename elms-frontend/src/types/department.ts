@@ -4,6 +4,7 @@ export interface Department {
     name: string;
     created_at: string;
     updated_at: string;
+    deleted_at: string | null;
 }
 
 export interface DepartmentOptions {
@@ -28,5 +29,23 @@ export interface DepartmentSummary {
     total_employees_not_assigned_to_department: {
         department_id: number;
         total_employees_not_assigned_to_department: number;
+    }[];
+}
+
+export interface DepartmentEmployee {
+    active_employees_by_department: {
+        department_id: number;
+        department_name: string;
+        total_active_employees: number; 
+    }[];
+    on_leave_employees_by_department: {
+        department_id: number;
+        department_name: string;
+        total_on_leave_employees: number;
+    }[];
+    total_employees_by_department: {
+        department_id: number;
+        department_name: string
+        total_employees: number;
     }[];
 }

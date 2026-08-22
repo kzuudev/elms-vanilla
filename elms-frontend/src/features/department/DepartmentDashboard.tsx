@@ -5,7 +5,13 @@ import { api } from "@/lib/api";
 import axios from "axios";
 
 import { DepartmentContext } from "@/features/context/department/DepartmentContext";
-import type { Department, DepartmentSummary } from "@/types/department";
+import { DepartmentEmployeesContext } from "@/features/context/department/DepartmentEmployeesContext";
+
+import type {
+  Department,
+  DepartmentSummary,
+  DepartmentEmployee,
+} from "@/types/department";
 
 import AppSidebar from "@/components/layout/AppSidebar";
 
@@ -16,19 +22,23 @@ import DepartmentListTable from "./DepartmentListTable";
 import { DepartmentSummaryContext } from "../context/department/DepartmentSummaryContext";
 
 export default function DepartmentDashboard() {
-  const [departmentSummary, setDepartmentSummary] =
-    useState<DepartmentSummary | undefined>(undefined);
+  const [departmentSummary, setDepartmentSummary] = useState<
+    DepartmentSummary | undefined
+  >(undefined);
 
   const [departments, setDepartments] = useState<Department[]>([]);
   const [departmentDetails, setDepartmentDetails] = useState<Department | null>(
     null,
   );
+  const [departmentEmployees, setDepartmentEmployees] = useState<
+    DepartmentEmployee | undefined
+  >(undefined);
   const [error, setError] = useState<string | null>(null);
 
   const fetchDepartments = async () => {
     try {
       const response = await api.get("/departments");
-      setDepartments(response.data.departments);
+      setDepartments(response.data.data.departments);
     } catch (e) {
       if (axios.isAxiosError(e)) {
         setError(e.response?.data.message as string);
@@ -68,56 +78,82 @@ export default function DepartmentDashboard() {
     }
   };
 
+  const fetchDepartmentEmployees = async () => {
+    try {
+      const response = await api.get("departments/employees");
+      setDepartmentEmployees(response.data.data.department_employees);
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        setError(e.response?.data.message as string);
+      } else {
+        setError("An unknown error occurred");
+      }
+    }
+  };
+
   useEffect(() => {
     fetchDepartmentSummary();
+    fetchDepartmentEmployees();
   }, []);
 
   return (
     <>
-      <DepartmentSummaryContext.Provider
+      <DepartmentEmployeesContext.Provider
         value={{
-          departmentSummary,
-          setDepartmentSummary,
-          fetchDepartmentSummary,
+          departmentEmployees,
+          setDepartmentEmployees,
+          fetchDepartmentEmployees,
         }}
       >
-        <DepartmentContext.Provider
+        <DepartmentSummaryContext.Provider
           value={{
-            departments,
-            setDepartments,
-            fetchDepartments,
-            departmentDetails,
-            setDepartmentDetails,
-            fetchDepartmentDetails,
+            departmentSummary,
+            setDepartmentSummary,
+            fetchDepartmentSummary,
           }}
         >
-          <AppSidebar>
-            <div>
-              <div className="flex justify-between items-center mb-8">
-                <div className="flex flex-col">
-                  <h1 className="text-xl font-semibold text-blue-400">
-                    Department Dashboard
-                  </h1>
-                  <p className="text-gray-500 text-xs">
-                    Manage your departments
-                  </p>
+          <DepartmentContext.Provider
+            value={{
+              departments,
+              setDepartments,
+              fetchDepartments,
+              departmentDetails,
+              setDepartmentDetails,
+              fetchDepartmentDetails,
+            }}
+          >
+            <AppSidebar>
+              <div>
+                <div className="flex justify-between items-center mb-8">
+                  <div className="flex flex-col">
+                    <h1 className="text-xl font-semibold text-blue-400">
+                      Department Dashboard
+                    </h1>
+                    <p className="text-gray-500 text-xs">
+                      Manage your departments
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Notifications />
+                    <UserProfile />
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Notifications />
-                  <UserProfile />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <DepartmentSummaryGrid />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <DepartmentSummaryGrid />
+              <div className="mt-8">
+                <DepartmentListTable />
               </div>
-            </div>
 
-            {error && <div className="text-red-500">{error}</div>}
-          </AppSidebar>
-        </DepartmentContext.Provider>
-      </DepartmentSummaryContext.Provider>
+              {error && <div className="text-red-500 text-center mt-4">{error}</div>}
+            </AppSidebar>
+          </DepartmentContext.Provider>
+        </DepartmentSummaryContext.Provider>
+      </DepartmentEmployeesContext.Provider>
     </>
-  );
+  )
 }

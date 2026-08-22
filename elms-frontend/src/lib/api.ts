@@ -20,8 +20,9 @@ function getRequestKey(config: InternalAxiosRequestConfig): string {
 }
 
 api.interceptors.request.use((config) => {
+    const isLoginRequest = config.method?.toLowerCase() === 'post' && (config.url === '/' || config.url === '');
     const token = localStorage.getItem('token');
-    if (token) {
+    if (token && !isLoginRequest) {
         config.headers.Authorization = `Bearer ${token}`;
     } else {
         delete config.headers.Authorization;

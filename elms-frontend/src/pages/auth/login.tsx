@@ -1,7 +1,8 @@
 "use client";
 
 import * as z from "zod";
-import {useContext} from "react";
+import {useContext, useEffect} from "react";
+import axios from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "@/lib/api.ts";
 import {Controller, useForm} from "react-hook-form";
@@ -35,7 +36,15 @@ export default function Login() {
     const { setError, formState: { errors } } = useForm<LoginFormData>();
 
     const navigate = useNavigate();
-    const { setUser } = useContext(AuthContext) as { setUser: (user: Profile | null) => void };
+    const { user, setUser } = useContext(AuthContext) as { user: Profile | null, setUser: (user: Profile | null) => void };
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const role = user?.role || localStorage.getItem('role');
+        if (token && role) {
+            navigate(redirectPathByRole(role), { replace: true });
+        }
+    }, [user, navigate]);
     const { fetchLeaveBalance } = useContext(LeaveBalanceContext) as { fetchLeaveBalance: () => void };
 
     // Schema for a login form
@@ -90,7 +99,9 @@ export default function Login() {
         }catch (e) {
             setError("root", {
                 type: "server",
-                message: e instanceof Error ? e.message : 'An unknown error occurred',
+                message: axios.isAxiosError(e)
+                    ? (e.response?.data?.message as string) || e.message
+                    : 'An unknown error occurred',
             });
         }
     }
