@@ -4,8 +4,11 @@ import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import axios from "axios";
 
+import { buildQueryString } from "@/utils/query-string.ts";
+
 import { DepartmentContext } from "@/features/context/department/DepartmentContext";
 import { DepartmentEmployeesContext } from "@/features/context/department/DepartmentEmployeesContext";
+import { DepartmentSummaryContext } from "../context/department/DepartmentSummaryContext";
 
 import type {
   Department,
@@ -19,7 +22,7 @@ import Notifications from "@/components/layout/Notifications";
 import UserProfile from "@/components/layout/UserProfile";
 import DepartmentSummaryGrid from "./DepartmentSummaryGrid";
 import DepartmentListTable from "./DepartmentListTable";
-import { DepartmentSummaryContext } from "../context/department/DepartmentSummaryContext";
+import DepartmentFilterBar from "./DepartmentFilterBar";
 
 export default function DepartmentDashboard() {
   const [departmentSummary, setDepartmentSummary] = useState<
@@ -35,9 +38,16 @@ export default function DepartmentDashboard() {
   >(undefined);
   const [error, setError] = useState<string | null>(null);
 
+  const [departmentNameQuery, setDepartmentNameQuery] = useState<string>("");
+  const [sortByQuery, setSortByQuery] = useState<string>("");
+
   const fetchDepartments = async () => {
     try {
-      const response = await api.get("/departments");
+      const queryString = buildQueryString({
+        department_name: departmentNameQuery,
+        sort_by: sortByQuery,
+      });
+      const response = await api.get(`/departments${queryString}`);
       setDepartments(response.data.data.departments);
     } catch (e) {
       if (axios.isAxiosError(e)) {
@@ -91,6 +101,15 @@ export default function DepartmentDashboard() {
     }
   };
 
+  const onSearchSubmit = () => {
+    fetchDepartments();
+  };
+
+  const onClearFilters = () => {
+    setDepartmentNameQuery("");
+    setSortByQuery("");
+  };
+  
   useEffect(() => {
     fetchDepartmentSummary();
     fetchDepartmentEmployees();
@@ -146,14 +165,27 @@ export default function DepartmentDashboard() {
               </div>
 
               <div className="mt-8">
+                <DepartmentFilterBar
+                  departmentNameQuery={departmentNameQuery}
+                  setDepartmentNameQuery={setDepartmentNameQuery}
+                  sortByQuery={sortByQuery}
+                  setSortByQuery={setSortByQuery}
+                  onSearchSubmit={onSearchSubmit}
+                  onClearFilters={onClearFilters}
+                />
+              </div>
+
+              <div className="mt-8">
                 <DepartmentListTable />
               </div>
 
-              {error && <div className="text-red-500 text-center mt-4">{error}</div>}
+              {error && (
+                <div className="text-red-500 text-center mt-4">{error}</div>
+              )}
             </AppSidebar>
           </DepartmentContext.Provider>
         </DepartmentSummaryContext.Provider>
       </DepartmentEmployeesContext.Provider>
     </>
-  )
+  );
 }
