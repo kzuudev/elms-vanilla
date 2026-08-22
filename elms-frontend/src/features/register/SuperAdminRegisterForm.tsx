@@ -6,7 +6,6 @@ import {Controller, useForm} from "react-hook-form";
 
 
 import { roleOptions } from "@/config/role-options";
-import { departmentOptions } from "@/config/department-options";
 
 import {
     Field,
@@ -200,11 +199,11 @@ export default function SuperAdminRegisterForm({managers, admins, onSubmit, onCa
                                         <SelectValue placeholder="Select a department" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {departmentOptions.map((department) => (
+                                        {/* {departmentOptions.map((department) => (
                                             <SelectItem key={department.value} value={department.value}>
                                                 {department.label}
                                             </SelectItem>
-                                        ))}
+                                        ))} */}
                                     </SelectContent>
                                 </Select>
 

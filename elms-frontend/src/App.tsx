@@ -23,6 +23,8 @@ import ManagerLeavesDashboard from "@/pages/manager/ManagerLeavesDashboard.tsx";
 import AdminLeavesDashboard from "@/pages/admin/AdminLeavesDashboard.tsx";
 import SuperAdminDashboard from '@/pages/super-admin/SuperAdminLeavesDashboard.tsx';
 
+import DepartmentDashboard from '@/features/department/DepartmentDashboard.tsx';
+
 
 import VerifyEmail from "@/pages/auth/verify-email.tsx";
 import SuperAdminLeavesDashboard from '@/pages/super-admin/SuperAdminLeavesDashboard.tsx';
@@ -206,6 +208,15 @@ function App() {
                                 element={
                                     <ProtectedRoute allowedRoles={['super-admin']}>
                                         <SuperAdminLeavesDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path="/super-admin/departments"
+                                element={
+                                    <ProtectedRoute allowedRoles={['super-admin']}>
+                                        <DepartmentDashboard />
                                     </ProtectedRoute>
                                 }
                             />

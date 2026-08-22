@@ -5,7 +5,7 @@ export const api = axios.create({
     timeout: 5000,
     headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
     }
 });
 
@@ -20,7 +20,13 @@ function getRequestKey(config: InternalAxiosRequestConfig): string {
 }
 
 api.interceptors.request.use((config) => {
-    
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    } else {
+        delete config.headers.Authorization;
+    }
+
     const key = getRequestKey(config);
 
     // cancel the previous in-flight request with the same key
