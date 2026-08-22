@@ -24,12 +24,16 @@ class DepartmentSummaryController {
     public function index() {
         try {
             $total_departments = $this->department_summary_service->getTotalDepartments();
-            $total_employees_by_department = $this->department_summary_service->getTotalEmployeesByDepartment();
             $largest_department = $this->department_summary_service->getLargestDepartment();
+            $total_employees_assigned_to_department = $this->department_summary_service->getTotalEmployeesAssignedToDepartment();
+            $total_employees_not_assigned_to_department = $this->department_summary_service->getTotalEmployeesNotAssignedToDepartment();
             $this->db->response(200, true, 'Department summary fetched successfully', [
-                'total_departments' => $total_departments,
-                'total_employees_by_department' => $total_employees_by_department,
-                'largest_department' => $largest_department,
+                'department_summary' => [
+                    'total_departments' => $total_departments,
+                    'largest_department' => $largest_department,
+                    'total_employees_assigned_to_department' => $total_employees_assigned_to_department,
+                    'total_employees_not_assigned_to_department' => $total_employees_not_assigned_to_department
+                ]
             ]);
             return;
         } catch (DomainException $e) {

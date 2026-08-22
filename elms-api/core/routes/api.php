@@ -84,7 +84,7 @@ $router->put('/leave-types/{id}', [LeaveTypesController::class, 'update'])->only
 $router->delete('/leave-types/{id}', [LeaveTypesController::class, 'destroy'])->only('auth');
 
 // departments
-// $router->get('/departments/summary', [DepartmentSummaryController::class, 'index'])->only('auth');
+$router->get('/departments/summary', [DepartmentSummaryController::class, 'index'])->only('auth');
 $router->get('/departments/employees', [DepartmentEmployeesController::class, 'index'])->only('auth');  
 
 $router->get('/departments', [DepartmentController::class, 'index'])->only('auth');
