@@ -33,22 +33,25 @@ export default function DepartmentDashboard() {
   const [departmentDetails, setDepartmentDetails] = useState<Department | null>(
     null,
   );
-  const [departmentEmployees, setDepartmentEmployees] = useState<
-    DepartmentEmployee | undefined
-  >(undefined);
+  const [departmentEmployees, setDepartmentEmployees] = useState<DepartmentEmployee>({
+    active_employees_by_department: [],
+    on_leave_employees_by_department: [],
+    total_employees_by_department: [],
+  });
   const [error, setError] = useState<string | null>(null);
 
   const [departmentNameQuery, setDepartmentNameQuery] = useState<string>("");
-  const [sortByQuery, setSortByQuery] = useState<string>("");
+  const [sortByQuery, setSortByQuery] = useState<string>("a-z");
 
-  const fetchDepartments = async () => {
+  const fetchDepartments = async ({department_name, sort_by}: {department_name: string, sort_by: string}) => {
     try {
       const queryString = buildQueryString({
-        department_name: departmentNameQuery,
-        sort_by: sortByQuery,
+        department_name: department_name ?? '',
+        sort_by: sort_by ?? '',
       });
       const response = await api.get(`/departments${queryString}`);
       setDepartments(response.data.data.departments);
+      setError(null);
     } catch (e) {
       if (axios.isAxiosError(e)) {
         setError(e.response?.data.message as string);
@@ -57,10 +60,6 @@ export default function DepartmentDashboard() {
       }
     }
   };
-
-  useEffect(() => {
-    fetchDepartments();
-  }, []);
 
   const fetchDepartmentDetails = async (id: number) => {
     try {
@@ -102,15 +101,17 @@ export default function DepartmentDashboard() {
   };
 
   const onSearchSubmit = () => {
-    fetchDepartments();
+    fetchDepartments({department_name: departmentNameQuery, sort_by: sortByQuery});
   };
 
   const onClearFilters = () => {
-    setDepartmentNameQuery("");
-    setSortByQuery("");
+      setDepartmentNameQuery("");
+      setSortByQuery("a-z");
+      fetchDepartments({department_name: "", sort_by: "a-z"});
   };
-  
+
   useEffect(() => {
+    fetchDepartments({department_name: "", sort_by: "a-z"});
     fetchDepartmentSummary();
     fetchDepartmentEmployees();
   }, []);
@@ -135,7 +136,7 @@ export default function DepartmentDashboard() {
             value={{
               departments,
               setDepartments,
-              fetchDepartments,
+              fetchDepartments: () => fetchDepartments({department_name: departmentNameQuery, sort_by: sortByQuery}),
               departmentDetails,
               setDepartmentDetails,
               fetchDepartmentDetails,
@@ -176,7 +177,13 @@ export default function DepartmentDashboard() {
               </div>
 
               <div className="mt-8">
-                <DepartmentListTable />
+                {departments.some(department => department.name.toLowerCase().includes(departmentNameQuery.toLowerCase())) ? (
+                  <DepartmentListTable departments={departments} departmentEmployees={departmentEmployees} />
+                ) : (
+                  <div className="text-center text-gray-500">
+                    No departments found for {`"${departmentNameQuery}"`}
+                  </div>
+                )}
               </div>
 
               {error && (

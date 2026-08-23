@@ -92,26 +92,6 @@ export default function EmployeesListTable({ employees, onUserMutated }: Employe
 
     const { formState: { errors } } = form;
 
-    useEffect(() => {
-
-        if (employeeDetails) {
-            form.reset({
-                first_name: employeeDetails.first_name || '',
-                last_name: employeeDetails.last_name || '',
-                email: employeeDetails.email || '',
-                phone: employeeDetails.phone || '',
-                role: employeeDetails.role || '',
-                department: employeeDetails.department || '',
-                hired_date: employeeDetails.hired_date ? employeeDetails.hired_date.split(' ')[0] : '',
-                salary: employeeDetails.salary ? String(employeeDetails.salary) : '',
-                assigned_to: employeeDetails.assigned_to?.id != null
-                    ? String(employeeDetails.assigned_to.id)
-                    : '',
-                is_active: employeeDetails.is_active,
-            });
-        }
-    }, [employeeDetails, form])
-
     const fetchEmployeeDetails = async (id: number) => {
         try {
             const holder = localStorage.getItem("token");
@@ -295,6 +275,27 @@ export default function EmployeesListTable({ employees, onUserMutated }: Employe
             }
         }
     };
+
+    useEffect(() => {
+
+        if (employeeDetails) {
+            form.reset({
+                first_name: employeeDetails.first_name || '',
+                last_name: employeeDetails.last_name || '',
+                email: employeeDetails.email || '',
+                phone: employeeDetails.phone || '',
+                role: employeeDetails.role || '',
+                department: employeeDetails.department || '',
+                hired_date: employeeDetails.hired_date ? employeeDetails.hired_date.split(' ')[0] : '',
+                salary: employeeDetails.salary ? String(employeeDetails.salary) : '',
+                assigned_to: employeeDetails.assigned_to?.id != null
+                    ? String(employeeDetails.assigned_to.id)
+                    : '',
+                is_active: employeeDetails.is_active,
+            });
+        }
+    }, [employeeDetails, form])
+
 
     useEffect(() => {
         if (isSuperAdmin) {

@@ -25,7 +25,6 @@ interface DepartmentFilterBarProps {
 }
 
 export default function DepartmentFilterBar(props: DepartmentFilterBarProps) {
-  const [error, setError] = useState<string | null>(null);
 
   const {
     departmentNameQuery,
@@ -54,6 +53,7 @@ export default function DepartmentFilterBar(props: DepartmentFilterBarProps) {
       <div className="flex items-center gap-2">
         <div>
           <Input
+            id="department_name"
             type="text"
             placeholder="Search by department name"
             value={departmentNameQuery}
@@ -75,6 +75,7 @@ export default function DepartmentFilterBar(props: DepartmentFilterBarProps) {
             </SelectContent>
           </Select>
         </div>
+
         <div className="flex items-center gap-2">
           <Button
             type="submit"
@@ -93,8 +94,6 @@ export default function DepartmentFilterBar(props: DepartmentFilterBarProps) {
             Clear
           </Button>
         </div>
-
-        {error && <div className="text-red-500 text-center mt-4">{error}</div>}
       </div>
     </form>
   );
