@@ -43,30 +43,6 @@ class DepartmentSummaryService
         return $total_department;
     }
 
-    // public function getTotalEmployeesByDepartment()
-    // {
-
-    //     $this->checkUserRole();
-
-    //     $total_employees_by_department = $this->db->query("
-    //        SELECT 
-    //         d.id,
-    //         d.name AS department_name,
-    //         COUNT(u.id) AS total_employees
-    //        FROM users u
-    //        INNER JOIN departments d ON d.id = u.department_id
-    //        WHERE u.deleted_at IS NULL
-    //         AND d.deleted_at IS NULL
-    //         AND u.role != 'super-admin'
-    //         AND u.id != :current_user_id
-    //         GROUP BY d.id, d.name
-    //         ORDER BY total_employees DESC
-    //     ", [
-    //         'current_user_id' => $this->user['id']
-    //     ])->all();
-
-    //     return $total_employees_by_department;
-    // }
 
     public function getLargestDepartment()
     {

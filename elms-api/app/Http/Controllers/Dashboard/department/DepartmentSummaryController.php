@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Dashboard\Department;
 
 use Core\App;
 use Core\Database;
-use App\Http\Middleware\Auth;
+
 use App\Services\dashboard\department\DepartmentSummaryService;
 use App\Exceptions\domain\DomainException;
 use Throwable;

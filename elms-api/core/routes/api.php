@@ -22,7 +22,7 @@ use Core\Router;
 
 $router = new Router();
 
-$router->post('/', [LoginController::class, 'login'])->only('guest');
+$router->post('/', [LoginController::class, 'login']);
 $router->post('/logout', [LoginController::class, 'logout'])->only('auth');
 
 $router->post('/verify-email', [VerifyEmailController::class, 'verifyEmail']);

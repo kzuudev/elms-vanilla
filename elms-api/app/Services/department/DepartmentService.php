@@ -21,17 +21,29 @@ class DepartmentService {
 
     }
 
-    public function getDepartments() {
+    public function getDepartments(string $department_name, string $sort_by = '') {
 
         if($this->current_user['role'] !== 'super-admin') {
             throw new ForbiddenException('You are not authorized to access this resource');
         }
 
-        $departments = $this->db->query("
+        $sql = "
             SELECT * FROM departments 
             WHERE deleted_at IS NULL
-            ORDER BY created_at DESC
-        ", [])->all();
+        ";
+
+        $params = [];
+
+        if (!empty($department_name)) {
+            $sql .= " AND name = :department_name";
+            $params['department_name'] = $department_name;
+        }
+        
+        if (!empty($sort_by)) {
+            $sql .= " ORDER BY name ASC";
+        }
+
+        $departments = $this->db->query($sql, $params)->all();
 
         return $departments;
 

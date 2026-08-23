@@ -39,43 +39,69 @@ class DepartmentEmployeesService {
             INNER JOIN departments d ON d.id = u.department_id
             WHERE u.deleted_at IS NULL
               AND d.deleted_at IS NULL
-              AND u.is_active = :status
+              AND u.is_active = :is_active
               AND u.role != 'super-admin'
               AND u.id != :current_user_id
             GROUP BY d.id, d.name
             ORDER BY total_active_employees DESC
         ", [
             'current_user_id' => $this->user['id'],
-            'status' => 1
+            'is_active' => 1
         ])->all();
 
         return $active_employees_by_department;
 
     }
 
-    public function getDepartmentInactiveEmployees() {
+    public function getDepartmentOnLeaveEmployees() {
 
         $this->checkUserRole();
 
-        $inactive_employees_by_department = $this->db->query("
+        $on_leave_employees_by_department = $this->db->query("
             SELECT 
                 d.id AS department_id,
                 d.name AS department_name,
-                COUNT(u.id) AS total_inactive_employees
+                COUNT(u.id) AS total_on_leave_employees
             FROM users u
             INNER JOIN departments d ON d.id = u.department_id    
             WHERE u.deleted_at IS NULL
               AND d.deleted_at IS NULL
-              AND u.is_active = :status
+              AND u.is_active = :is_active
               AND u.role != 'super-admin'
               AND u.id != :current_user_id
             GROUP BY d.id, d.name
-            ORDER BY total_inactive_employees DESC
+            ORDER BY d.name ASC
         ", [
             'current_user_id' => $this->user['id'],
-            'status' => 0
+            'is_active' => 0
         ])->all();
 
-        return $inactive_employees_by_department;
+        return $on_leave_employees_by_department;
+    }
+
+    public function getTotalEmployeesByDepartment()
+    {
+
+        $this->checkUserRole();
+
+        $total_employees_by_department = $this->db->query("
+           SELECT 
+            d.id AS department_id,
+            d.name AS department_name,
+            COUNT(u.id) AS total_employees
+           FROM users u
+           INNER JOIN departments d ON d.id = u.department_id
+           WHERE u.deleted_at IS NULL
+            AND d.deleted_at IS NULL
+
+            AND u.role != 'super-admin'
+            AND u.id != :current_user_id
+            GROUP BY d.id, d.name
+            ORDER BY total_employees DESC
+        ", [
+            'current_user_id' => $this->user['id']
+        ])->all();
+
+        return $total_employees_by_department;
     }
 }

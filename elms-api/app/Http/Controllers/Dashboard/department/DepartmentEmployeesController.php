@@ -19,13 +19,21 @@ class DepartmentEmployeesController {
     }
 
     public function index() {
-        
+
+
+        $department_name = $_GET['department_name'] ?? '';
+        $sort_by = $_GET['sort_by'] ?? 'a-z';
+
         try {
-            $active_employees_by_department = $this->department_employees_service->getDepartmentActiveEmployees();
-            $inactive_employees_by_department = $this->department_employees_service->getDepartmentInactiveEmployees();
+            $active_employees_by_department = $this->department_employees_service->getDepartmentActiveEmployees($department_name, $sort_by);
+            $on_leave_employees_by_department = $this->department_employees_service->getDepartmentOnLeaveEmployees();
+            $total_employees_by_department = $this->department_employees_service->getTotalEmployeesByDepartment();
             $this->db->response(200, true, 'Employees by department fetched successfully', [
-                'active_employees_by_department' => $active_employees_by_department,
-                'inactive_employees_by_department' => $inactive_employees_by_department
+                'department_employees' => [
+                    'active_employees_by_department' => $active_employees_by_department,
+                    'on_leave_employees_by_department' => $on_leave_employees_by_department,
+                    'total_employees_by_department' => $total_employees_by_department
+                ]
             ]);
             return;
         }catch(DomainException $e) {

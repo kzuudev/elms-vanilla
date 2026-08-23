@@ -25,10 +25,12 @@ class DepartmentController {
     }
 
     public function index() {
-        
-        try{
 
-            $departments = $this->department_service->getDepartments();
+        $department_name = $_GET['department_name'] ?? '';
+        $sort_by = $_GET['sort_by'] ?? 'a-z';
+
+        try{
+            $departments = $this->department_service->getDepartments($department_name, $sort_by);
             $this->db->response(200, true, 'Departments fetched successfully', ['departments' => $departments]);
             return;
 
@@ -36,7 +38,7 @@ class DepartmentController {
             $this->db->response($e->getStatus(), false, $e->getMessage());
             return;
         }catch(Throwable $e) {
-            $this->db->response(500, false, 'Internal server error');
+            $this->db->response(500, false, $e->getMessage());
             return;
         }
 
@@ -82,6 +84,7 @@ class DepartmentController {
     }   
 
     public function update(int $id) {
+
         $name = $this->input['name'] ?? '';
             
         if(empty($name)) {
