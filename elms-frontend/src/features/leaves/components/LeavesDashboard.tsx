@@ -203,7 +203,7 @@ export default function LeavesDashboard({role}: {role: string}) {
                         onClearFilters={onClearFilters}
                     />
                   </div>
-                    
+                
                   <ReviewerLeaveTab />
 
                   {error && (
