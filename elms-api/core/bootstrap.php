@@ -11,6 +11,7 @@ use App\Services\department\DepartmentService;
 use App\Services\leaves\LeaveTypeService;
 use App\Services\dashboard\department\DepartmentSummaryService;
 use App\Services\dashboard\department\DepartmentEmployeesService;
+use App\Services\leaves\LeaveTypeSummaryService;
 use Core\App;
 use Core\Container;
 use Core\Database;
@@ -72,6 +73,10 @@ $container->bind(DepartmentSummaryService::class, function() {
 
 $container->bind(DepartmentEmployeesService::class, function() {
     return new DepartmentEmployeesService();
+});
+
+$container->bind(LeaveTypeSummaryService::class, function() {
+    return new LeaveTypeSummaryService();
 });
 
 App::setContainer($container);

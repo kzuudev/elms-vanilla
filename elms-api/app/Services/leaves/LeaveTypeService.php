@@ -20,6 +20,12 @@ class LeaveTypeService {
         $this->current_user = Auth::user();
     }
 
+    private function validateUser() {
+        if($this->current_user['role'] !== 'super-admin' && $this->current_user['role'] !== 'admin') {
+            throw new UnauthorizedException('You are not authorized to access this resource');
+        }
+    }
+
     public function getLeaveTypes(int $user_id) {
         
         if($this->current_user['role'] !== 'super-admin') {

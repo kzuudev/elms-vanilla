@@ -6,7 +6,7 @@ use Core\App;
 use Core\Database;
 use App\Http\Middleware\Auth;
 use App\Exceptions\domain\NotFoundException;
-use App\Exceptions\domain\ForbiddenException;
+use App\Exceptions\domain\UnauthorizedException;
 use Throwable;
 
 class DepartmentService {
@@ -21,11 +21,15 @@ class DepartmentService {
 
     }
 
+    private function validateUser() {
+        if($this->current_user['role'] !== 'super-admin' && $this->current_user['role'] !== 'admin') {
+            throw new UnauthorizedException('You are not authorized to access this resource');
+        }
+    }
+
     public function getDepartments(string $department_name, string $sort_by = '') {
 
-        if($this->current_user['role'] !== 'super-admin') {
-            throw new ForbiddenException('You are not authorized to access this resource');
-        }
+        $this->validateUser();
 
         $sql = "
             SELECT * FROM departments 
@@ -51,9 +55,7 @@ class DepartmentService {
 
     public function createDepartment(string $name) {
 
-        if($this->current_user['role'] !== 'super-admin') {
-            throw new ForbiddenException('You are not authorized to create a department');
-        }
+        $this->validateUser();
 
         try{
             $this->db->beginTransaction();
@@ -77,10 +79,7 @@ class DepartmentService {
 
     public function getDepartment(int $id) {
 
-        if($this->current_user['role'] !== 'super-admin') {
-            throw new ForbiddenException('You are not authorized to view a department details');
-
-        }
+        $this->validateUser();
 
         $department = $this->db->query("
             SELECT * FROM departments WHERE id = :id AND deleted_at IS NULL
@@ -97,9 +96,7 @@ class DepartmentService {
 
     public function updateDepartment(int $id, string $name) {
         
-        if($this->current_user['role'] !== 'super-admin') {
-            throw new ForbiddenException('You are not authorized to update a department');
-        }
+        $this->validateUser();
 
         try{
             $this->db->beginTransaction();
@@ -127,9 +124,7 @@ class DepartmentService {
 
     public function deleteDepartment(int $id) {
 
-        if($this->current_user['role'] !== 'super-admin') {
-            throw new ForbiddenException('You are not authorized to delete a department');
-        }
+        $this->validateUser();
 
         try{
             $this->db->beginTransaction();

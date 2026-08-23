@@ -24,17 +24,16 @@ class DepartmentSummaryService
         $this->user = $this->auth->authenticate();
     }
 
-    private function checkUserRole()
-    {
-        if ($this->user['role'] !== 'super-admin') {
-            throw new UnauthorizedException("You are not authorized to access this resource");
+    private function validateUser() {
+        if($this->user['role'] !== 'super-admin' && $this->user['role'] !== 'admin') {
+            throw new UnauthorizedException('You are not authorized to access this resource');
         }
     }
 
     public function getTotalDepartments()
     {
 
-        $this->checkUserRole();
+        $this->validateUser();
 
         $total_department = $this->db->query("
             SELECT COUNT(*) AS total_department FROM departments
@@ -47,7 +46,7 @@ class DepartmentSummaryService
     public function getLargestDepartment()
     {
 
-        $this->checkUserRole();
+        $this->validateUser();
 
         $largest_department = $this->db->query("
             SELECT d.id, d.name AS department_name, COUNT(u.id) AS total_employees_in_department
@@ -70,7 +69,7 @@ class DepartmentSummaryService
     public function getTotalEmployeesAssignedToDepartment()
     {
 
-        $this->checkUserRole();
+        $this->validateUser();
 
         $total_employees_assigned_to_department = $this->db->query("
         SELECT
@@ -95,7 +94,7 @@ class DepartmentSummaryService
     public function getTotalEmployeesNotAssignedToDepartment()
     {
 
-        $this->checkUserRole();
+        $this->validateUser();
 
         $total_employees_not_assigned_to_department = $this->db->query("
         SELECT
