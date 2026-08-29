@@ -1,8 +1,6 @@
 "use client";
 
-import { useContext } from 'react';
-
-import { DepartmentSummaryContext } from "@/features/context/department/DepartmentSummaryContext";
+import { useDepartmentSummaryContext } from "@/features/context/department/DepartmentSummaryContext";
 
 import StatCard from "@/features/dashboard/components/StatCard";
 
@@ -10,7 +8,7 @@ import { BuildingIcon, UsersIcon, UserX, ChartNoAxesColumn } from "lucide-react"
 
 export default function DepartmentSummaryGrid() {
 
-    const { departmentSummary } = useContext(DepartmentSummaryContext);
+    const { departmentSummary } = useDepartmentSummaryContext();
 
     const totalDepartments =
         departmentSummary?.total_departments?.total_department ?? 0;

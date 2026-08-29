@@ -36,6 +36,7 @@ export default function Login() {
     const { setError, formState: { errors } } = useForm<LoginFormData>();
 
     const navigate = useNavigate();
+    
     const { setUser } = useContext(AuthContext) as { user: Profile | null, setUser: (user: Profile | null) => void };
     const { fetchLeaveBalance } = useContext(LeaveBalanceContext) as { fetchLeaveBalance: () => void };
 

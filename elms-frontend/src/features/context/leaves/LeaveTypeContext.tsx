@@ -1,14 +1,21 @@
-import { createContext } from "react";
+import { createContext, useContext } from "react";
 import type { LeaveType } from "@/types/leave-type";
 
 interface LeaveTypeContextType {
     leaveTypes: LeaveType[];
-    setLeaveTypes: (leaveTypes: LeaveType[]) => void;
-    fetchLeaveTypes: () => void;
     leaveTypeDetails: LeaveType | null;
-    setLeaveTypeDetails: (leaveTypeDetails: LeaveType) => void;
-    fetchLeaveTypeDetails: (id: number) => void;
+    fetchLeaveTypes: () => Promise<void>;
+    fetchLeaveTypeDetails: (id: number) => Promise<void>;
 }
 
 export const LeaveTypeContext = createContext<LeaveTypeContextType | undefined>(undefined);
 
+export function useLeaveTypeContext(): LeaveTypeContextType {
+    const context = useContext(LeaveTypeContext);
+
+    if (!context) {
+        throw new Error("useLeaveTypeContext must be used within a LeaveTypeContext.Provider");
+    }
+
+    return context;
+}

@@ -14,6 +14,7 @@ interface Props {
     isViewMode: boolean;
     setIsViewMode: (open: boolean) => void;
 }
+
 export default function LeaveRequestDetailsModal({isViewMode, setIsViewMode} : Props) {
 
     const { leaveRequestDetails } = useContext(LeaveContext) as LeaveContextType;

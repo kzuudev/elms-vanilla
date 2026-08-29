@@ -2,6 +2,17 @@
 
 import type { Department, DepartmentEmployee } from "@/types/department";
 
+import ExistingDepartmentForm from "../context/department/ExistingDepartmentForm";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -10,16 +21,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table.tsx";
-import { Eye, Pencil, Trash, Calendar } from "lucide-react";
+import { Eye, Pencil, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
+
 
 export default function DepartmentListTable({
   departments,
   departmentEmployees,
+  handleViewDepartmentDetails,
 }: {
   departments: Department[];
-  departmentEmployees: DepartmentEmployee;
+  departmentEmployees: DepartmentEmployee | undefined;
+  handleViewDepartmentDetails: (id: number) => void;
 }) {
+
+
+
+
+  
   return (
     <>
       <div className="border border-border rounded-lg bg-white overflow-hidden">
@@ -46,7 +65,7 @@ export default function DepartmentListTable({
           <TableBody>
             {departments.map((department) => {
               const totalEmployees =
-                departmentEmployees.total_employees_by_department?.find(
+                departmentEmployees?.total_employees_by_department?.find(
                   (row) => row.department_id === department.id,
                 )?.total_employees ?? 0;
 
@@ -70,6 +89,7 @@ export default function DepartmentListTable({
                       variant="outline"
                       size="icon"
                       className="text-gray-500 hover:text-gray-600 hover:bg-gray-100"
+                      onClick={() => handleViewDepartmentDetails(department.id)}
                     >
                       <Eye className="w-4 h-4 text-green-600" />
                     </Button>

@@ -1,21 +1,22 @@
-import { createContext } from "react";
+import { createContext, useContext } from "react";
 
 import type { Department } from "@/types/department";
 
 interface DepartmentContextType {
     departments: Department[];
-    setDepartments: (departments: Department[]) => void;
-    fetchDepartments: () => void;
+    fetchDepartments: () => Promise<void>;
     departmentDetails: Department | null;
-    setDepartmentDetails: (department: Department) => void;
-    fetchDepartmentDetails: (id: number) => void;
+    fetchDepartmentDetails: (id: number) => Promise<void>;
 }
 
-export const DepartmentContext = createContext<DepartmentContextType>({
-    departments: [],
-    setDepartments: () => {},
-    fetchDepartments: () => {},
-    departmentDetails: null,
-    setDepartmentDetails: () => {},
-    fetchDepartmentDetails: () => {}
-});
+export const DepartmentContext = createContext<DepartmentContextType | undefined>(undefined);
+
+export function useDepartmentContext(): DepartmentContextType {
+    const context = useContext(DepartmentContext);
+
+    if (!context) {
+        throw new Error("useDepartmentContext must be used within a DepartmentContext.Provider");
+    }
+
+    return context;
+}

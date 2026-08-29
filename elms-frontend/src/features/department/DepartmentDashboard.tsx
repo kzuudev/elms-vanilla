@@ -24,6 +24,19 @@ import DepartmentSummaryGrid from "./DepartmentSummaryGrid";
 import DepartmentListTable from "./DepartmentListTable";
 import DepartmentFilterBar from "./DepartmentFilterBar";
 
+import ExistingDepartmentForm from "../context/department/ExistingDepartmentForm";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
 export default function DepartmentDashboard() {
   const [departmentSummary, setDepartmentSummary] = useState<
     DepartmentSummary | undefined
@@ -33,21 +46,28 @@ export default function DepartmentDashboard() {
   const [departmentDetails, setDepartmentDetails] = useState<Department | null>(
     null,
   );
-  const [departmentEmployees, setDepartmentEmployees] = useState<DepartmentEmployee>({
-    active_employees_by_department: [],
-    on_leave_employees_by_department: [],
-    total_employees_by_department: [],
-  });
+  const [departmentEmployees, setDepartmentEmployees] =
+    useState<DepartmentEmployee>({
+      active_employees_by_department: [],
+      on_leave_employees_by_department: [],
+      total_employees_by_department: [],
+    });
   const [error, setError] = useState<string | null>(null);
 
   const [departmentNameQuery, setDepartmentNameQuery] = useState<string>("");
   const [sortByQuery, setSortByQuery] = useState<string>("a-z");
-
-  const fetchDepartments = async ({department_name, sort_by}: {department_name: string, sort_by: string}) => {
+  const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
+  const fetchDepartments = async ({
+    department_name,
+    sort_by,
+  }: {
+    department_name: string;
+    sort_by: string;
+  }) => {
     try {
       const queryString = buildQueryString({
-        department_name: department_name ?? '',
-        sort_by: sort_by ?? '',
+        department_name: department_name ?? "",
+        sort_by: sort_by ?? "",
       });
       const response = await api.get(`/departments${queryString}`);
       setDepartments(response.data.data.departments);
@@ -64,7 +84,8 @@ export default function DepartmentDashboard() {
   const fetchDepartmentDetails = async (id: number) => {
     try {
       const response = await api.get(`/departments/${id}`);
-      setDepartmentDetails(response.data.department);
+      setDepartmentDetails(response.data.data.department);
+      setError(null);
     } catch (e) {
       if (axios.isAxiosError(e)) {
         setError(e.response?.data.message as string);
@@ -73,6 +94,11 @@ export default function DepartmentDashboard() {
       }
     }
   };
+
+  const handleViewDepartmentDetails = async (id: number) => {
+    await fetchDepartmentDetails(id);
+    setIsViewModalOpen(true);
+  }
 
   const fetchDepartmentSummary = async () => {
     try {
@@ -101,19 +127,24 @@ export default function DepartmentDashboard() {
   };
 
   const onSearchSubmit = () => {
-    fetchDepartments({department_name: departmentNameQuery, sort_by: sortByQuery});
+    fetchDepartments({
+      department_name: departmentNameQuery,
+      sort_by: sortByQuery,
+    });
   };
 
   const onClearFilters = () => {
-      setDepartmentNameQuery("");
-      setSortByQuery("a-z");
-      fetchDepartments({department_name: "", sort_by: "a-z"});
+    setDepartmentNameQuery("");
+    setSortByQuery("a-z");
+    fetchDepartments({ department_name: "", sort_by: "a-z" });
   };
 
   useEffect(() => {
-    fetchDepartments({department_name: "", sort_by: "a-z"});
+    fetchDepartments({ department_name: "", sort_by: "a-z" });
     fetchDepartmentSummary();
     fetchDepartmentEmployees();
+
+
   }, []);
 
   return (
@@ -121,24 +152,24 @@ export default function DepartmentDashboard() {
       <DepartmentEmployeesContext.Provider
         value={{
           departmentEmployees,
-          setDepartmentEmployees,
           fetchDepartmentEmployees,
         }}
       >
         <DepartmentSummaryContext.Provider
           value={{
             departmentSummary,
-            setDepartmentSummary,
             fetchDepartmentSummary,
           }}
         >
           <DepartmentContext.Provider
             value={{
               departments,
-              setDepartments,
-              fetchDepartments: () => fetchDepartments({department_name: departmentNameQuery, sort_by: sortByQuery}),
+              fetchDepartments: () =>
+                fetchDepartments({
+                  department_name: departmentNameQuery,
+                  sort_by: sortByQuery,
+                }),
               departmentDetails,
-              setDepartmentDetails,
               fetchDepartmentDetails,
             }}
           >
@@ -165,7 +196,7 @@ export default function DepartmentDashboard() {
                 </div>
               </div>
 
-              <div className="mt-8">
+              <div className="flex justify-between items-center mt-8">
                 <DepartmentFilterBar
                   departmentNameQuery={departmentNameQuery}
                   setDepartmentNameQuery={setDepartmentNameQuery}
@@ -174,11 +205,40 @@ export default function DepartmentDashboard() {
                   onSearchSubmit={onSearchSubmit}
                   onClearFilters={onClearFilters}
                 />
+
+                <div className="mt-4">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className=""
+                      >
+                        Add New Department
+                      </Button>
+                    </DialogTrigger>
+                  </Dialog>
+                </div>
               </div>
 
               <div className="mt-8">
-                {departments.some(department => department.name.toLowerCase().includes(departmentNameQuery.toLowerCase())) ? (
-                  <DepartmentListTable departments={departments} departmentEmployees={departmentEmployees} />
+                <ExistingDepartmentForm
+                  handleSubmit={async (data) => {
+                    console.log(data);
+                  }}
+                  isViewMode={isViewModalOpen}
+                  setIsViewMode={setIsViewModalOpen}
+                />
+
+                {departments.some((department) =>
+                  department.name
+                    .toLowerCase()
+                    .includes(departmentNameQuery.toLowerCase()),
+                ) ? (
+                  <DepartmentListTable
+                    departments={departments}
+                    departmentEmployees={departmentEmployees}
+                    handleViewDepartmentDetails={handleViewDepartmentDetails}
+                  />
                 ) : (
                   <div className="text-center text-gray-500">
                     No departments found for {`"${departmentNameQuery}"`}

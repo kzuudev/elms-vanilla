@@ -1,8 +1,5 @@
 "use client";
 
-import { useContext, useState } from "react";
-import type { Department } from "@/types/department";
-import { DepartmentContext } from "@/features/context/department/DepartmentContext";
 
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";

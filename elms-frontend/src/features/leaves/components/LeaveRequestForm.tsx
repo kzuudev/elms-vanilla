@@ -37,7 +37,6 @@ export default function LeaveRequestForm({closeDialog, handleSubmit}: LeaveReque
 
     const navigate = useNavigate();
 
-
     const fetchLeaveTypes = async () => {
         try{
             const response = await api.get("/leave-types", {
