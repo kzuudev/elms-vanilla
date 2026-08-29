@@ -6,20 +6,31 @@ namespace App\Services\registration;
 use Core\App;
 use Core\Database;
 use Throwable;
+use App\Http\Middleware\Auth;
 use App\Services\Auth\EmailVerificationService;
 use App\Exceptions\UserAlreadyExistsExceptions;
+use App\Exceptions\domain\UnauthorizedException;
 
 class RegisterUserService {
 
     private Database $db;
+    private ?array $current_user;
 
     public function __construct() {
 
         $this->db = App::resolve(Database::class);
+        $this->current_user = Auth::user();
+    }
+
+    private function validateUser() {
+        if($this->current_user['role'] !== 'super-admin' && $this->current_user['role'] !== 'admin') {
+            throw new UnauthorizedException('You are not authorized to access this resource');
+        }
     }
 
     public function registerUser($first_name, $last_name, $email, $phone, $role, $department, $salary, $assigned_to) {
 
+        $this->validateUser();
 
         // check if email exists
         $existing_user = $this->db->query("SELECT * FROM users WHERE email = :email", [

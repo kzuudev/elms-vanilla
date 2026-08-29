@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\dashboard\department;
+namespace App\Services\department;
 
 use Core\App;
 use Core\Database;
@@ -25,7 +25,7 @@ class DepartmentSummaryService
     }
 
     private function validateUser() {
-        if($this->user['role'] !== 'super-admin' && $this->user['role'] !== 'admin') {
+        if($this->user['role'] !== 'super-admin') {
             throw new UnauthorizedException('You are not authorized to access this resource');
         }
     }

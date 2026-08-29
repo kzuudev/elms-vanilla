@@ -22,7 +22,7 @@ class DepartmentService {
     }
 
     private function validateUser() {
-        if($this->current_user['role'] !== 'super-admin' && $this->current_user['role'] !== 'admin') {
+        if($this->current_user['role'] !== 'super-admin') {
             throw new UnauthorizedException('You are not authorized to access this resource');
         }
     }
@@ -31,7 +31,7 @@ class DepartmentService {
 
         $this->validateUser();
 
-        $sql = "
+        $query = "
             SELECT * FROM departments 
             WHERE deleted_at IS NULL
         ";
@@ -39,15 +39,15 @@ class DepartmentService {
         $params = [];
 
         if (!empty($department_name)) {
-            $sql .= " AND name = :department_name";
+            $query .= " AND name = :department_name";
             $params['department_name'] = $department_name;
         }
         
         if (!empty($sort_by)) {
-            $sql .= " ORDER BY name ASC";
+            $query .= " ORDER BY name ASC";
         }
 
-        $departments = $this->db->query($sql, $params)->all();
+        $departments = $this->db->query($query, $params)->all();
 
         return $departments;
 

@@ -4,6 +4,7 @@ namespace App\Services\dashboard;
 
 use App\Contracts\LeaveAnalyticsInterface;
 use App\Http\Middleware\Auth;
+use App\Exceptions\domain\UnauthorizedException;
 use App\Traits\HasSharedAnalytics;
 use Core\App;
 use Core\Database;
@@ -29,42 +30,54 @@ class AdminDashboardService implements LeaveAnalyticsInterface {
 
     }
 
+    private function validateUser() {
+        if($this->current_user_role !== 'admin') {
+            throw new UnauthorizedException('You are not authorized to access this resource');
+        }
+    }
+
 
     public function getRemainingTotalBalance(): array
     {
+        $this->validateUser();
         return $this->executeRemainingTotalBalance($this->current_user_id);
     }
 
     public function getPendingApprovalMetrics(): array
     {
+        $this->validateUser();
         return $this->executePendingApprovalMetrics($this->current_user_id);
     }
 
     public function getUsedDays(): array
     {
+        $this->validateUser();
         return $this->executeUsedDays($this->current_user_id);
     }
 
     public function getTeamAvailability(): array
     {
-
+        $this->validateUser();
         return $this->executeTeamAvailabilityQuery($this->current_user_role, $this->current_user_id, $this->current_user_department);
 
     }
 
     public function getMonthlyConsumption(): array {
 
+        $this->validateUser();
         return $this->executeMonthlyConsumptionQuery($this->current_user_role, $this->current_user_id);
     }
 
     public function getBacklogRequests(): array {
 
+        $this->validateUser();
         return $this->executeBacklogQuery($this->current_user_role, $this->current_user_id);
 
     }
 
     public function getTeamOverlap(): array {
 
+        $this->validateUser();
         $pending_requests = $this->db->query("
             SELECT lr.*, 
                    lr.user_id AS user_id,
@@ -111,6 +124,7 @@ class AdminDashboardService implements LeaveAnalyticsInterface {
     
 
     public function getRecentActivity(): array {
+        $this->validateUser();
         $recent_activity = $this->db->query("
             SELECT lr.id,
                    CONCAT(u.first_name, ' ', u.last_name) AS employee_name,

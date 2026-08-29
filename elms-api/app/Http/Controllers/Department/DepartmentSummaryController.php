@@ -1,12 +1,12 @@
 <?php
 
 
-namespace App\Http\Controllers\Dashboard\Department;
+namespace App\Http\Controllers\Department;
 
 use Core\App;
 use Core\Database;
 
-use App\Services\dashboard\department\DepartmentSummaryService;
+use App\Services\department\DepartmentSummaryService;
 use App\Exceptions\domain\DomainException;
 use Throwable;
 

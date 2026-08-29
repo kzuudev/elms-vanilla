@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\Dashboard\department;
+namespace App\Http\Controllers\Department;
 
-use App\Services\dashboard\department\DepartmentEmployeesService;
+use App\Services\department\DepartmentEmployeesService;
 use Core\App;
 use Core\Database;
 use App\Exceptions\domain\DomainException;

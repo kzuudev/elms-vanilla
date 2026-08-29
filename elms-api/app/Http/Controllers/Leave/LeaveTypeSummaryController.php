@@ -14,8 +14,8 @@ class LeaveTypeSummaryController
 
     private Database $db;
     private LeaveTypeSummaryService $leave_type_summary_service;
-    private ?array $input;
 
+    
     public function __construct()
     {
 

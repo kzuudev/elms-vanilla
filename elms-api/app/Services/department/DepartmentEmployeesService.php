@@ -1,6 +1,6 @@
 <?
 
-namespace App\Services\dashboard\department;
+namespace App\Services\department;
 
 use Core\App;
 use Core\Database;
@@ -20,7 +20,7 @@ class DepartmentEmployeesService {
         $this->user = $this->auth->user();
     }
 
-    private function checkUserRole() {
+    private function validateUser() {
         if($this->user['role'] !== 'super-admin') {
             throw new UnauthorizedException('You are not authorized to access this resource');
         }
@@ -28,7 +28,7 @@ class DepartmentEmployeesService {
 
     public function getDepartmentActiveEmployees() {
 
-        $this->checkUserRole();
+        $this->validateUser();
 
         $active_employees_by_department = $this->db->query("
             SELECT
@@ -55,7 +55,7 @@ class DepartmentEmployeesService {
 
     public function getDepartmentOnLeaveEmployees() {
 
-        $this->checkUserRole();
+        $this->validateUser();
 
         $on_leave_employees_by_department = $this->db->query("
             SELECT 
@@ -82,7 +82,7 @@ class DepartmentEmployeesService {
     public function getTotalEmployeesByDepartment()
     {
 
-        $this->checkUserRole();
+        $this->validateUser();
 
         $total_employees_by_department = $this->db->query("
            SELECT 

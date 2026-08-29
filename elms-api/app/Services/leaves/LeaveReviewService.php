@@ -39,7 +39,7 @@ class LeaveReviewService implements LeaveReviewInterface {
             
             $params = [];
 
-            $sql = "
+            $query = "
                 SELECT 
                 lr.*, 
                 e.first_name as employee_name, 
@@ -56,22 +56,22 @@ class LeaveReviewService implements LeaveReviewInterface {
 
 
             if (!empty($leave_type)) {
-                $sql .= " AND lt.name = :leave_type";
+                $query .= " AND lt.name = :leave_type";
                 $params['leave_type'] = $leave_type;
             }
 
             if (!empty($start_date)) {
-                $sql .= " AND lr.start_date = :start_date AND lr.start_date >= :start_date";
+                $query .= " AND lr.start_date = :start_date AND lr.start_date >= :start_date";
                 $params['start_date'] = $start_date;
             }
 
             if (!empty($end_date)) {
-                $sql .= " AND lr.end_date = :end_date AND lr.end_date <= :end_date";
+                $query .= " AND lr.end_date = :end_date AND lr.end_date <= :end_date";
                 $params['end_date'] = $end_date;
             }
 
             if (!empty($status)) {
-                $sql .= " AND lr.status = :status";
+                $query .= " AND lr.status = :status";
                 $params['status'] = $status;
             }
 
@@ -79,19 +79,19 @@ class LeaveReviewService implements LeaveReviewInterface {
                 
             }else if ($role === 'admin') {
                 // Admins see all requests, except their own requests
-                $sql .= " AND lr.user_id != :reviewer_id AND e.department = :department";
+                $query .= " AND lr.user_id != :reviewer_id AND e.department = :department";
                 $params['reviewer_id'] = $current_user_id;
                 $params['department'] = $current_user['department'];
             } elseif ($role === 'manager') {
                 // Managers only see requests assigned to them
-                $sql .= " AND lr.assigned_to = :reviewer_id";
+                $query .= " AND lr.assigned_to = :reviewer_id";
                 $params['reviewer_id'] = $current_user_id;
             } else {
                 // Stop regular employees from seeing the review list!
                 throw new ForbiddenException('Forbidden: You do not have review permissions');
             }
 
-            $leave_requests = $this->db->query($sql, $params)->all();
+            $leave_requests = $this->db->query($query, $params)->all();
             return $leave_requests;
 
     }
@@ -112,7 +112,7 @@ class LeaveReviewService implements LeaveReviewInterface {
                 throw new NotFoundException('User role not found');
             }
 
-            $sql = "
+            $query = "
                 SELECT 
                     lr.*, 
                     e.first_name as employee_name,
@@ -128,22 +128,22 @@ class LeaveReviewService implements LeaveReviewInterface {
 
 
             if($role === 'super-admin') {
-                $sql .= " AND e.department = :department AND lr.user_id != :current_user_id";
+                $query .= " AND e.department = :department AND lr.user_id != :current_user_id";
                 $params['department'] = $current_user['department'];
                 $params['current_user_id'] = $current_user_id;
             }else if($role === 'admin') {
-                $sql .= " AND e.department = :department";
+                $query .= " AND e.department = :department";
                 $params['department'] = $current_user['department'];
             }else if ($role === "manager") {
                 // Managers can see it if they are assigned to it OR if managers created it
-                $sql .= " AND (lr.assigned_to = :current_user_id OR lr.user_id = :current_user_id)";
+                $query .= " AND (lr.assigned_to = :current_user_id OR lr.user_id = :current_user_id)";
                 $params['current_user_id'] = $current_user_id;
             }else {
                 throw new ForbiddenException('Forbidden: You do not have review permissions');
             }
 
             // capture the authorized user
-            $authorized_for_leave_request = $this->db->query($sql, $params)->find();
+            $authorized_for_leave_request = $this->db->query($query, $params)->find();
 
             if(!$authorized_for_leave_request) {
                 throw new NotFoundException('Authorized user not found');

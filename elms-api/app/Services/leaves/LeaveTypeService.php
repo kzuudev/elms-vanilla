@@ -5,7 +5,6 @@ namespace App\Services\leaves;
 use Core\App;
 use Core\Database;
 use App\Exceptions\domain\NotFoundException;
-use App\Exceptions\domain\ForbiddenException;
 use App\Exceptions\domain\UnauthorizedException;
 use App\Http\Middleware\Auth;
 use Throwable;
@@ -21,17 +20,14 @@ class LeaveTypeService {
     }
 
     private function validateUser() {
-        if($this->current_user['role'] !== 'super-admin' && $this->current_user['role'] !== 'admin') {
+        if($this->current_user['role'] !== 'super-admin') {
             throw new UnauthorizedException('You are not authorized to access this resource');
         }
     }
 
     public function getLeaveTypes(int $user_id) {
         
-        if($this->current_user['role'] !== 'super-admin') {
-            throw new UnauthorizedException('You are not authorized to access this resource');
-        }
-
+        $this->validateUser();
 
         $leave_types = $this->db->query("
             SELECT * FROM leave_types WHERE deleted_at IS NULL AND allocated_days > 0
@@ -47,9 +43,7 @@ class LeaveTypeService {
 
     public function createLeaveType(string $name, int $allocated_days, bool $is_paid) {
 
-        if($this->current_user['role'] !== 'super-admin') {
-            throw new UnauthorizedException('You are not authorized to create a leave type');
-        }
+        $this->validateUser();
 
         $this->db->beginTransaction();
 
@@ -73,9 +67,7 @@ class LeaveTypeService {
 
     public function getLeaveType(int $id) {
 
-        if($this->current_user['role'] !== 'super-admin') {
-            throw new UnauthorizedException('You are not authorized to view a leave type details');
-        }
+        $this->validateUser();
 
         $leave_type = $this->db->query("
             SELECT * FROM leave_types WHERE id = :id AND deleted_at IS NULL        
@@ -91,9 +83,7 @@ class LeaveTypeService {
 
     public function updateLeaveType(int $id, string $name, int $allocated_days, bool $is_paid) {
 
-        if($this->current_user['role'] !== 'super-admin') {
-            throw new UnauthorizedException('You are not authorized to update a leave type');
-        }
+        $this->validateUser();
 
         try{
             $this->db->beginTransaction();
@@ -123,9 +113,7 @@ class LeaveTypeService {
 
     public function deleteLeaveType(int $id) {
 
-        if($this->current_user['role'] !== 'super-admin' ) {
-            throw new UnauthorizedException('You are not authorized to delete a leave type');
-        }
+        $this->validateUser();
 
         try{
             $this->db->beginTransaction();

@@ -23,7 +23,7 @@ class LeaveTypeSummaryService {
     }
 
     private function validateUser() {
-        if($this->current_user['role'] !== 'super-admin' && $this->current_user['role'] !== 'admin') {
+        if($this->current_user['role'] !== 'super-admin') {
             throw new UnauthorizedException('You are not authorized to access this resource');
         }
     }
