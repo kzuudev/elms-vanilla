@@ -46,17 +46,21 @@ export default function DepartmentDashboard() {
   const [departmentDetails, setDepartmentDetails] = useState<Department | null>(
     null,
   );
+
   const [departmentEmployees, setDepartmentEmployees] =
     useState<DepartmentEmployee>({
       active_employees_by_department: [],
       on_leave_employees_by_department: [],
       total_employees_by_department: [],
     });
-  const [error, setError] = useState<string | null>(null);
 
+  const [error, setError] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [departmentNameQuery, setDepartmentNameQuery] = useState<string>("");
   const [sortByQuery, setSortByQuery] = useState<string>("a-z");
   const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
+
+
   const fetchDepartments = async ({
     department_name,
     sort_by,
@@ -98,6 +102,7 @@ export default function DepartmentDashboard() {
   const handleViewDepartmentDetails = async (id: number) => {
     await fetchDepartmentDetails(id);
     setIsViewModalOpen(true);
+    setIsEditMode(false);
   }
 
   const fetchDepartmentSummary = async () => {
@@ -227,6 +232,8 @@ export default function DepartmentDashboard() {
                   }}
                   isViewMode={isViewModalOpen}
                   setIsViewMode={setIsViewModalOpen}
+                  isEditMode={isEditMode}
+                  setIsEditMode={setIsEditMode}
                 />
 
                 {departments.some((department) =>

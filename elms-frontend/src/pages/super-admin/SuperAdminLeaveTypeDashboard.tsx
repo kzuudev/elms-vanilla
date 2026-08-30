@@ -3,5 +3,9 @@
 import LeaveTypeDashboard from "@/features/leave-types/LeaveTypeDashboard";
 
 export default function SuperAdminLeaveTypeDashboard() {
-    return <LeaveTypeDashboard />;
+  return (
+    <>
+    <LeaveTypeDashboard />
+    </>
+  );
 }

@@ -36,9 +36,6 @@ export default function DepartmentListTable({
 }) {
 
 
-
-
-  
   return (
     <>
       <div className="border border-border rounded-lg bg-white overflow-hidden">

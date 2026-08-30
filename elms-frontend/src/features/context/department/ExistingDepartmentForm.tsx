@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog.tsx";
 import { Input } from "@/components/ui/input.tsx";
 
-import { Pencil, Trash } from "lucide-react";
+import { Pencil, Save, Trash } from "lucide-react";
 
 const schema = z.object({
   department_name: z
@@ -40,12 +40,16 @@ interface ExistingDepartmentFormProps {
   handleSubmit: (data: ExistingDepartmentFormData) => Promise<void>;
   isViewMode: boolean;
   setIsViewMode: (open: boolean) => void;
+  isEditMode: boolean;
+  setIsEditMode: (open: boolean) => void;
 }
 
 export default function ExistingDepartmentForm({
   handleSubmit,
   isViewMode,
   setIsViewMode,
+  isEditMode,
+  setIsEditMode,
 }: ExistingDepartmentFormProps) {
   const form = useForm<ExistingDepartmentFormData>({
     resolver: zodResolver(schema),
@@ -85,33 +89,8 @@ export default function ExistingDepartmentForm({
               View the details of the department
             </DialogDescription>
           </DialogHeader>
-          {/* <form
-            className="w-full mx-auto"
-            onSubmit={form.handleSubmit(onSubmit)}
-            id="existing-department-form"
-          >
-            <div className="flex flex-col gap-4">
-              <Controller
-                name="department_name"
-                control={form.control}
-                render={({ field }) => (
-                  <Field>
-                    <FieldLabel>Department Name</FieldLabel>
-                    <FieldGroup>
-                      <Input {...field} name="department_name" />
-                    </FieldGroup>
-                  </Field>
-                )}
-              />
-
-              {errors.department_name && (
-                <p className="text-red-500">{errors.department_name.message}</p>
-              )}
-            </div>
-          </form> */}
-
           <div>
-            <div className="flex flex-col gap-3 mb-4">
+            <div className="flex flex-col gap-3 mb-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm text-muted-foreground">
                   Department Name:{" "}
@@ -126,7 +105,39 @@ export default function ExistingDepartmentForm({
                 <p className="text-sm">{totalEmployees}</p>
               </div>
             </div>
-            <div className="w-full flex justify-between gap-2">
+
+            <div className="mb-4">
+              {isEditMode && (
+                <form
+                  className="w-full mx-auto"
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  id="existing-department-form"
+                >
+                  <div className="flex flex-col gap-4">
+                    <Controller
+                      name="department_name"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Field>
+                          <FieldLabel>New Department Name</FieldLabel>
+                          <FieldGroup>
+                            <Input {...field} name="department_name" />
+                          </FieldGroup>
+                        </Field>
+                      )}
+                    />
+
+                    {errors.department_name && (
+                      <p className="text-red-500">
+                        {errors.department_name.message}
+                      </p>
+                    )}
+                  </div>
+                </form>
+              )}
+            </div>
+
+            <div className="w-full flex justify-between">
               <Button
                 type="button"
                 className="min-w-4"
@@ -136,9 +147,22 @@ export default function ExistingDepartmentForm({
                 <Trash className="w-4 h-4" />
               </Button>
 
-              <Button type="submit" className="min-w-4" variant="default">
-                <Pencil className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  className="min-w-4"
+                  variant="default"
+                  onClick={() => setIsEditMode(true)}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+
+                {isEditMode && (
+                  <Button type="submit" className="min-w-4" variant="default">
+                    Save
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </DialogContent>
