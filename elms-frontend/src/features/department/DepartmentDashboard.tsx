@@ -24,7 +24,7 @@ import DepartmentSummaryGrid from "./DepartmentSummaryGrid";
 import DepartmentListTable from "./DepartmentListTable";
 import DepartmentFilterBar from "./DepartmentFilterBar";
 
-import ExistingDepartmentForm from "../context/department/ExistingDepartmentForm";
+import DepartmentDialog from "@/features/department/DepartmentDialog";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -104,6 +104,37 @@ export default function DepartmentDashboard() {
     setIsViewModalOpen(true);
     setIsEditMode(false);
   }
+  
+  const handleEditDepartmentDetails = async (id: number) => {
+
+      await fetchDepartmentDetails(id);
+
+
+
+      setIsEditMode(true);
+      setIsViewModalOpen(false);
+
+
+  }
+
+  const fetchUpdateDepartment = async (id: number, data: {department_name: string | null}) => {
+
+    try {
+      const response = await api.patch(`/departments/${id}`, {
+        department_name: data.department_name,
+      });
+      setIsEditMode(false);
+      setIsViewModalOpen(true);
+      return response;
+    }catch (e) {
+      if (axios.isAxiosError(e)) {
+        setError(e.response?.data.message as string);
+      } else {
+        setError("An unknown error occurred");
+      }
+    }
+
+  }
 
   const fetchDepartmentSummary = async () => {
     try {
@@ -144,12 +175,21 @@ export default function DepartmentDashboard() {
     fetchDepartments({ department_name: "", sort_by: "a-z" });
   };
 
+  const handleEditSubmit = async (data: {department_name: string | null}) => {
+
+    const id = departmentDetails?.id;
+
+    if (!id) {
+      console.error("No department ID found.");
+      return;
+    }
+    await fetchUpdateDepartment(id, data);
+  }
+
   useEffect(() => {
     fetchDepartments({ department_name: "", sort_by: "a-z" });
     fetchDepartmentSummary();
     fetchDepartmentEmployees();
-
-
   }, []);
 
   return (
@@ -191,7 +231,7 @@ export default function DepartmentDashboard() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Notifications />
+                    <Notifications /> 
                     <UserProfile />
                   </div>
                 </div>
@@ -226,10 +266,8 @@ export default function DepartmentDashboard() {
               </div>
 
               <div className="mt-8">
-                <ExistingDepartmentForm
-                  handleSubmit={async (data) => {
-                    console.log(data);
-                  }}
+                <DepartmentDialog
+                  handleEditSubmit={handleEditSubmit}
                   isViewMode={isViewModalOpen}
                   setIsViewMode={setIsViewModalOpen}
                   isEditMode={isEditMode}
@@ -245,6 +283,7 @@ export default function DepartmentDashboard() {
                     departments={departments}
                     departmentEmployees={departmentEmployees}
                     handleViewDepartmentDetails={handleViewDepartmentDetails}
+                    handleEditDepartmentDetails={handleEditDepartmentDetails}
                   />
                 ) : (
                   <div className="text-center text-gray-500">

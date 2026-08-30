@@ -2,17 +2,6 @@
 
 import type { Department, DepartmentEmployee } from "@/types/department";
 
-import ExistingDepartmentForm from "../context/department/ExistingDepartmentForm";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -29,10 +18,12 @@ export default function DepartmentListTable({
   departments,
   departmentEmployees,
   handleViewDepartmentDetails,
+  handleEditDepartmentDetails,
 }: {
   departments: Department[];
   departmentEmployees: DepartmentEmployee | undefined;
   handleViewDepartmentDetails: (id: number) => void;
+  handleEditDepartmentDetails: (id: number) => void;
 }) {
 
 
@@ -94,6 +85,7 @@ export default function DepartmentListTable({
                       variant="outline"
                       size="icon"
                       className="text-gray-500 hover:text-gray-600 hover:bg-gray-100"
+                      onClick={() => handleEditDepartmentDetails(department.id)}
                     >
                       <Pencil className="w-4 h-4 text-black" />
                     </Button>
