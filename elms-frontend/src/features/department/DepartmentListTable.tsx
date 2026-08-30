@@ -19,11 +19,13 @@ export default function DepartmentListTable({
   departmentEmployees,
   handleViewDepartmentDetails,
   handleEditDepartmentDetails,
+  handleDepartmentDelete,
 }: {
   departments: Department[];
   departmentEmployees: DepartmentEmployee | undefined;
   handleViewDepartmentDetails: (id: number) => void;
   handleEditDepartmentDetails: (id: number) => void;
+  handleDepartmentDelete: (id: number) => void;
 }) {
 
 
@@ -93,6 +95,7 @@ export default function DepartmentListTable({
                       variant="outline"
                       size="icon"
                       className="text-gray-500 hover:text-gray-600 hover:bg-gray-100"
+                      onClick={() => handleDepartmentDelete(department.id)}
                     >
                       <Trash className="w-4 h-4 text-red-500" />
                     </Button>

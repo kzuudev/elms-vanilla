@@ -60,7 +60,6 @@ export default function DepartmentDashboard() {
   const [sortByQuery, setSortByQuery] = useState<string>("a-z");
   const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
 
-
   const fetchDepartments = async ({
     department_name,
     sort_by,
@@ -99,26 +98,10 @@ export default function DepartmentDashboard() {
     }
   };
 
-  const handleViewDepartmentDetails = async (id: number) => {
-    await fetchDepartmentDetails(id);
-    setIsViewModalOpen(true);
-    setIsEditMode(false);
-  }
-  
-  const handleEditDepartmentDetails = async (id: number) => {
-
-      await fetchDepartmentDetails(id);
-
-
-
-      setIsEditMode(true);
-      setIsViewModalOpen(false);
-
-
-  }
-
-  const fetchUpdateDepartment = async (id: number, data: {department_name: string | null}) => {
-
+  const fetchUpdateDepartment = async (
+    id: number,
+    data: { department_name: string | null },
+  ) => {
     try {
       const response = await api.patch(`/departments/${id}`, {
         department_name: data.department_name,
@@ -126,15 +109,27 @@ export default function DepartmentDashboard() {
       setIsEditMode(false);
       setIsViewModalOpen(true);
       return response;
-    }catch (e) {
+    } catch (e) {
       if (axios.isAxiosError(e)) {
         setError(e.response?.data.message as string);
       } else {
         setError("An unknown error occurred");
       }
     }
+  };
 
-  }
+  const fetchDeleteDepartment = async (id: number) => {
+    try {
+      const response = await api.delete(`/departments/${id}`);
+      return response;
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        setError(e.response?.data.message as string);
+      } else {
+        setError("An unknown error occurred");
+      }
+    }
+  };
 
   const fetchDepartmentSummary = async () => {
     try {
@@ -162,6 +157,32 @@ export default function DepartmentDashboard() {
     }
   };
 
+  const handleViewDepartmentDetails = async (id: number) => {
+    await fetchDepartmentDetails(id);
+    setIsViewModalOpen(true);
+    setIsEditMode(false);
+  };
+
+  const handleEditDepartmentDetails = async (id: number) => {
+    await fetchDepartmentDetails(id);
+
+    setIsEditMode(true);
+    setIsViewModalOpen(false);
+  };
+
+  const handleDeleteDepartment = async (id: number) => {
+    const confirmation = window.confirm(
+      "Are you sure you want to delete this department?",
+    );
+
+    if (confirmation) {
+      await fetchDeleteDepartment(id);
+      fetchDepartments({ department_name: "", sort_by: "a-z" });
+      fetchDepartmentSummary();
+      fetchDepartmentEmployees();
+    }
+  };
+
   const onSearchSubmit = () => {
     fetchDepartments({
       department_name: departmentNameQuery,
@@ -175,8 +196,7 @@ export default function DepartmentDashboard() {
     fetchDepartments({ department_name: "", sort_by: "a-z" });
   };
 
-  const handleEditSubmit = async (data: {department_name: string | null}) => {
-
+  const handleEditSubmit = async (data: { department_name: string | null }) => {
     const id = departmentDetails?.id;
 
     if (!id) {
@@ -184,7 +204,13 @@ export default function DepartmentDashboard() {
       return;
     }
     await fetchUpdateDepartment(id, data);
-  }
+
+    setIsEditMode(false);
+    setIsViewModalOpen(false);
+    fetchDepartments({ department_name: "", sort_by: "a-z" });
+    fetchDepartmentSummary();
+    fetchDepartmentEmployees();
+  };
 
   useEffect(() => {
     fetchDepartments({ department_name: "", sort_by: "a-z" });
@@ -231,7 +257,7 @@ export default function DepartmentDashboard() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Notifications /> 
+                    <Notifications />
                     <UserProfile />
                   </div>
                 </div>
@@ -254,10 +280,7 @@ export default function DepartmentDashboard() {
                 <div className="mt-4">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className=""
-                      >
+                      <Button variant="outline" className="">
                         Add New Department
                       </Button>
                     </DialogTrigger>
@@ -284,6 +307,7 @@ export default function DepartmentDashboard() {
                     departmentEmployees={departmentEmployees}
                     handleViewDepartmentDetails={handleViewDepartmentDetails}
                     handleEditDepartmentDetails={handleEditDepartmentDetails}
+                    handleDepartmentDelete={handleDeleteDepartment}
                   />
                 ) : (
                   <div className="text-center text-gray-500">
