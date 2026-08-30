@@ -13,8 +13,16 @@ import {
 import { Eye, Pencil, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 
-export default function LeaveTypeListTable() {
-    const { leaveTypes, fetchLeaveTypeDetails } = useLeaveTypeContext();
+export default function LeaveTypeListTable({
+    handleViewLeaveTypeDetails,
+    handleEditLeaveTypeDetails,
+    handleDeleteLeaveType,
+}: {
+    handleViewLeaveTypeDetails: (id: number) => void;
+    handleEditLeaveTypeDetails: (id: number) => void;
+    handleDeleteLeaveType: (id: number) => void;
+}) {
+    const { leaveTypes } = useLeaveTypeContext();
 
     return (
         <div className="border border-border rounded-lg bg-white overflow-hidden">
@@ -46,7 +54,7 @@ export default function LeaveTypeListTable() {
                                     variant="outline"
                                     size="icon"
                                     className="text-gray-500 hover:text-gray-600 hover:bg-gray-100"
-                                    onClick={() => fetchLeaveTypeDetails(leaveType.id)}
+                                    onClick={() => handleViewLeaveTypeDetails(leaveType.id)}
                                 >
                                     <Eye className="w-4 h-4 text-green-600" />
                                 </Button>
@@ -54,6 +62,7 @@ export default function LeaveTypeListTable() {
                                     variant="outline"
                                     size="icon"
                                     className="text-gray-500 hover:text-gray-600 hover:bg-gray-100"
+                                    onClick={() => handleEditLeaveTypeDetails(leaveType.id)}
                                 >
                                     <Pencil className="w-4 h-4 text-black" />
                                 </Button>
@@ -61,6 +70,7 @@ export default function LeaveTypeListTable() {
                                     variant="outline"
                                     size="icon"
                                     className="text-gray-500 hover:text-gray-600 hover:bg-gray-100"
+                                    onClick={() => handleDeleteLeaveType(leaveType.id)}
                                 >
                                     <Trash className="w-4 h-4 text-red-500" />
                                 </Button>

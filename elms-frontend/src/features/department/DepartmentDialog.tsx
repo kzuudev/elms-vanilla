@@ -34,16 +34,8 @@ export default function DepartmentDialog({
       (row) => row.department_id === departmentDetails?.id,
     )?.total_employees ?? 0;
 
-  const onSubmit = async (data: { department_name: string | null }) => {
-    try {
-      await handleSubmit(data);
-    } catch (error) {
-      setError("Failed to update/create department");
-      console.error(error);
-    }
-  };
-
   if (!departmentDetails) {
+    setError("Department not found");
     return null;
   }
 
@@ -57,14 +49,6 @@ export default function DepartmentDialog({
         totalEmployees={totalEmployees}
         departmentDetails={departmentDetails}
       />
-{/* 
-      <DepartmentForm
-        handleSubmit={onSubmit}
-        mode={mode as "create" | "edit"}
-        setMode={setMode}
-        departmentDetails={departmentDetails}
-      /> */}
-
       {error && <p className="text-red-500">{error}</p>}
     </>
   );
