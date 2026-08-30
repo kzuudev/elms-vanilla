@@ -7,6 +7,7 @@ use Core\Database;
 use App\Http\Middleware\Auth;
 use App\Exceptions\domain\NotFoundException;
 use App\Exceptions\domain\UnauthorizedException;
+use App\Exceptions\domain\BadRequestException;
 use Throwable;
 
 class DepartmentService {
@@ -59,6 +60,16 @@ class DepartmentService {
 
         try{
             $this->db->beginTransaction();
+
+            $existing_department = $this->db->query("
+                SELECT * FROM departments WHERE name = :name AND deleted_at IS NULL
+            ", [
+                'name' => $name
+            ])->find();
+
+            if($existing_department) {
+                throw new BadRequestException('Department with this name already exists');
+            }   
 
             $create_department = $this->db->query("
                 INSERT INTO departments (name) VALUES (:name)

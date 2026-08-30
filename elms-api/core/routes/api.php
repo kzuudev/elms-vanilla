@@ -91,7 +91,7 @@ $router->get('/departments/employees', [DepartmentEmployeesController::class, 'i
 $router->get('/departments', [DepartmentController::class, 'index'])->only('auth');
 $router->post('/departments', [DepartmentController::class, 'store'])->only('auth');
 $router->get('/departments/{id}', [DepartmentController::class, 'show'])->only('auth');
-$router->put('/departments/{id}', [DepartmentController::class, 'update'])->only('auth');
+$router->patch('/departments/{id}', [DepartmentController::class, 'update'])->only('auth');
 $router->delete('/departments/{id}', [DepartmentController::class, 'destroy'])->only('auth');
 
 // notifications

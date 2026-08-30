@@ -45,7 +45,7 @@ class LeaveTypeSummaryService {
             $params['search_leave_type'] = "%$search_leave_type%";
         }
 
-        $total_leave_types = $this->db->query($query, $params)->all();
+        $total_leave_types = $this->db->query($query, $params)->find();
 
         return $total_leave_types;
 
@@ -61,11 +61,7 @@ class LeaveTypeSummaryService {
             WHERE deleted_at IS NULL AND is_paid = :is_paid
         ", [
             'is_paid' => 1
-        ])->all();
-
-        if(!empty($search_leave_type)) {
-            
-        }
+        ])->find();
 
         return $total_paid_leave_types;
 
@@ -76,12 +72,12 @@ class LeaveTypeSummaryService {
         $this->validateUser();
 
         $total_unpaid_leave_types = $this->db->query("
-            SELECT COUNT(*) AS total_paid_leave_types
+            SELECT COUNT(*) AS total_unpaid_leave_types
             FROM leave_types
             WHERE deleted_at IS NULL AND is_paid = :is_paid
         ", [
             'is_paid' => 0
-        ])->all();
+        ])->find();
         
         return $total_unpaid_leave_types;
     }
@@ -91,10 +87,10 @@ class LeaveTypeSummaryService {
         $this->validateUser();
 
         $total_allocated_leave_types = $this->db->query("
-            SELECT SUM(allocated_days) AS total_allocated_days
+            SELECT COALESCE(SUM(allocated_days), 0) AS total_allocated_leave_types
             FROM leave_types
             WHERE deleted_at IS NULL
-        ")->all();
+        ")->find();
 
         return $total_allocated_leave_types;
     }

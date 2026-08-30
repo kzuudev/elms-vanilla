@@ -25,20 +25,41 @@ class LeaveTypeService {
         }
     }
 
-    public function getLeaveTypes(int $user_id) {
-        
-        $this->validateUser();
+    public function getLeaveTypes(int $user_id, string $search_leave_type = '') {
 
-        $leave_types = $this->db->query("
+        if($this->current_user['role'] === 'super-admin') {
+            $query = "
+                SELECT * FROM leave_types
+                WHERE deleted_at IS NULL
+            ";
+            $params = [];
+
+            if(!empty($search_leave_type)) {
+                $query .= " AND name LIKE :search_leave_type";
+                $params['search_leave_type'] = "%$search_leave_type%";
+            }
+
+            $query .= " ORDER BY name ASC";
+
+            return $this->db->query($query, $params)->all();
+        }
+
+        $query = "
             SELECT * FROM leave_types WHERE deleted_at IS NULL AND allocated_days > 0
             AND id IN (
                 SELECT leave_type_id
                 FROM leave_balance
                 WHERE user_id = :user_id
             )
-        ", ['user_id' => $user_id])->all();
+        ";
+        $params = ['user_id' => $user_id];
 
-        return $leave_types;
+        if(!empty($search_leave_type)) {
+            $query .= " AND name LIKE :search_leave_type";
+            $params['search_leave_type'] = "%$search_leave_type%";
+        }
+
+        return $this->db->query($query, $params)->all();
     }
 
     public function createLeaveType(string $name, int $allocated_days, bool $is_paid) {

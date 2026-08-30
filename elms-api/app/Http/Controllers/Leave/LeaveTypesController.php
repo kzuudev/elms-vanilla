@@ -30,8 +30,10 @@ class LeaveTypesController {
 
     public function index() {
 
+       $search_leave_type = $_GET['search_leave_type'] ?? '';
+
        try {    
-        $leave_types = $this->leave_type_service->getLeaveTypes($this->user['id']);
+        $leave_types = $this->leave_type_service->getLeaveTypes($this->user['id'], $search_leave_type);
         $this->db->response(200, true, 'Leave types fetched successfully', ['leave_types' => $leave_types]);
         return;
        }catch (DomainException $e) {

@@ -6,7 +6,6 @@ use Core\App;
 use Core\Database;
 
 use App\Services\department\DepartmentService;
-use App\Http\Middleware\Auth;
 use App\Exceptions\domain\DomainException;
 use Throwable;
 
@@ -46,10 +45,10 @@ class DepartmentController {
 
     public function store() {
 
-        $name = $this->input['name'] ?? '';
+        $name = $this->input['department_name'] ?? '';
         
         if(empty($name)) {
-            $this->db->response(422, false, 'Name is required');
+            $this->db->response(422, false, 'Department name is required');
             return;
         }
 
@@ -61,7 +60,7 @@ class DepartmentController {
             $this->db->response($e->getStatus(), false, $e->getMessage());
             return;
         }catch(Throwable $e) {
-            $this->db->response(500, false, 'Internal server error');
+            $this->db->response(500, false, $e->getMessage());
             return;
         }
     }
@@ -85,10 +84,10 @@ class DepartmentController {
 
     public function update(int $id) {
 
-        $name = $this->input['name'] ?? '';
+        $name = $this->input['department_name'] ?? '';
             
         if(empty($name)) {
-            $this->db->response(422, false, 'Name is required');
+            $this->db->response(422, false, 'Department name is required');
             return;
         }
 
