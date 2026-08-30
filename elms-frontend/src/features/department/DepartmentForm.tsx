@@ -35,25 +35,25 @@ const schema = z.object({
     .max(50, { message: "Department Name must be less than 50 characters." }),
 });
 
-type DepartmentDetailsModalFormData = z.infer<typeof schema>;
+type DepartmentFormData = z.infer<typeof schema>;
 
-interface DepartmentEditFormProps {
-  handleEditSubmit: (data: { department_name: string | null }) => Promise<void>;
-  isEditMode: boolean;
-  setIsEditMode: (open: boolean) => void;
-  departmentDetails: Department;
+interface DepartmentFormProps {
+  handleSubmit: (data: DepartmentFormData) => Promise<void>;
+  mode: "create" | "edit" | null; 
+  setMode: (mode: "create" | "edit" | null) => void;
+  departmentDetails: Department | undefined;
 }
 
-export default function DepartmentEditForm({
-  handleEditSubmit,
-  isEditMode,
-  setIsEditMode,
+export default function DepartmentForm({
+  handleSubmit,
+  mode,
+  setMode,
   departmentDetails,
-}: DepartmentEditFormProps) {
-  const form = useForm<DepartmentDetailsModalFormData>({
+}: DepartmentFormProps) {
+  const form = useForm<DepartmentFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      department_name: departmentDetails.name,
+      department_name: departmentDetails?.name ?? undefined,
     },
   });
 
@@ -62,38 +62,59 @@ export default function DepartmentEditForm({
     formState: { errors },
   } = form;
 
-  const onEditSubmit = async (data: DepartmentDetailsModalFormData) => {
+  const onSubmit = async (data: DepartmentFormData) => {
     try {
-      await handleEditSubmit(data);
+      await handleSubmit(data);
     } catch (error) {
-      setError("root.serverError", { message: "Failed to update department" });
+      setError("root.serverError", {
+        message: "Failed to update/create department",
+      });
+      console.error(error);
     }
   };
 
   useEffect(() => {
-    form.reset({
-      department_name: departmentDetails?.name ?? "",
-    });
-  }, [departmentDetails]);
+
+    if (mode === null) {
+      return;
+    }
+
+    if(mode === "edit") {
+      form.reset({
+        department_name: departmentDetails?.name ?? "",
+      });
+    } else {
+      form.reset({
+        department_name: "",
+      });
+    }
+  }, [departmentDetails, mode]);
 
   return (
     <>
-      <Dialog open={isEditMode} onOpenChange={setIsEditMode}>
+      <Dialog
+        open={mode !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setMode(null);  
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Department</DialogTitle>
+            <DialogTitle>
+              {mode === "edit" ? "Edit Department" : "Create Department"}
+            </DialogTitle>
             <DialogDescription>
-              Edit the details of the department
+              {mode === "edit"
+                ? "Edit the details of the department"
+                : "Create a new department"}
             </DialogDescription>
           </DialogHeader>
-          <form
-            onSubmit={form.handleSubmit(onEditSubmit)}
-            id="edit-department-form"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} id="department-form">
             <div className="flex flex-col gap-4">
               <Controller
                 name="department_name"
-                defaultValue={departmentDetails.name}
                 control={form.control}
                 render={({ field }) => (
                   <Field>
@@ -110,10 +131,13 @@ export default function DepartmentEditForm({
             </div>
 
             <DialogFooter>
-              <Button type="submit" form="edit-department-form">
+              <Button type="submit" form="department-form">
                 Save
               </Button>
-              <Button type="button" onClick={() => setIsEditMode(false)}>
+              <Button type="button" onClick={() => {
+                form.reset();
+                setMode(null);
+              }}>
                 Cancel
               </Button>
             </DialogFooter>

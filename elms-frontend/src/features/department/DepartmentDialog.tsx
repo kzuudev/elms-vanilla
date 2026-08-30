@@ -6,23 +6,24 @@ import { useDepartmentContext } from "@/features/context/department/DepartmentCo
 import { useDepartmentEmployeesContext } from "@/features/context/department/DepartmentEmployeesContext";
 
 import DepartmentDetailsModal from "@/features/department/DepartmentDetailsModal";
-import DepartmentEditForm from "@/features/department/DepartmentEditForm";
+import DepartmentForm from "@/features/department/DepartmentForm";
 
-interface ExistingDepartmentFormProps {
-  handleEditSubmit: (data: { department_name: string | null }) => Promise<void>;
+interface DepartmentDialogProps {
+  handleSubmit: (data: { department_name: string | null }) => Promise<void>;
   isViewMode: boolean;
   setIsViewMode: (open: boolean) => void;
-  isEditMode: boolean;
-  setIsEditMode: (open: boolean) => void;
+  mode: "create" | "edit" | null;
+  setMode: (mode: "create" | "edit" | null) => void;
 }
 
-export default function ExistingDepartmentForm({
-  handleEditSubmit,
+export default function DepartmentDialog({
+  handleSubmit,
   isViewMode,
   setIsViewMode,
-  isEditMode,
-  setIsEditMode,
-}: ExistingDepartmentFormProps) {
+  mode,
+  setMode,
+}: DepartmentDialogProps) {
+  
   const { departmentDetails } = useDepartmentContext();
   const { departmentEmployees } = useDepartmentEmployeesContext();
 
@@ -33,11 +34,12 @@ export default function ExistingDepartmentForm({
       (row) => row.department_id === departmentDetails?.id,
     )?.total_employees ?? 0;
 
-  const onEditSubmit = async (data: { department_name: string | null }) => {
+  const onSubmit = async (data: { department_name: string | null }) => {
     try {
-      await handleEditSubmit(data);
+      await handleSubmit(data);
     } catch (error) {
-      setError("Failed to update department");
+      setError("Failed to update/create department");
+      console.error(error);
     }
   };
 
@@ -48,21 +50,20 @@ export default function ExistingDepartmentForm({
   return (
     <>
       <DepartmentDetailsModal
-        handleEditSubmit={onEditSubmit}
         isViewMode={isViewMode}
         setIsViewMode={setIsViewMode}
-        isEditMode={isEditMode}
-        setIsEditMode={setIsEditMode}
+        mode={mode as "create" | "edit"} 
+        setMode={setMode}
         totalEmployees={totalEmployees}
         departmentDetails={departmentDetails}
       />
-
-      <DepartmentEditForm
-        handleEditSubmit={onEditSubmit}
-        isEditMode={isEditMode}
-        setIsEditMode={setIsEditMode}
+{/* 
+      <DepartmentForm
+        handleSubmit={onSubmit}
+        mode={mode as "create" | "edit"}
+        setMode={setMode}
         departmentDetails={departmentDetails}
-      />
+      /> */}
 
       {error && <p className="text-red-500">{error}</p>}
     </>

@@ -10,6 +10,8 @@ import { DepartmentContext } from "@/features/context/department/DepartmentConte
 import { DepartmentEmployeesContext } from "@/features/context/department/DepartmentEmployeesContext";
 import { DepartmentSummaryContext } from "../context/department/DepartmentSummaryContext";
 
+import DepartmentForm from "@/features/department/DepartmentForm";
+
 import type {
   Department,
   DepartmentSummary,
@@ -55,7 +57,7 @@ export default function DepartmentDashboard() {
     });
 
   const [error, setError] = useState<string | null>(null);
-  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [departmentNameQuery, setDepartmentNameQuery] = useState<string>("");
   const [sortByQuery, setSortByQuery] = useState<string>("a-z");
   const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
@@ -98,16 +100,36 @@ export default function DepartmentDashboard() {
     }
   };
 
-  const fetchUpdateDepartment = async (
-    id: number,
-    data: { department_name: string | null },
-  ) => {
+  const fetchCreateDepartment = async (data: {
+    department_name: string | null;
+  }) => {
+    if (!data.department_name) {
+      console.error("Department name is required");
+      return;
+    }
+    try {
+      const response = await api.post("/departments", {
+        department_name: data.department_name,
+      });
+      setError(null);
+      return response;
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        setError(e.response?.data.message as string);
+      } else {
+        setError("An unknown error occurred");
+      }
+    }
+  };
+
+  const fetchUpdateDepartment = async (id: number, data: {
+    department_name: string | null;
+  }) => {
     try {
       const response = await api.patch(`/departments/${id}`, {
         department_name: data.department_name,
       });
-      setIsEditMode(false);
-      setIsViewModalOpen(true);
+      setMode(null);
       return response;
     } catch (e) {
       if (axios.isAxiosError(e)) {
@@ -160,14 +182,12 @@ export default function DepartmentDashboard() {
   const handleViewDepartmentDetails = async (id: number) => {
     await fetchDepartmentDetails(id);
     setIsViewModalOpen(true);
-    setIsEditMode(false);
+    setMode(null);
   };
 
   const handleEditDepartmentDetails = async (id: number) => {
     await fetchDepartmentDetails(id);
-
-    setIsEditMode(true);
-    setIsViewModalOpen(false);
+    setMode("edit");
   };
 
   const handleDeleteDepartment = async (id: number) => {
@@ -196,17 +216,18 @@ export default function DepartmentDashboard() {
     fetchDepartments({ department_name: "", sort_by: "a-z" });
   };
 
-  const handleEditSubmit = async (data: { department_name: string | null }) => {
-    const id = departmentDetails?.id;
+  const handleSubmit = async (data: { department_name: string | null }) => {
 
-    if (!id) {
-      console.error("No department ID found.");
-      return;
+    if (mode === "create") {
+      await fetchCreateDepartment(data);
+      setMode(null);
+    } else if (mode === "edit") {
+      await fetchUpdateDepartment(departmentDetails?.id ?? 0, data);
     }
-    await fetchUpdateDepartment(id, data);
 
-    setIsEditMode(false);
+    setMode(null);
     setIsViewModalOpen(false);
+
     fetchDepartments({ department_name: "", sort_by: "a-z" });
     fetchDepartmentSummary();
     fetchDepartmentEmployees();
@@ -278,23 +299,22 @@ export default function DepartmentDashboard() {
                 />
 
                 <div className="mt-4">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="">
-                        Add New Department
-                      </Button>
-                    </DialogTrigger>
-                  </Dialog>
+                  <Button variant="default" className="bg-blue-500 hover:bg-blue-600 text-white" onClick={() => {
+                    setMode("create");
+                  }}>
+                    Add Department
+                  </Button>
+                  <DepartmentForm handleSubmit={handleSubmit} mode={mode} setMode={setMode} departmentDetails={departmentDetails ?? undefined} />
                 </div>
               </div>
 
               <div className="mt-8">
                 <DepartmentDialog
-                  handleEditSubmit={handleEditSubmit}
+                  handleSubmit={handleSubmit}
                   isViewMode={isViewModalOpen}
                   setIsViewMode={setIsViewModalOpen}
-                  isEditMode={isEditMode}
-                  setIsEditMode={setIsEditMode}
+                  mode={mode}
+                  setMode={setMode}
                 />
 
                 {departments.some((department) =>

@@ -2,8 +2,6 @@
 
 import { type Department } from "@/types/department.ts";
 
-import DepartmentEditForm from "@/features/department/DepartmentEditForm";
-
 import { Button } from "@/components/ui/button.tsx";
 
 import {
@@ -18,35 +16,25 @@ import { Pencil, Trash } from "lucide-react";
 import { useState } from "react";
 
 interface DepartmentDetailsModalProps {
-  handleEditSubmit: (data: { department_name: string | null }) => Promise<void>;
   isViewMode: boolean;
   setIsViewMode: (open: boolean) => void;
-  isEditMode: boolean;
-  setIsEditMode: (open: boolean) => void;
+  mode: "create" | "edit" | null;
+  setMode: (mode: "create" | "edit" | null) => void;
   totalEmployees: number;
   departmentDetails: Department;
 }
 
 export default function DepartmentDetailsModal({
-  handleEditSubmit,
   isViewMode,
   setIsViewMode,
-  isEditMode,
-  setIsEditMode,
+  mode,
+  setMode,
   totalEmployees,
   departmentDetails,
 }: DepartmentDetailsModalProps) {
 
 
   const [error, setError] = useState<string | null>(null);
-
-  const onEditSubmit = async (data: { department_name: string | null }) => {
-    try {
-      await handleEditSubmit(data);
-    } catch (error) {
-      setError("Failed to update department");
-    }
-  };
 
   return (
     <>
@@ -75,26 +63,16 @@ export default function DepartmentDetailsModal({
               </div>
             </div>
 
-            <div className="mb-4">
-              {isEditMode && (
-                <DepartmentEditForm
-                  handleEditSubmit={(data: {
-                    department_name: string | null;
-                  }) => onEditSubmit(data)}
-                  isEditMode={isEditMode}
-                  setIsEditMode={setIsEditMode}
-                  departmentDetails={departmentDetails}
-                />
-              )}
-            </div>
-
             <div className="w-full flex justify-between">
               <Button
                 type="button"
                 className="min-w-4"
                 variant="destructive"
-                onClick={() => setIsViewMode(false)}
-                disabled={isEditMode}
+                onClick={() => {
+                  setIsViewMode(false);
+                  setMode("edit");
+                }}
+                disabled={mode !== "edit"}
               >
                 <Trash className="w-4 h-4" />
               </Button>
@@ -103,8 +81,11 @@ export default function DepartmentDetailsModal({
                 type="button"
                 className="min-w-4"
                 variant="default"
-                onClick={() => setIsEditMode(true)}
-                disabled={isEditMode}
+                onClick={() => {
+                  setIsViewMode(false);
+                  setMode("edit");
+                }}
+                disabled={mode === "edit"}
               >
                 <Pencil className="w-4 h-4" />
               </Button>
