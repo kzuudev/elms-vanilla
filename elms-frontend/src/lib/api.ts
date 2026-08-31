@@ -1,5 +1,7 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 
+import type { ApiResponse, ApiErrorBody} from '@/types/api';
+
 export const api = axios.create({
     baseURL: 'http://localhost:8000',
     timeout: 5000,
@@ -62,3 +64,32 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+
+/**
+ * Get the error message from the error object
+ * @param error - The error object
+ * @param fallbackMessage - The fallback message to return if the error is unknown
+ * @returns The error message
+ */
+export function getApiErrorMessage(error: unknown, fallbackMessage: string): string {
+
+    /** If the request is cancelled, return an empty string */
+    if(axios.isCancel(error)) {
+        return "";
+    }
+
+    // If the error is an Axios error and the response is an ApiErrorBody, return the message
+    if(axios.isAxiosError<ApiErrorBody>(error)) {
+        return error.response?.data?.message ?? fallbackMessage;
+    }
+    
+    // if the error is an Error object, return the message (unknown or unexpected error)
+    if(error instanceof Error) {
+        return error.message;
+    }
+
+    // if the error is unknown, return the fallback message
+    return fallbackMessage
+
+}

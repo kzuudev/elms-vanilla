@@ -224,9 +224,9 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
 
                                   <SidebarMenuItem>
                                         <SidebarMenuButton asChild className="hover:bg-gray-100">
-                                          <Link to="/super-admin/users" className="flex items-center gap-2">
+                                          <Link to="/super-admin/employees" className="flex items-center gap-2">
                                               <Users />
-                                              <span>Total Users</span>
+                                              <span>Total Employees</span>
                                           </Link>
                                       </SidebarMenuButton>
                                   </SidebarMenuItem>

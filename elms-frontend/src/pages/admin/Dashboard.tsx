@@ -1,7 +1,8 @@
+import { useEffect, useState } from "react";
+import { api, getApiErrorMessage } from "@/lib/api.ts";
 
-import {useEffect, useState} from "react";
-import {api} from "@/lib/api.ts";
 
+import { AdminAnalyticsContext } from "@/features/context/analytics/AdminAnalyticsContext.tsx";
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
 import UserProfile from "@/components/layout/UserProfile.tsx";
@@ -14,106 +15,128 @@ import RecentActivityTable from "@/features/dashboard/components/RecentActivityT
 import Notifications from "@/components/layout/Notifications";
 
 import type {
-    LeaveActivityRecord,
-    LeaveOverlap,
-    MonthlyConsumption, TeamAvailability,
-    TotalPendingRequest,
-    TotalRemainingBalance,
-    TotalUsedDays, TotalUsers
+  LeaveActivityRecord,
+  LeaveOverlap,
+  MonthlyConsumption,
+  TeamAvailability,
+  TotalPendingRequest,
+  TotalRemainingBalance,
+  TotalUsedDays,
+  TotalUsers,
 } from "@/types/dashboard.ts";
-import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
+
+
+
 import Search from "@/components/ui/search.tsx";
 
-
 export default function AdminDashboard() {
+  const [error, setError] = useState<string | null>(null);
 
+  const [remainingBalance, setRemainingBalance] = useState<
+    TotalRemainingBalance[]
+  >([]);
+  const [pendingRequest, setPendingRequest] = useState<TotalPendingRequest[]>(
+    [],
+  );
+  const [usedDays, setUsedDays] = useState<TotalUsedDays[]>([]);
+  const [overlap, setOverlap] = useState<LeaveOverlap[]>([]);
+  const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<
+    MonthlyConsumption[]
+  >([]);
+  const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>(
+    [],
+  );
+  const [totalUsers, setTotalUsers] = useState<TotalUsers[]>([]);
+  const [recentActivity, setRecentActivity] = useState<LeaveActivityRecord[]>(
+    [],
+  );
 
-    const [error, setError] = useState<string | null>(null);
-
-    const [remainingBalance, setRemainingBalance] = useState<TotalRemainingBalance[]>([]);
-    const [pendingRequest, setPendingRequest] = useState<TotalPendingRequest[]>([]);
-    const [usedDays, setUsedDays] = useState<TotalUsedDays[]>([]);
-    const [overlap, setOverlap] = useState<LeaveOverlap[]>([]);
-    const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyConsumption[]>([]);
-    const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
-    const [totalUsers, setTotalUsers] = useState<TotalUsers[]>([]);
-    const [recentActivity, setRecentActivity] = useState<LeaveActivityRecord[]>([]);
-
-    const fetchAdminDashboard = async () => {
-
-        try {
-            const holder = localStorage.getItem("token");
-            const response = await api.get("/admin-dashboard", {
-                headers: {
-                    Authorization: `Bearer ${holder}`,
-                }
-            });
-            setRemainingBalance(response.data.data.remaining_balance);
-            setPendingRequest(response.data.data.pending_request);
-            setUsedDays(response.data.data.used_days);
-            setOverlap(response.data.data.leave_overlap);
-            setMonthlyLeaveConsumption(response.data.data.monthly_leave_consumption);
-            setTeamAvailability(response.data.data.team_availability);
-            setTotalUsers(response.data.data.total_users);
-            setRecentActivity(response.data.data.recent_activity);
-        }catch (e) {
-            setError(e.response.data.message);
+  const fetchAdminDashboard = async () => {
+    try {
+      const holder = localStorage.getItem("token");
+      const response = await api.get("/admin-dashboard", {
+        headers: {
+          Authorization: `Bearer ${holder}`,
+        },
+      });
+      setRemainingBalance(response.data.data.remaining_balance);
+      setPendingRequest(response.data.data.pending_request);
+      setUsedDays(response.data.data.used_days);
+      setOverlap(response.data.data.leave_overlap);
+      setMonthlyLeaveConsumption(response.data.data.monthly_leave_consumption);
+      setTeamAvailability(response.data.data.team_availability);
+      setTotalUsers(response.data.data.total_users);
+      setRecentActivity(response.data.data.recent_activity);
+    } catch (e: unknown) {
+        const message = getApiErrorMessage(e, "Failed to fetch admin dashboard");
+        if(!message) {
+            // If the error is unknown, return early
+            return;
         }
+        setError(message);
     }
+  };
 
+  useEffect(() => {
+    fetchAdminDashboard();
+  }, []);
 
-    useEffect(() => {
+  return (
+    <>
+      <AppSidebar>
+        <AdminAnalyticsContext.Provider
+          value={{
+            remainingBalance,
+            pendingRequest,
+            usedDays,
+            overlap,
+            teamAvailability,
+            recentActivity,
+            monthlyLeaveConsumption,
+            totalUsers,
+          }}
+        >
+          <div className="flex flex-col gap-4">
+            <div className="w-full flex justify-between">
+              <div className="">
+                <h1 className="text-gray-600">Dashboard</h1>
+                <h2 className="text-sm text-gray-500">
+                  Track employee activities, stats, and updates
+                </h2>
 
-        fetchAdminDashboard();
-    }, []);
+                <div>
+                  <Search />
+                </div>
+              </div>
 
-    return (
-        <>
-            <AppSidebar>
-                <AdminAnalyticsContext.Provider value={{remainingBalance, pendingRequest, usedDays, overlap, teamAvailability, recentActivity, monthlyLeaveConsumption, totalUsers}}>
-                    <div className="flex flex-col gap-4">
-                        <div  className="w-full flex justify-between">
-                            <div className="">
-                                <h1 className="text-gray-600">Dashboard</h1>
-                                <h2 className="text-sm text-gray-500">Track employee activities, stats, and updates</h2>
+              <div className="flex items-center gap-4">
+                <Notifications />
+                <UserProfile />
+              </div>
+            </div>
 
-                                <div>
-                                    <Search />
-                                </div>
-                            </div>
+            <LeaveSummaryGrid />
 
-                            <div className="flex items-center gap-4">
-                                <Notifications />
-                                <UserProfile />
-                            </div>
-                        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <LeaveOverlapTimeline role="admin" />
+              <MonthlyLeavesConsumption />
+              <TeamInsights />
+            </div>
 
-                        <LeaveSummaryGrid/>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <TeamCoverageWidget />
+              </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <LeaveOverlapTimeline role="admin" />
-                            <MonthlyLeavesConsumption />
-                            <TeamInsights />
-                        </div>
+              <div className="lg:col-span-2">
+                <RecentActivityTable />
+              </div>
+            </div>
+          </div>
+        </AdminAnalyticsContext.Provider>
+      </AppSidebar>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                            <div className="lg:col-span-1">
-                                <TeamCoverageWidget />
-                            </div>
-
-                            <div className="lg:col-span-2">
-                                <RecentActivityTable />
-                            </div>
-                        </div>
-
-                    </div>
-                </AdminAnalyticsContext.Provider>
-            </AppSidebar>
-
-            {error && (
-                <div className="text-red-600">{error}</div>
-            )}
-        </>
-    )
+      {error && <div className="text-red-600">{error}</div>}
+    </>
+  );
 }

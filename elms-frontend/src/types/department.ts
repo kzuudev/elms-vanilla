@@ -10,8 +10,7 @@ export interface Department {
 
 export interface DepartmentOptions {
     id: number;
-    value: string;
-    label: string;
+    name: string;
 }
 
 export interface DepartmentSummary {

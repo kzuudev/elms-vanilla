@@ -1,4 +1,6 @@
 "use client";
+import { useContext } from "react";
+import { AuthContext } from "@/features/context/auth/AuthContext.tsx";
 
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -10,6 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import type { DepartmentOptions } from "@/types/department.ts";
+
 interface UserFilterBarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -19,6 +23,7 @@ interface UserFilterBarProps {
   setRoleFilter: (role: string) => void;
   departmentFilter: string;
   setDepartmentFilter: (department: string) => void;
+  departmentOptions: DepartmentOptions[];
   onSearchSubmit: () => void;
   onClearFilters: () => void;
 }
@@ -37,6 +42,11 @@ export default function UserFilterBar(props: UserFilterBarProps) {
     onClearFilters,
   } = props;
 
+  const { user } = useContext(AuthContext);
+
+  const isSuperAdmin = user?.role === "super-admin";
+  const isAdmin = user?.role === "admin";
+
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSearchSubmit();
@@ -47,7 +57,7 @@ export default function UserFilterBar(props: UserFilterBarProps) {
   };
 
   const roleOptions = [
-    { value: "", label: "All Roles" },
+    { value: "all", label: "All Roles" },
     { value: "manager", label: "Manager" },
     { value: "it support", label: "IT Support" },
     { value: "accountant", label: "Accounting" },
@@ -57,16 +67,8 @@ export default function UserFilterBar(props: UserFilterBarProps) {
     { value: "ui/ux", label: "UI/UX" },
   ];
 
-  const departmentOptions = [
-    { value: "", label: "All Departments" },
-    { value: "it", label: "IT" },
-    { value: "marketing", label: "Marketing" },
-    { value: "finance", label: "Finance" },
-    { value: "accounting", label: "Accounting" },
-  ];
-
   const statusOptions = [
-    { value: "", label: "All Status" },
+    { value: "all", label: "All Status" },
     { value: "1", label: "Active" },
     { value: "0", label: "Inactive" },
     { value: "2", label: "Away" },
@@ -132,22 +134,24 @@ export default function UserFilterBar(props: UserFilterBarProps) {
 
         {/* Department Filter Dropdown*/}
         <div>
-          <Select
-            name="department"
-            value={departmentFilter}
-            onValueChange={(value) => setDepartmentFilter(value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Department" />
-            </SelectTrigger>
-            <SelectContent>
-              {departmentOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isSuperAdmin && (
+            <Select
+              name="department"
+              value={departmentFilter}
+              onValueChange={(value) => setDepartmentFilter(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Department" />
+              </SelectTrigger>
+              <SelectContent>
+                {props?.departmentOptions?.map((option) => (
+                  <SelectItem key={option?.id} value={option?.name}>
+                    {option?.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="flex items-center gap-2">

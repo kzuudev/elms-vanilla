@@ -186,7 +186,7 @@ function App() {
                             />
 
                             <Route
-                                path="super-admin/dashboard"
+                                path="/super-admin/dashboard"
                                 element={
                                     <ProtectedRoute allowedRoles={['super-admin']}>
                                         <SuperAdminDashboard />
@@ -196,7 +196,7 @@ function App() {
                             />
 
                             <Route 
-                                path="/super-admin/users"
+                                path="/super-admin/employees"
                                 element={
                                     <ProtectedRoute allowedRoles={['super-admin']}>
                                         <EmployeesDashboard role={role} />

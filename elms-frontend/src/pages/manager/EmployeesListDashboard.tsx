@@ -51,11 +51,6 @@ export default function EmployeesListDashboard() {
        }
     }
 
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchEmployees();
-    }, [])
-
     const fetchEmployeeDetails = async (id: number) => {
 
         try {
@@ -72,7 +67,10 @@ export default function EmployeesListDashboard() {
         }
     }
 
-
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchEmployees();
+    }, [])
 
     return (
         <>
@@ -95,13 +93,19 @@ export default function EmployeesListDashboard() {
 
                       <div className="flex flex-col gap-4">
                           <UserFilterBar
+                              onClearFilters={() => {
+                                setSearchQuery('');
+                                setStatusFilter(null);
+                                setRoleFilter(null);
+                                setDepartmentFilter(null);
+                              }}
                               searchQuery={searchQuery}
                               setSearchQuery={setSearchQuery}
-                              statusFilter={statusFilter}
+                              statusFilter={statusFilter ?? ''}
                               setStatusFilter={setStatusFilter}
-                              roleFilter={roleFilter}
+                              roleFilter={roleFilter ?? ''}
                               setRoleFilter={setRoleFilter}
-                              departmentFilter={departmentFilter}
+                              departmentFilter={departmentFilter ?? ''}
                               setDepartmentFilter={setDepartmentFilter}
                               onSearchSubmit={fetchEmployees}
                           />
