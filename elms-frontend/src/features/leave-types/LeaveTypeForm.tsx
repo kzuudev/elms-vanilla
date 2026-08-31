@@ -9,6 +9,8 @@ import { Controller, useForm } from "react-hook-form";
 
 import { type LeaveType } from "@/types/leave-type.ts";
 
+import { paidSelectedValue, toAllocatedDays } from "@/utils/numeric-input.ts";
+
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 
@@ -56,14 +58,6 @@ interface LeaveTypeFormProps {
   leaveTypeDetails: LeaveType | undefined;
 }
 
-function paidSelectValue(is_paid: LeaveType["is_paid"] | undefined) {
-  return Number(is_paid) === 1 ? "paid" : "unpaid";
-}
-
-function toAllocatedDays(value: unknown) {
-  const allocatedDays = Number(value);
-  return Number.isFinite(allocatedDays) ? allocatedDays : 0;
-}
 
 export default function LeaveTypeForm({
   handleSubmit,
@@ -86,7 +80,7 @@ export default function LeaveTypeForm({
     defaultValues: {
       leave_type_name: leaveTypeDetails?.name ?? undefined,
       allocated_days: toAllocatedDays(leaveTypeDetails?.allocated_days),
-      is_paid: paidSelectValue(leaveTypeDetails?.is_paid),
+      is_paid: paidSelectedValue(leaveTypeDetails?.is_paid),
     },
   });
 
@@ -118,7 +112,7 @@ export default function LeaveTypeForm({
       form.reset({
         leave_type_name: leaveTypeDetails?.name ?? "",
         allocated_days: toAllocatedDays(leaveTypeDetails?.allocated_days),
-        is_paid: paidSelectValue(leaveTypeDetails?.is_paid),
+        is_paid: paidSelectedValue(leaveTypeDetails?.is_paid),
       });
     } else {
       form.reset({
