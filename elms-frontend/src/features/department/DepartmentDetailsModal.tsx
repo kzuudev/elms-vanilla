@@ -21,7 +21,7 @@ interface DepartmentDetailsModalProps {
   mode: "create" | "edit" | null;
   setMode: (mode: "create" | "edit" | null) => void;
   totalEmployees: number;
-  departmentDetails: Department;
+  departmentDetails: Department | null;
 }
 
 export default function DepartmentDetailsModal({

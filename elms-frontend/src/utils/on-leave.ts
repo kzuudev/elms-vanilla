@@ -1,6 +1,6 @@
 
 
-export const isOnLeave = ({start_date: startDay, end_date: endDay, leave_status: status}) => {
+export const isOnLeave = ({start_date: startDay, end_date: endDay, leave_status: status}: {start_date: Date, end_date: Date, leave_status: string}) => {
 
 
     const start = new Date(startDay);
@@ -21,7 +21,7 @@ export const isOnLeave = ({start_date: startDay, end_date: endDay, leave_status:
 
 }
 
-export const validateDate = ({start_date: startDay, end_date: endDay}) => {
+export const validateDate = ({start_date: startDay, end_date: endDay}: {start_date: Date, end_date: Date}) => {
 
      return !(isNaN(startDay.getTime()) || isNaN(endDay.getTime()));
 }

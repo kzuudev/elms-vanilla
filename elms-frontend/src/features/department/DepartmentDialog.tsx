@@ -6,7 +6,7 @@ import { useDepartmentContext } from "@/features/context/department/DepartmentCo
 import { useDepartmentEmployeesContext } from "@/features/context/department/DepartmentEmployeesContext";
 
 import DepartmentDetailsModal from "@/features/department/DepartmentDetailsModal";
-import DepartmentForm from "@/features/department/DepartmentForm";
+
 
 interface DepartmentDialogProps {
   handleSubmit: (data: { department_name: string | null }) => Promise<void>;
@@ -34,11 +34,6 @@ export default function DepartmentDialog({
       (row) => row.department_id === departmentDetails?.id,
     )?.total_employees ?? 0;
 
-  if (!departmentDetails) {
-    setError("Department not found");
-    return null;
-  }
-
   return (
     <>
       <DepartmentDetailsModal
@@ -47,7 +42,7 @@ export default function DepartmentDialog({
         mode={mode as "create" | "edit"} 
         setMode={setMode}
         totalEmployees={totalEmployees}
-        departmentDetails={departmentDetails}
+        departmentDetails={departmentDetails ?? null}
       />
       {error && <p className="text-red-500">{error}</p>}
     </>
