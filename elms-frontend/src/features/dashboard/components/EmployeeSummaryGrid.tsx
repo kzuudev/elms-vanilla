@@ -5,12 +5,12 @@ import {useContext} from "react";
 
 import { Card } from "@/components/ui/card.tsx";
 import { Users, UserCheck, Calendar, UserRoundX } from "lucide-react";
-import {SummaryEmployeeContext} from "@/features/context/employees/SummaryEmployeesContext.tsx";
+import {EmployeesSummaryContext} from "@/features/context/employees/EmployeesSummaryContext";
 
 
 export default function EmployeeSummaryGrid() {
 
-    const { employeeSummary } = useContext(SummaryEmployeeContext);
+    const { employeeSummary } = useContext(EmployeesSummaryContext);
 
 
     const summaryCards = [

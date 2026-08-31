@@ -8,7 +8,7 @@ import type { Department, DepartmentOptions } from "@/types/department.ts";
 
 import UserFilterBar from "@/features/employees/components/UserFilterBar.tsx";
 import { buildQueryString } from "@/utils/query-string.ts";
-import { SummaryEmployeeContext } from "@/features/context/employees/SummaryEmployeesContext.tsx";
+import { EmployeesSummaryContext } from "@/features/context/employees/EmployeesSummaryContext";
 import { AuthContext } from "@/features/context/auth/AuthContext.tsx";
 
 import EmployeesListTable from "@/features/employees/components/EmployeesListTable.tsx";
@@ -27,6 +27,7 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 
 export default function EmployeesDashboard({ role }: { role: string }) {
+    
   const { user } = useContext(AuthContext);
 
   const [isFormOpen, setIsOpenForm] = useState(false);
@@ -102,7 +103,7 @@ export default function EmployeesDashboard({ role }: { role: string }) {
       });
 
       if (response.data?.data?.employee_summary) {
-        setEmployeeSummary(response.data.data.employee_summary);
+        setEmployeeSummary(response.data.data.employee_summary.summary);
       }
     } catch (e) {
       if (axios.isCancel(e)) return;
@@ -148,8 +149,8 @@ export default function EmployeesDashboard({ role }: { role: string }) {
 
   return (
     <AppSidebar>
-      <SummaryEmployeeContext.Provider
-        value={{ employeeSummary, setEmployeeSummary }}
+      <EmployeesSummaryContext.Provider
+        value={{ employeeSummary, fetchEmployeeSummary }}
       >
          <div className="flex justify-between">
             <div className="w-full flex flex-col gap-8 mb-8">
@@ -243,7 +244,7 @@ export default function EmployeesDashboard({ role }: { role: string }) {
               </div>
             )}
           </div>
-      </SummaryEmployeeContext.Provider>
+      </EmployeesSummaryContext.Provider>
 
       {error && <div className="text-red-500">{error}</div>}
     </AppSidebar>
