@@ -47,9 +47,9 @@ class Validator {
         return $d && $d->format($format) === $date;
     }
 
-    public static function number($value) {
+    public static function numeric($value) {
 
-        return is_int($value);
+        return is_numeric($value);
 
     }
 

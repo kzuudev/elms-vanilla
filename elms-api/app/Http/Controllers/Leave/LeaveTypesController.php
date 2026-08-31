@@ -97,7 +97,7 @@ class LeaveTypesController {
         }
     }
 
-    public function update(int $id) {
+    public function patch(int $id) {
 
 
         $name = $this->input['name'] ?? '';

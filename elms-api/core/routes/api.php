@@ -81,7 +81,7 @@ $router->get('/leave-types/summary', [LeaveTypeSummaryController::class, 'index'
 
 $router->post('/leave-types', [LeaveTypesController::class, 'store'])->only('auth');
 $router->get('/leave-types/{id}', [LeaveTypesController::class, 'show'])->only('auth');
-$router->put('/leave-types/{id}', [LeaveTypesController::class, 'update'])->only('auth');
+$router->patch('/leave-types/{id}', [LeaveTypesController::class, 'patch'])->only('auth');
 $router->delete('/leave-types/{id}', [LeaveTypesController::class, 'destroy'])->only('auth');
 
 // departments

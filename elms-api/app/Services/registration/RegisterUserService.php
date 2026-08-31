@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 
 namespace App\Services\registration;
@@ -8,27 +8,31 @@ use Core\Database;
 use Throwable;
 use App\Http\Middleware\Auth;
 use App\Services\Auth\EmailVerificationService;
-use App\Exceptions\UserAlreadyExistsExceptions;
+use App\Exceptions\domain\BadRequestException;
 use App\Exceptions\domain\UnauthorizedException;
 
-class RegisterUserService {
+class RegisterUserService
+{
 
     private Database $db;
     private ?array $current_user;
 
-    public function __construct() {
+    public function __construct()
+    {
 
         $this->db = App::resolve(Database::class);
         $this->current_user = Auth::user();
     }
 
-    private function validateUser() {
-        if($this->current_user['role'] !== 'super-admin' && $this->current_user['role'] !== 'admin') {
+    private function validateUser()
+    {
+        if ($this->current_user['role'] !== 'super-admin' && $this->current_user['role'] !== 'admin') {
             throw new UnauthorizedException('You are not authorized to access this resource');
         }
     }
 
-    public function registerUser($first_name, $last_name, $email, $phone, $role, $department, $salary, $assigned_to) {
+    public function registerUser($first_name, $last_name, $email, $phone, $role, $department, $salary, $assigned_to)
+    {
 
         $this->validateUser();
 
@@ -37,27 +41,40 @@ class RegisterUserService {
             'email' => $email
         ])->find();
 
-        if($existing_user) {
-            throw new UserAlreadyExistsExceptions();
+        if ($existing_user) {
+            throw new BadRequestException('User already exists');
+            return;
         }
-        
+
         try {
 
             $this->db->beginTransaction();
 
-            $this->db->query("INSERT INTO users (first_name, last_name, email, phone, password, role, department, salary, assigned_to) VALUES (:first_name, :last_name, :email, :phone, :password, :role, :department, :salary, :assigned_to)", [
+            $query = "
+                INSERT INTO users
+            ";
+
+            $params = [
                 'first_name' => $first_name,
                 'last_name' => $last_name,
                 'email' => $email,
                 'phone' => $phone,
                 'password' => null,
                 'role' => $role,
-                'department' => $department,
                 'salary' => $salary,
                 'assigned_to' => ($assigned_to === '' || $assigned_to === null)
-                ? null
-                : (int) $assigned_to,
-            ]);
+                    ? null : (int) $assigned_to,
+            ];
+
+            if($role === 'super-admin') {
+                $query .= " (first_name, last_name, email, phone, password, role, department, salary, assigned_to) VALUES (:first_name, :last_name, :email, :phone, :password, :role, :department, :salary, :assigned_to)";
+                $params['department'] = $department;
+            } else {
+                $query .= " (first_name, last_name, email, phone, password, role, salary, assigned_to) VALUES (:first_name, :last_name, :email, :phone, :password, :role, :salary, :assigned_to)";
+            }
+
+            $this->db->query($query, $params);
+
 
             $user_id = (int) $this->db->lastInsertId();
 
@@ -68,9 +85,9 @@ class RegisterUserService {
             $expires_at = (new \DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
 
             $this->db->query("INSERT INTO email_verification_token (token, user_id, expires_at) VALUES (:token, :user_id, :expires_at)", [
-                    'token' => $verification_token,
-                    'user_id' => $user_id,
-                    'expires_at' => $expires_at,
+                'token' => $verification_token,
+                'user_id' => $user_id,
+                'expires_at' => $expires_at,
             ]);
 
             $email_verification_service = new EmailVerificationService();
@@ -80,8 +97,7 @@ class RegisterUserService {
             $email_verification_service->sendVerificationEmail($name, $email, $verification_token);
             $this->db->commit();
             return;
-
-        }catch(Throwable $e) {
+        } catch (Throwable $e) {
             $this->db->rollBack();
             throw $e;
         }

@@ -6,10 +6,13 @@ use App\Http\Middleware\Auth;
 use App\Http\Forms\EmployeeForm;
 use Core\App;
 use Core\Database;
-use Exception;
+use App\Exceptions\domain\NotFoundException;
+use App\Exceptions\domain\UnauthorizedException;
+use App\Exceptions\domain\BadRequestException;
+use Throwable;
 
-
-class EmployeesService {
+class EmployeesService
+{
 
     private Database $db;
     private ?array $current_user;
@@ -17,7 +20,8 @@ class EmployeesService {
     private string $current_user_role;
     private string $current_user_department;
 
-    public function __construct() {
+    public function __construct()
+    {
 
         $this->db = App::resolve(Database::class);
         $this->current_user = Auth::user();
@@ -26,11 +30,11 @@ class EmployeesService {
         $this->current_user_department = (string) ($this->current_user['department'] ?? '');
     }
 
-    public function getEmployees() {
+    public function getEmployees()
+    {
 
-
-        if(!$this->current_user_id) {
-            throw new Exception('Authorized user not found');
+        if (!$this->current_user_id) {
+            throw new UnauthorizedException('Authorized user not found');
         }
 
         $search = $_GET['search'] ?? "";
@@ -54,51 +58,52 @@ class EmployeesService {
 
         $params = [];
 
-        if($this->current_user_role === 'manager') {
+        if ($this->current_user_role === 'manager') {
             $query .= " AND assigned_to = :current_user_id ";
             $params = ['current_user_id' => $this->current_user_id];
-        }else if ($this->current_user_role === 'admin') {
+        } else if ($this->current_user_role === 'admin') {
             $query .= " AND department = :department AND role != 'super-admin' AND id != :current_user_id";
             $params = [
                 'department' => $this->current_user_department,
                 'current_user_id' => $this->current_user_id
             ];
-        }else if ($this->current_user_role === 'super-admin') {
+        } else if ($this->current_user_role === 'super-admin') {
             $query .= " AND role != 'super-admin' AND id != :current_user_id";
             $params = [
                 'current_user_id' => $this->current_user_id
             ];
         }
 
-        if(!empty($search)) {
+        if (!empty($search)) {
             $query .= " AND (first_name LIKE :search OR last_name LIKE :search OR email LIKE :search) ";
             $params['search'] = "%$search%";
         }
 
-        if(!empty($status)) {
+        if (!empty($status)) {
             $query .= " AND is_active = :status ";
             $params['status'] = $status;
         }
 
-        if(!empty($department)) {
+        if (!empty($department)) {
             $query .= " AND department = :department ";
             $params['department'] = $department;
         }
 
-        if(!empty($role)) {
+        if (!empty($role)) {
             $query .= " AND role = :role ";
             $params['role'] = $role;
         }
 
         $employees = $this->db->query($query, $params)->all();
 
-         return $employees;
+        return $employees;
     }
 
-    public function getEmployee($id) {
+    public function getEmployee(int $id)
+    {
 
-        if(!$this->current_user_id) {
-            throw new Exception('Authorized user not found');
+        if (!$this->current_user_id) {
+            throw new UnauthorizedException('Authorized user not found');
         }
 
         $user = $this->db->query("
@@ -120,7 +125,7 @@ class EmployeesService {
         ])->find();
 
         if (!$user) {
-            throw new Exception('Employee not found');
+            throw new NotFoundException('Employee not found');
         }
 
         // select all possible managers
@@ -133,21 +138,22 @@ class EmployeesService {
         return $user;
     }
 
-    public function updateEmployee($id) {
+    public function updateEmployee(int $id)
+    {
 
 
-        try{
+        try {
 
-            if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super admin'], true)) {
+            if ($this->current_user_id && in_array($this->current_user_role, ['admin', 'super-admin'], true)) {
 
                 $existing_user = $this->db->query("SELECT * FROM users WHERE id = :id", [
                     'id' => $id
                 ])->find();
 
                 if (!$existing_user) {
-                    throw new Exception('Employee to edit not found');
+                    throw new NotFoundException('Employee to edit not found');
                 }
-                
+
                 $input = json_decode(file_get_contents('php://input'), true);
 
                 $first_name = array_key_exists('first_name', $input) ? $input['first_name'] : $existing_user['first_name'];
@@ -165,15 +171,15 @@ class EmployeesService {
                     ? (!empty($input['assigned_to']) ? (int) $input['assigned_to'] : null)
                     : $existing_user['assigned_to'];
 
-        
+
                 $employee_form = new EmployeeForm();
 
-                if(!$employee_form->validate($first_name, $last_name, $email, $phone, $role, $department, $salary, $manager_id, $is_active, $hired_date)) {
-                    throw new Exception('Invalid inputs.');
+                if (!$employee_form->validate($first_name, $last_name, $email, $phone, $role, $department, $salary, $manager_id, $is_active, $hired_date)) {
+                    throw new BadRequestException('Invalid inputs.');
                 }
 
                 $this->db->beginTransaction();
-                
+
                 $this->db->query("
                 UPDATE 
                     users 
@@ -189,83 +195,83 @@ class EmployeesService {
                         salary = :salary 
                     WHERE id = :id
                     ", [
-                        'id'          => $id,
-                        'first_name'  => $first_name,
-                        'last_name'   => $last_name,
-                        'email'       => $email,
-                        'phone'       => $phone,
-                        'role'        => $role,
-                        'department'  => $department,
-                        'assigned_to'  => $manager_id,
-                        'is_active'   => $is_active,
-                        'hired_date' => empty($hired_date) ? null : $hired_date,
-                        'salary'      => empty($salary) ? null : $salary
+                    'id'          => $id,
+                    'first_name'  => $first_name,
+                    'last_name'   => $last_name,
+                    'email'       => $email,
+                    'phone'       => $phone,
+                    'role'        => $role,
+                    'department'  => $department,
+                    'assigned_to'  => $manager_id,
+                    'is_active'   => $is_active,
+                    'hired_date' => empty($hired_date) ? null : $hired_date,
+                    'salary'      => empty($salary) ? null : $salary
                 ]);
-        
-                $edited_user = $this->db->query("
+
+                $edited_user = $this->db->query(
+                    "
                     SELECT id, first_name, last_name, email, phone, role, department, assigned_to, is_active, hired_date, salary 
                     FROM users
-                    WHERE id = :id", 
-                    ['id' => $id])->find();
-        
-                if(!$edited_user) {
-                    throw new Exception('Failed to update employee details.');
+                    WHERE id = :id",
+                    ['id' => $id]
+                )->find();
+
+                if (!$edited_user) {
+                    throw new BadRequestException('Failed to update employee details.');
                 }
-        
+
                 $this->db->commit();
                 return $edited_user;
             }
 
-            throw new Exception('Unauthorized access');
-        }catch(Exception $e) {
+            throw new UnauthorizedException('Unauthorized access');
+        } catch (Throwable $e) {
             $this->db->rollBack();
             throw $e;
         }
-
     }
 
-    public function deleteEmployee($id) {
+    public function deleteEmployee(int $id)
+    {
 
-        try{
+        try {
 
-            if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super admin'], true)) {
+            if ($this->current_user_id && in_array($this->current_user_role, ['admin', 'super-admin'], true)) {
 
-            $user = $this->db->query("SELECT * FROM users WHERE id = :id", [
-                'id' => $id
-            ])->find();
-    
-            if(!$user) {
-              throw new Exception('Employee not found');
+                $user = $this->db->query("SELECT * FROM users WHERE id = :id", [
+                    'id' => $id
+                ])->find();
+
+                if (!$user) {
+                    throw new NotFoundException('Employee not found');
+                }
+
+                if ($user['role'] === 'admin') {
+                    throw new UnauthorizedException('You are not authorized to delete this employee (admin).');
+                }
+
+                $this->db->beginTransaction();
+
+                $delete_user = $this->db->query("UPDATE users SET is_active = 0 AND deleted_at = CURRENT_TIMESTAMP WHERE id = :id", [
+                    'id' => $id
+                ]);
+
+                $this->db->commit();
+                return $delete_user;
             }
-    
-            if($user['role'] === 'admin') {
-                throw new Exception('You are not authorized to delete this employee (admin).');
-            }
-    
-            $this->db->beginTransaction();
 
-            $delete_user = $this->db->query("UPDATE users SET is_active = 0 AND deleted_at = CURRENT_TIMESTAMP WHERE id = :id", [
-                'id' => $id
-            ]);
-    
-            $this->db->commit();
-            return $delete_user;
-        }
-
-        throw new Exception('Unauthorized Access.');
-
-        }catch(Exception $e) {
+            throw new UnauthorizedException('Unauthorized Access.');
+        } catch (Throwable $e) {
             $this->db->rollBack();
             throw $e;
         }
-
-       
     }
 
-    public function getProfile($id) {
+    public function getProfile(int $id)
+    {
 
-        if($this->current_user_id && in_array($this->current_user_role, ['admin', 'super-admin', 'manager'], true)) {
-           
+        if ($this->current_user_id && in_array($this->current_user_role, ['admin', 'super-admin', 'manager'], true)) {
+
             $user = $this->db->query("
                 SELECT u.id,
                     u.first_name, 
@@ -291,8 +297,8 @@ class EmployeesService {
             ])->all();
 
 
-            if(!$user) {
-                throw new Exception('Employee not found');
+            if (!$user) {
+                throw new NotFoundException('Employee not found');
             }
 
             $structured_data = [
@@ -313,8 +319,8 @@ class EmployeesService {
                 'leave_balance' => []
             ];
 
-            foreach($user as $employee) {
-                if(!empty($employee['leave_type_name'])) {
+            foreach ($user as $employee) {
+                if (!empty($employee['leave_type_name'])) {
                     $structured_data['leave_balance'][] = [
                         'leave_type_name' => $employee['leave_type_name'],
                         'remaining_balance' => $employee['remaining_balance'],
@@ -325,10 +331,11 @@ class EmployeesService {
             return $structured_data;
         }
 
-        throw new Exception('Unauthorized Access');
+        throw new UnauthorizedException('Unauthorized Access');
     }
 
-    public function getManagers() {
+    public function getManagers()
+    {
 
         if ($this->current_user_id && in_array($this->current_user_role, ['admin', 'super-admin'], true)) {
 
@@ -345,8 +352,7 @@ class EmployeesService {
             // Department admin only sees managers in their department
             // Super admin sees all managers
             if ($this->current_user_role === 'super-admin') {
-                
-            }else if($this->current_user_role === 'admin') {
+            } else if ($this->current_user_role === 'admin') {
                 $query .= " AND department = :department";
                 $params['department'] = $this->current_user_department;
             }
@@ -355,21 +361,21 @@ class EmployeesService {
 
             $managers = $this->db->query($query, $params)->all();
 
-            if(!$managers) {
-                throw new Exception('No managers found');
+            if (!$managers) {
+                throw new NotFoundException('No managers found');
             }
 
-        
-            return $managers; 
-            
+
+            return $managers;
         }
 
-        throw new Exception('Unauthorized Access');  
+        throw new UnauthorizedException('Unauthorized Access');
     }
 
-    public function getAdmins() {
+    public function getAdmins()
+    {
 
-        if($this->current_user_id && in_array($this->current_user_role, ['super-admin'], true)) {
+        if ($this->current_user_id && in_array($this->current_user_role, ['super-admin'], true)) {
 
             $query = "
                 SELECT id, first_name, last_name, email, role, department, CONCAT(first_name, ' ', last_name) as name
@@ -384,15 +390,13 @@ class EmployeesService {
 
             $admins = $this->db->query($query, $params)->all();
 
-            if(!$admins) {
-                throw new Exception('No admins found');
+            if (!$admins) {
+                throw new NotFoundException('No admins found');
             }
 
             return $admins;
-
         }
 
-        throw new Exception('Unauthorized Access');
+        throw new UnauthorizedException('Unauthorized Access');
     }
-
-    }
+}

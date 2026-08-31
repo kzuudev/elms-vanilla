@@ -7,7 +7,7 @@ use Core\Database;
 use App\Http\Middleware\Auth;
 use App\Http\Forms\RegisterForm;
 use App\Services\registration\RegisterUserService;
-use App\Exceptions\Auth\UserAlreadyExistsExceptions;
+use App\Exceptions\domain\DomainException;
 use Throwable;
 
 class RegisteredUserController {
@@ -46,9 +46,16 @@ class RegisteredUserController {
 
                 $register = new RegisterForm();
 
-                if(!$register->validate($first_name, $last_name, $email, $phone, $role, $department, $salary, $assigned_to)) {
-                    $this->db->response(422, false, 'Validation failed', $register->errors());
-                    return;
+                if($user['role'] === 'super-admin') {
+                    if(!$register->validate($first_name, $last_name, $email, $phone, $role, $department, $salary, $assigned_to)) {
+                        $this->db->response(422, false, 'Validation failed', $register->errors());
+                        return;
+                    }
+                } else {
+                    if(!$register->validate($first_name, $last_name, $email, $phone, $role, $department = null, $salary, $assigned_to)) {
+                        $this->db->response(422, false, 'Validation failed', $register->errors());
+                        return;
+                    }
                 }
 
                 try{
@@ -56,7 +63,7 @@ class RegisteredUserController {
                     $register_user_service->registerUser($first_name, $last_name, $email, $phone, $role, $department, $salary, $assigned_to);
                     $this->db->response(201, true, 'User registered successfully');
                     return;
-                }catch(UserAlreadyExistsExceptions $e) {
+                }catch(DomainException $e) {
                     $this->db->response(400, false, $e->getMessage());
                     return;
                 }catch(Throwable $e) {

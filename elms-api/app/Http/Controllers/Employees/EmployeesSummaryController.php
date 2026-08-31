@@ -34,7 +34,6 @@ class EmployeesSummaryController {
         $employee_summary = $this->employee_summary_service->getEmployeeSummary();
 
         $this->db->response(200, true, 'Employee summary fetched successfully', [
-            'id' => $this->current_user_id,
             'employee_summary' => $employee_summary
         ]);
 

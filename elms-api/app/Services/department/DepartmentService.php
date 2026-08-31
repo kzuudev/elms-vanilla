@@ -30,7 +30,9 @@ class DepartmentService {
 
     public function getDepartments(string $department_name, string $sort_by = '') {
 
-        $this->validateUser();
+        if (!$this->current_user) {
+            throw new UnauthorizedException('Authorized user not found');
+        }
 
         $query = "
             SELECT * FROM departments 

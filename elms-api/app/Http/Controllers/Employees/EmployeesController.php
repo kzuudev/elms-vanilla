@@ -7,7 +7,7 @@ use App\Http\Middleware\Auth;
 use App\Services\employees\EmployeesService;
 use Core\App;
 use Core\Database;
-
+use Throwable;
 
 class EmployeesController {
 
@@ -27,33 +27,35 @@ class EmployeesController {
             $employees = $this->employees_service->getEmployees();
             $this->db->response(200, true, 'Employees fetched successfully.', ['employees' => $employees]);
             return;
-        } catch(Exception $e) {
+        } catch(Throwable $e) {
             $this->db->response(422, false, $e->getMessage());
             return;
         }
        
     }
 
-    public function show($id) {
+    public function show(int $id) {
       
        try{
             $employee = $this->employees_service->getProfile($id);
             $this->db->response(200, true, 'Employee fetched successfully.', ['employee' => $employee]);
             return;
-       } catch(Exception $e) {
+       } catch(Throwable $e) {
             $this->db->response(422, false, $e->getMessage());
             return;
        }
     }
 
+    
 
-    public function patch($id) {
+
+    public function patch(int $id) {
 
        try{
             $updated_employee = $this->employees_service->updateEmployee($id);
             $this->db->response(200, true, 'Employee updated successfully.', ['employee' => $updated_employee]);
             return $updated_employee;
-       } catch(Exception $e) {
+       } catch(Throwable $e) {
             $this->db->response(422, false, $e->getMessage());
             return;
        }
@@ -67,7 +69,7 @@ class EmployeesController {
             $managers = $this->employees_service->getManagers();
             $this->db->response(200, true, 'Managers fetched successfully.', ['managers' => $managers]);
             return $managers;
-        } catch(Exception $e) {
+        } catch(Throwable $e) {
             $this->db->response(422, false, $e->getMessage());
             return;
         }
@@ -79,7 +81,7 @@ class EmployeesController {
             $admins = $this->employees_service->getAdmins();
             $this->db->response(200, true, 'Admins fetched successfully.', ['admins' => $admins]);
             return $admins;
-        } catch(Exception $e) {
+        } catch(Throwable $e) {
             $this->db->response(422, false, $e->getMessage());
             return;
         }
