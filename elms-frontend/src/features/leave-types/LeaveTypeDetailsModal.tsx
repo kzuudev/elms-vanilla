@@ -12,7 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog.tsx";
 
-import { Pencil, Trash } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useState } from "react";
 
 interface LeaveTypeDetailsModalProps {
@@ -66,20 +66,7 @@ export default function LeaveTypeDetailsModal({
               </div>
             </div>
 
-            <div className="w-full flex justify-between">
-              <Button
-                type="button"
-                className="min-w-4"
-                variant="destructive"
-                onClick={() => {
-                  setIsViewMode(false);
-                  setMode("edit");
-                }}
-                disabled={mode !== "edit"}
-              >
-                <Trash className="w-4 h-4" />
-              </Button>
-
+            <div className="w-full flex justify-end">
               <Button
                 type="button"
                 className="min-w-4"

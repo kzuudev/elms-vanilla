@@ -7,9 +7,7 @@ import { useDepartmentEmployeesContext } from "@/features/context/department/Dep
 
 import DepartmentDetailsModal from "@/features/department/DepartmentDetailsModal";
 
-
 interface DepartmentDialogProps {
-  handleSubmit: (data: { department_name: string | null }) => Promise<void>;
   isViewMode: boolean;
   setIsViewMode: (open: boolean) => void;
   mode: "create" | "edit" | null;
@@ -17,17 +15,14 @@ interface DepartmentDialogProps {
 }
 
 export default function DepartmentDialog({
-  handleSubmit,
   isViewMode,
   setIsViewMode,
   mode,
   setMode,
 }: DepartmentDialogProps) {
-  
+
   const { departmentDetails } = useDepartmentContext();
   const { departmentEmployees } = useDepartmentEmployeesContext();
-
-  const [error, setError] = useState<string | null>(null);
 
   const totalEmployees =
     departmentEmployees?.total_employees_by_department?.find(
@@ -39,12 +34,11 @@ export default function DepartmentDialog({
       <DepartmentDetailsModal
         isViewMode={isViewMode}
         setIsViewMode={setIsViewMode}
-        mode={mode as "create" | "edit"} 
+        mode={mode as "create" | "edit"}
         setMode={setMode}
         totalEmployees={totalEmployees}
         departmentDetails={departmentDetails ?? null}
       />
-      {error && <p className="text-red-500">{error}</p>}
     </>
   );
 }

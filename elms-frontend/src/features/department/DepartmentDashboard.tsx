@@ -310,7 +310,6 @@ export default function DepartmentDashboard() {
 
               <div className="mt-8">
                 <DepartmentDialog
-                  handleSubmit={handleSubmit}
                   isViewMode={isViewModalOpen}
                   setIsViewMode={setIsViewModalOpen}
                   mode={mode}

@@ -36,6 +36,10 @@ export default function DepartmentDetailsModal({
 
   const [error, setError] = useState<string | null>(null);
 
+  if (!departmentDetails) {
+    return null;
+  }
+
   return (
     <>
       <Dialog open={isViewMode} onOpenChange={setIsViewMode}>
@@ -63,20 +67,7 @@ export default function DepartmentDetailsModal({
               </div>
             </div>
 
-            <div className="w-full flex justify-between">
-              <Button
-                type="button"
-                className="min-w-4"
-                variant="destructive"
-                onClick={() => {
-                  setIsViewMode(false);
-                  setMode("edit");
-                }}
-                disabled={mode !== "edit"}
-              >
-                <Trash className="w-4 h-4" />
-              </Button>
-
+            <div className="w-full flex justify-end">
               <Button
                 type="button"
                 className="min-w-4"
