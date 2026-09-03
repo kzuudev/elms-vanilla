@@ -1,8 +1,11 @@
 "use client";
 
 import * as z from "zod";
+import { useContext } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
+
+import { AuthContext } from "@/features/context/auth/AuthContext";
 
 import { roleOptions } from "@/config/role-options";
 import type { DepartmentOptions } from "@/types/department";
@@ -65,6 +68,9 @@ export default function SuperAdminRegisterForm({
       assigned_to: null,
     },
   });
+
+  const { user } = useContext(AuthContext);
+  const watchRoleInputValue = form.watch("role");
 
   const {
     setError,
@@ -279,26 +285,60 @@ export default function SuperAdminRegisterForm({
                   <FieldLabel htmlFor="assigned_to" className="m-0">
                     Assigned To
                   </FieldLabel>
-                  <Select
-                    value={field.value ?? undefined}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a manager or admin" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {managers.map((manager) => (
-                        <SelectItem key={manager.value} value={manager.value}>
-                          {manager.label} (Manager)
-                        </SelectItem>
-                      ))}
-                      {admins.map((admin) => (
-                        <SelectItem key={admin.value} value={admin.value}>
-                          {admin.label} (Admin)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {watchRoleInputValue === "admin" ? (
+                    <Select
+                      disabled
+                      value={user?.id != null ? String(user.id) : undefined}
+                    >
+                      <SelectTrigger disabled>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {user?.id != null && (
+                          <SelectItem value={String(user.id)}>
+                            {user.name}
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  ) : watchRoleInputValue === "manager" ? (
+                    <Select
+                      value={field.value ?? undefined}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a admin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {admins.map((admin) => (
+                          <SelectItem key={admin.value} value={admin.value}>
+                            {admin.label} (Admin)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Select
+                      value={field.value ?? undefined}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a manager or admin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {managers.map((manager) => (
+                          <SelectItem key={manager.value} value={manager.value}>
+                            {manager.label} (Manager)
+                          </SelectItem>
+                        ))}
+                        {admins.map((admin) => (
+                          <SelectItem key={admin.value} value={admin.value}>
+                            {admin.label} (Admin)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   {fieldState.error && (
                     <FieldError>{fieldState.error.message}</FieldError>
                   )}

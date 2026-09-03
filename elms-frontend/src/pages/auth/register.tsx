@@ -25,8 +25,8 @@ interface RegisterFormData {
   email: string;
   phone: string;
   role: string;
-  department: string;
-  salary: string;
+  department: string | null;
+  salary: number | null;
   assigned_to: string | null;
 }
 
@@ -111,14 +111,30 @@ export default function Register({
 
   useEffect(() => {
     fetchManagers();
-    fetchAdmins();
+
+    if (isSuperAdmin) {
+      fetchAdmins();
+    }
+
   }, []);
 
   const onSubmit = async (data: RegisterFormData) => {
+
     const token = localStorage.getItem("token");
 
+    const payload = {
+      first_name: data.first_name,
+      last_name: data.last_name,
+      email: data.email,
+      phone: data.phone,
+      role: data.role,
+      salary: Number(data.salary),
+      department: data.department ?? null,
+      assigned_to: data.assigned_to,
+    }
+
     try {
-      const response = await api.post("/register", data, {
+      const response = await api.post("/register", payload, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
