@@ -50,7 +50,7 @@ export default function SuperAdminRegisterForm({
   onCancel,
 }: {
   managers: { value: string; label: string }[];
-  admins: { value: string; label: string }[];
+  admins: { id: number; name: string; role: string; department: string }[];
   departments: DepartmentOptions[];
   onSubmit: (data: SuperAdminRegisterFormData) => void;
   onCancel: () => void;
@@ -71,6 +71,9 @@ export default function SuperAdminRegisterForm({
 
   const { user } = useContext(AuthContext);
   const watchRoleInputValue = form.watch("role");
+  const watchDepartmentInputValue = form.watch("department");
+
+  const adminWithinSameDepartment = admins?.filter((admin) => admin.department === watchDepartmentInputValue);
 
   const {
     setError,
@@ -310,9 +313,9 @@ export default function SuperAdminRegisterForm({
                         <SelectValue placeholder="Select a admin" />
                       </SelectTrigger>
                       <SelectContent>
-                        {admins.map((admin) => (
-                          <SelectItem key={admin.value} value={admin.value}>
-                            {admin.label} (Admin)
+                        {adminWithinSameDepartment.map((admin) => (
+                          <SelectItem key={admin.id} value={String(admin.id)}>
+                            {admin.name} ({admin.role}) - {admin.department}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -332,8 +335,8 @@ export default function SuperAdminRegisterForm({
                           </SelectItem>
                         ))}
                         {admins.map((admin) => (
-                          <SelectItem key={admin.value} value={admin.value}>
-                            {admin.label} (Admin)
+                          <SelectItem key={admin.id} value={String(admin.id)}>
+                            {admin.name} ({admin.role}) - {admin.department}
                           </SelectItem>
                         ))}
                       </SelectContent>

@@ -90,6 +90,8 @@ export default function Register({
           id: admin.id,
           first_name: admin.first_name,
           last_name: admin.last_name,
+          role: admin.role,
+          department: admin.department,
         })),
       );
       setError(null);
@@ -188,8 +190,10 @@ export default function Register({
               label: `${manager.first_name} ${manager.last_name}`,
             }))}
             admins={admins.map((admin) => ({
-              value: String(admin.id),
-              label: `${admin.first_name} ${admin.last_name}`,
+              id: admin.id,
+              name: `${admin.first_name} ${admin.last_name}`,
+              role: admin.role,
+              department: admin.department,
             }))}
             onSubmit={onSubmit}
             onCancel={closeDialog}

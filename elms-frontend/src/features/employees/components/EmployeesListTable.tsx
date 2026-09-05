@@ -289,6 +289,8 @@ export default function EmployeesListTable({
           id: admin.id,
           first_name: admin.first_name,
           last_name: admin.last_name,
+          role: admin.role,
+          department: admin.department,
         })),
       );
       setError(null);
