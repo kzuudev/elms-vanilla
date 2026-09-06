@@ -11,6 +11,7 @@ import {validateDate} from "@/utils/on-leave.ts";
 export default function TeamInsights() {
 
     const {user} = useContext(AuthContext);
+    
     const role = user.role || "";
 
     const managerAnalytics = useContext(ManagerAnalyticsContext);
@@ -59,7 +60,7 @@ export default function TeamInsights() {
     const activeWorkingPercentage = teamSize > 0 ? (activeWorkingCount / teamSize) * 100 : 0;
 
 
-    const backlogCount = managementAnalytics?.pendingRequest?.length || 0;
+    const backlogCount = managementAnalytics?.approvalBacklogs?.length || 0;
 
 
 

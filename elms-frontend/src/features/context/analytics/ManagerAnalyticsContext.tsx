@@ -7,18 +7,20 @@ import type {
     LeaveActivityRecord,
     TeamAvailability,
     TotalUsers,
-    LeaveOverlap
+    LeaveOverlap,
+    ApprovalBacklogs
 } from "@/types/dashboard.ts";
 
 type ManagerAnalyticsContext = {
     remainingBalance: TotalRemainingBalance[] | null;
-    pendingRequest: TotalPendingRequest[] | null;
+    pendingApprovalMetrics: TotalPendingRequest[] | null;
     usedDays: TotalUsedDays[] | null;
     monthlyLeaveConsumption: MonthlyConsumption[] | null;
     recentActivity: LeaveActivityRecord[] | null;
     overlap: LeaveOverlap[] | null;
     teamAvailability: TeamAvailability[] | null;
     totalUsers: TotalUsers[] | null;
+    approvalBacklogs: ApprovalBacklogs[] | null;
 }
 
 export const ManagerAnalyticsContext = createContext<ManagerAnalyticsContext | undefined>(undefined);

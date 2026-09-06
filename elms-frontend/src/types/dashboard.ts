@@ -12,6 +12,12 @@ export type TotalPendingRequest = {
     queued_leave_count: number,
 }
 
+export type ApprovalBacklogs = {
+    pending_count: number,
+    average_days_in_queue: number,
+    oldest_request_days: number,
+}
+
 export type TotalUsedDays = {
     total_used_days: string,
     total_allocated_days: string,
