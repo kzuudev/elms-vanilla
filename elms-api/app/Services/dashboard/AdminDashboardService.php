@@ -71,7 +71,7 @@ class AdminDashboardService implements LeaveAnalyticsInterface {
     public function getBacklogRequests(): array {
 
         $this->validateUser();
-        return $this->executeBacklogQuery($this->current_user_role, $this->current_user_id);
+        return $this->executeBacklogQuery($this->current_user_role, $this->current_user_id, $this->current_user_department);
 
     }
 

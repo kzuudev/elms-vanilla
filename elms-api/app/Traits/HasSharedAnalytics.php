@@ -150,33 +150,32 @@ trait HasSharedAnalytics {
     /**
      * Shared SQL query for the approval backlog counter
      */
-    protected function executeBacklogQuery(string $user_role, int $current_user_id): array
+    protected function executeBacklogQuery(string $user_role, int $current_user_id, string $current_user_department): array
     {
-
-
-        $query = " 
+        $query = "
             SELECT
                 COUNT(*) as pending_count,
                 IFNULL(ROUND(AVG(DATEDIFF(NOW(), lr.created_at)), 1), 0) as average_days_in_queue,
                 IFNULL(MAX(DATEDIFF(NOW(), lr.created_at)), 0) as oldest_request_days
-                from leave_requests lr
-            WHERE lr.user_id != :current_user_id AND lr.status = 'pending'
+            FROM leave_requests lr
+            INNER JOIN users u ON lr.user_id = u.id
+            WHERE u.department = :department
+              AND lr.user_id != :current_user_id
+              AND lr.status = 'pending'
+              AND lr.deleted_at IS NULL
         ";
 
         $params = [
             'current_user_id' => $current_user_id,
+            'department' => $current_user_department,
         ];
 
-
-        if ($user_role === 'manager') {
+        if ($user_role === 'manager' || $user_role === 'admin') {
             $query .= ' AND lr.assigned_to = :manager_id';
             $params['manager_id'] = $current_user_id;
         }
 
-
         return $this->db->query($query, $params)->all();
-
-
     }
 
     /**

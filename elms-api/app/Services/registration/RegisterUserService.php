@@ -43,7 +43,6 @@ class RegisterUserService
 
         if ($existing_user) {
             throw new BadRequestException('User already exists');
-            return;
         }
 
         try {
