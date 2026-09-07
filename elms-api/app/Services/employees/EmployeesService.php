@@ -99,9 +99,6 @@ class EmployeesService
 
 
         $employees = $this->db->query($query, $params)->all();
-
-
-
         return $employees;
     }
 
