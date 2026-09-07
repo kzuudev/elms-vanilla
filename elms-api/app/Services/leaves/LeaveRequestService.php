@@ -180,7 +180,7 @@ class LeaveRequestService implements LeaveRequestInterface {
             $params['end_date'] = $end_date;
         }
 
-        if (!empty($status)) {
+        if (!empty($status) && $status !== 'all') {
             $query .= " AND lr.status = :status";
             $params['status'] = $status;
         }

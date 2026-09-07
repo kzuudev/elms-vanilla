@@ -10,6 +10,7 @@ use App\Http\Middleware\Auth;
 use App\Services\Auth\EmailVerificationService;
 use App\Exceptions\domain\BadRequestException;
 use App\Exceptions\domain\UnauthorizedException;
+use App\Services\notifications\NotificationService;
 
 class RegisterUserService
 {
@@ -89,11 +90,24 @@ class RegisterUserService
                 'expires_at' => $expires_at,
             ]);
 
+            $assigned_super_admin = $this->db->query(
+                "SELECT assigned_to FROM users WHERE user_id = :user_id AND role = 'super-admin'", [
+                    'user_id' => $user_id,
+                ]
+            )->find();
+
             $email_verification_service = new EmailVerificationService();
             $name = $first_name . ' ' . $last_name;
-
-
             $email_verification_service->sendVerificationEmail($name, $email, $verification_token);
+            
+            $notification_service = new NotificationService();
+
+            $notification_service->createNotification(
+                $assigned_super_admin['assigned_to'],
+                'New Employee Added',
+                'employee_added',
+                'A new employee has been added to the system.'
+            );
             $this->db->commit();
             return;
         } catch (Throwable $e) {

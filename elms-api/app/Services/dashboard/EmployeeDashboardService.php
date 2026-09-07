@@ -59,7 +59,7 @@ class EmployeeDashboardService {
             GROUP BY MONTH(lr.start_date), DATE_FORMAT(lr.start_date, '%b')
             ORDER BY month_num ASC
         ", [
-            'user_id' => $user_id,
+            'user_id' => $this->user_id,
         ])->all();
 
         return $monthly_leave_consumption;

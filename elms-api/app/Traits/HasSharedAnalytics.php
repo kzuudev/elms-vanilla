@@ -30,6 +30,9 @@ trait HasSharedAnalytics {
         return $total_balance;
     }
 
+    /**
+     * SQL for the current user's pending approval metrics 
+     */
     public function executePendingApprovalMetrics(int $user_id): array {
 
         $pending_leave_type = $this->db->query("

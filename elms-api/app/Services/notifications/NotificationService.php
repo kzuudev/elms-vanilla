@@ -5,10 +5,10 @@ use Core\App;
 use Core\Database;
 use App\Http\Middleware\Auth;
 
-class NotificationService {
+class NotificationService { 
 
-    private $db;
-    private $current_user_id;
+    private Database $db;
+    private int $current_user_id;
 
     public function __construct() {
 

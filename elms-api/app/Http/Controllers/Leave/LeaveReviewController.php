@@ -51,10 +51,10 @@ class LeaveReviewController {
 
         $leave_request_form = new LeaveRequestForm();
 
-        $leave_type = $this->input['leave_type'] ?? '';
-        $start_date = $this->input['start_date'] ?? '';
-        $end_date = $this->input['end_date'] ?? '';
-        $status = $this->input['status'] ?? '';
+        $leave_type = $_GET['leave_type'] ?? "";
+        $start_date = $_GET['start_date'] ?? "";
+        $end_date = $_GET['end_date'] ?? "";
+        $status = $_GET['status'] ?? "";
 
         if(!$leave_request_form->validateQuery($leave_type, $start_date, $end_date, $status)) {
             $this->db->response(422, false, $leave_request_form->errors(), ['errors' => $leave_request_form->errors()]);

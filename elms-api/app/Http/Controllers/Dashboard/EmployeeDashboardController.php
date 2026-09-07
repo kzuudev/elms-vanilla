@@ -24,25 +24,25 @@ class EmployeeDashboardController {
     public function index(): void
     {
 
-        $currentUser = Auth::user() ?? null;
+        $current_user = Auth::user() ?? null;
 
-        $currentUserId = $currentUser['id'] ?? null;
-        $currentUserRole = $currentUser['role'] ?? null;
+        $current_user_id = $current_user['id'] ?? null;
+        $current_user_role = $current_user['role'] ?? null;
 
-        $totalRemainingBalance = $this->employeeDashboardService->getRemainingTotalBalance();
-        $totalPendingRequest = $this->employeeDashboardService->getPendingApprovalMetrics();
-        $totalUsedDays = $this->employeeDashboardService->getUsedDays();
-        $recentActivity = $this->employeeDashboardService->getRecentActivity($currentUserId);
-        $teamAvailability = $this->employeeDashboardService->getTeamAvailability($currentUserId, $currentUserRole);
-        $monthlyLeaveConsumption = $this->employeeDashboardService->getMonthlyLeaveConsumption($currentUserId);
+        $total_remaining_balance = $this->employeeDashboardService->getRemainingTotalBalance();
+        $total_pending_request = $this->employeeDashboardService->getPendingApprovalMetrics();
+        $total_used_days = $this->employeeDashboardService->getUsedDays();
+        $recent_activity = $this->employeeDashboardService->getRecentActivity($current_user_id);
+        $team_availability = $this->employeeDashboardService->getTeamAvailability($current_user_id, $current_user_role);
+        $monthly_leave_consumption = $this->employeeDashboardService->getMonthlyLeaveConsumption();
 
         $this->db->response(200, true, 'Dashboard data fetched successfully', [
-            'total_remaining_balance' => $totalRemainingBalance,
-            'total_pending_request' => $totalPendingRequest,
-            'total_used_days' => $totalUsedDays,
-            'recent_activity' => $recentActivity,
-            'team_availability' => $teamAvailability,
-            'monthly_leave_consumption' => $monthlyLeaveConsumption
+            'total_remaining_balance' => $total_remaining_balance,
+            'total_pending_request' => $total_pending_request,
+            'total_used_days' => $total_used_days,
+            'recent_activity' => $recent_activity,
+            'team_availability' => $team_availability,
+            'monthly_leave_consumption' => $monthly_leave_consumption
         ]);
         exit;
     }
