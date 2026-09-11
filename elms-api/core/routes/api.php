@@ -19,6 +19,7 @@ use App\Http\Controllers\Department\DepartmentSummaryController;
 use App\Http\Controllers\Department\DepartmentEmployeesController;
 use App\Http\Controllers\Leave\LeaveTypesController;
 use App\Http\Controllers\Leave\LeaveTypeSummaryController;
+use App\Http\Controllers\Audit\AuditLogController;
 use Core\Router;
 
 $router = new Router();
@@ -99,6 +100,9 @@ $router->get('/notifications', [NotificationController::class, 'index'])->only('
 $router->patch('/notifications/{id}', [NotificationController::class, 'patch'])->only('auth');
 
 
+// audit logs
+$router->get('/audit-logs', [AuditLogController::class, 'index'])->only('auth');
+$router->get('/audit-logs/{id}', [AuditLogController::class, 'show'])->only('auth');
 
 
 // return the router with existing routes inside it

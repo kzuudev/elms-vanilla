@@ -7,7 +7,8 @@ use Core\App;
 use Core\Database;
 use App\Http\Middleware\Auth;
 use App\Exceptions\domain\UnauthorizedException;
-;
+use Throwable;  
+
 class AuditLogService {
 
     private Database $db;
@@ -46,23 +47,32 @@ class AuditLogService {
     public function createAuditLog(int $actor_id, string $actor_role, string $actor_name, string $occured_at, string $action, string $subject_type, string $subject_name, string $owner_name, string $owner_role, string $changes, ?array $details = null) {
         $this->validateUser();
 
-        $audit_log = $this->db->query("
-            INSERT INTO audit_logs (actor_id, actor_role, actor_name, occured_at, action, subject_type, subject_name, owner_name, owner_role, changes, details) VALUES (:actor_id, :actor_role, :actor_name, :occured_at, :action, :subject_type, :subject_name, :owner_name, :owner_role, :changes, :details)
-        ", [
-            'actor_id' => $actor_id,
-            'actor_role' => $actor_role,
-            'actor_name' => $actor_name,
-            'occured_at' => $occured_at,
-            'action' => $action,
-            'subject_type' => $subject_type,
-            'subject_name' => $subject_name,
-            'owner_name' => $owner_name,
-            'owner_role' => $owner_role,
-            'changes' => $changes,
-            'details' => $details ? json_encode($details) : null,
-        ]);
+        try {
+            $this->db->beginTransaction();
 
-        return $audit_log;
+            $audit_log = $this->db->query("
+                INSERT INTO audit_logs (actor_id, actor_role, actor_name, occured_at, action, subject_type, subject_name, owner_name, owner_role, changes, details) VALUES (:actor_id, :actor_role, :actor_name, :occured_at, :action, :subject_type, :subject_name, :owner_name, :owner_role, :changes, :details)
+            ", [
+                'actor_id' => $actor_id,
+                'actor_role' => $actor_role,
+                'actor_name' => $actor_name,
+                'occured_at' => $occured_at,
+                'action' => $action,
+                'subject_type' => $subject_type,
+                'subject_name' => $subject_name,
+                'owner_name' => $owner_name,
+                'owner_role' => $owner_role,
+                'changes' => $changes,
+                'details' => $details ? json_encode($details) : null,
+            ]);
+
+            $this->db->commit();
+            return $audit_log;
+
+        }catch(Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
        
     }
 
