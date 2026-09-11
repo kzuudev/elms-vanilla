@@ -17,12 +17,14 @@ class RegisterUserService
 
     private Database $db;
     private ?array $current_user;
+    private NotificationService $notification_service;
 
     public function __construct()
     {
 
         $this->db = App::resolve(Database::class);
         $this->current_user = Auth::user();
+        $this->notification_service = App::resolve(NotificationService::class);
     }
 
     private function validateUser()
@@ -100,9 +102,7 @@ class RegisterUserService
             $name = $first_name . ' ' . $last_name;
             $email_verification_service->sendVerificationEmail($name, $email, $verification_token);
             
-            $notification_service = new NotificationService();
-
-            $notification_service->createNotification(
+            $this->notification_service->createNotification(
                 $assigned_super_admin['assigned_to'],
                 'New Employee Added',
                 'employee_added',

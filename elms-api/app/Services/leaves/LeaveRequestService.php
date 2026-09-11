@@ -20,11 +20,12 @@ use App\Services\notifications\NotificationService;
 class LeaveRequestService implements LeaveRequestInterface {
 
     private Database $db;
-
+    private NotificationService $notification_service;
 
     public function __construct() {
 
         $this->db = App::resolve(Database::class);
+        $this->notification_service = App::resolve(NotificationService::class);
 
     }
 
@@ -122,12 +123,15 @@ class LeaveRequestService implements LeaveRequestInterface {
                     'assigned_to' => $assigned_to['approver_id'] ?? null
                 ]);
 
-                $notification_service = new NotificationService();
-                $notification_service->createNotification(
-                    $assigned_to['approver_id'],
+                $this->notification_service->createNotification(
+                    $assigned_to['approver_id'] ?? null,
                     'New Leave Request Submitted',
                     'leave_request_submitted',
-                    'A new leave request has been submitted for your approval. Please review it and take appropriate action.'
+                    'A new leave request has been submitted for your approval. Please review it and take appropriate action.',
+                    false,
+                    [
+                        'leave_request_id' => $this->db->lastInsertId()
+                    ]
                 );
 
                 $this->db->commit();
@@ -335,6 +339,17 @@ class LeaveRequestService implements LeaveRequestInterface {
                     'reason' => $reason,
                     'leave_type_id' => $new_leave_type['id']
                  ]);
+
+                $this->notification_service->createNotification(
+                    $existing_leave_request['assigned_to'] ?? null,
+                    'Leave Request Updated',
+                    'leave_request_updated',
+                    'A leave request has been updated by the user.',
+                    true,
+                    [
+                        'leave_request_id' => $id
+                    ]
+                );
              
                 $this->db->commit();
                 return $id;    
@@ -372,6 +387,17 @@ class LeaveRequestService implements LeaveRequestInterface {
             $this->db->query("UPDATE leave_requests SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id", [
                 'id' => $id
             ]);
+
+            $this->notification_service->createNotification(
+                $leave_request['assigned_to'] ?? null,
+                'Leave Request Deleted',
+                'leave_request_deleted',
+                'A leave request has been deleted by the user.',
+                true,
+                [
+                    'leave_request_id' => $id
+                ]
+            );
 
             $this->db->commit();
             return $id;

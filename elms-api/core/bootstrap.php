@@ -12,6 +12,7 @@ use App\Services\leaves\LeaveTypeService;
 use App\Services\department\DepartmentSummaryService;
 use App\Services\department\DepartmentEmployeesService;
 use App\Services\leaves\LeaveTypeSummaryService;
+use App\Services\audit\AuditLogService; 
 use Core\App;
 use Core\Container;
 use Core\Database;
@@ -77,6 +78,10 @@ $container->bind(DepartmentEmployeesService::class, function() {
 
 $container->bind(LeaveTypeSummaryService::class, function() {
     return new LeaveTypeSummaryService();
+});
+
+$container->bind(AuditLogService::class, function() {
+    return new AuditLogService();
 });
 
 App::setContainer($container);
