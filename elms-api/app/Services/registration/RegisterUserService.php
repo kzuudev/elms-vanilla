@@ -11,6 +11,8 @@ use App\Services\Auth\EmailVerificationService;
 use App\Exceptions\domain\BadRequestException;
 use App\Exceptions\domain\UnauthorizedException;
 use App\Services\notifications\NotificationService;
+use App\Services\audit\AuditLogService;
+use DateTimeImmutable;
 
 class RegisterUserService
 {
@@ -18,6 +20,7 @@ class RegisterUserService
     private Database $db;
     private ?array $current_user;
     private NotificationService $notification_service;
+    private AuditLogService $audit_log_service;
 
     public function __construct()
     {
@@ -25,6 +28,7 @@ class RegisterUserService
         $this->db = App::resolve(Database::class);
         $this->current_user = Auth::user();
         $this->notification_service = App::resolve(NotificationService::class);
+        $this->audit_log_service = App::resolve(AuditLogService::class);
     }
 
     private function validateUser()
@@ -68,7 +72,7 @@ class RegisterUserService
                     ? null : (int) $assigned_to,
             ];
 
-            if($role === 'super-admin') {
+            if ($role === 'super-admin') {
                 $query .= " (first_name, last_name, email, phone, password, role, department, salary, assigned_to) VALUES (:first_name, :last_name, :email, :phone, :password, :role, :department, :salary, :assigned_to)";
                 $params['department'] = $department;
             } else {
@@ -92,22 +96,44 @@ class RegisterUserService
                 'expires_at' => $expires_at,
             ]);
 
-            $assigned_super_admin = $this->db->query(
-                "SELECT assigned_to FROM users WHERE user_id = :user_id AND role = 'super-admin'", [
-                    'user_id' => $user_id,
-                ]
-            )->find();
-
             $email_verification_service = new EmailVerificationService();
             $name = $first_name . ' ' . $last_name;
             $email_verification_service->sendVerificationEmail($name, $email, $verification_token);
-            
-            $this->notification_service->createNotification(
-                $assigned_super_admin['assigned_to'],
-                'New Employee Added',
-                'employee_added',
-                'A new employee has been added to the system.'
+
+            // Notify the super-admin this admin is assigned to
+            $assigned_to = $this->current_user['assigned_to'] ?? null;
+            if ($assigned_to) {
+                $this->notification_service->createNotification(
+                    (int) $assigned_to,
+                    'New Employee Added',
+                    'employee_added',
+                    'A new employee has been added to the system.'
+                );
+            }
+
+            $this->audit_log_service->createAuditLog(
+                $assigned_to,
+                $this->current_user['id'],
+                $this->current_user['role'],
+                $this->current_user['first_name'] . ' ' . $this->current_user['last_name'],
+                (new DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
+                (int) $user_id,
+                'create_user',
+                'registered_user',
+                $name, // subject_name
+                $name, // owner_name
+                'null', // owner_role
+                'added_user', // changes
+                [
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'role' => $role,
+                    'department' => $department,
+                ] // details
             );
+
             $this->db->commit();
             return;
         } catch (Throwable $e) {
@@ -116,3 +142,4 @@ class RegisterUserService
         }
     }
 }
+
