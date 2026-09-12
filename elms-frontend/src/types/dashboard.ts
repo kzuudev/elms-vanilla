@@ -111,21 +111,20 @@ export type LeaveActivityRecord = {
 };
 
 export type AuditActor = {
-    id: number;
-    name: string; // first_name + last_name;
-    role: string;
+    actor_id: number;
+    actor_name: string; // first_name + last_name;
+    actor_role: string;
 }
 
 export type AuditOwner = {
-    id: number;
-    name: string; // first_name + last_name;
-    role: string | null;
+    owner_name: string; // first_name + last_name;
+    owner_role: string | null;
 }
 
 export type AuditSubject = {
-    type: "leave_request" | "user" | "manager" | "admin";
-    id: number;
-    name: string; // first_name + last_name;
+    subject_type: "leave_request" | "user" | "manager" | "admin";
+    subject_id: number;
+    subject_name: string; // first_name + last_name;
 }
 
 export type AuditChange = {
@@ -134,13 +133,12 @@ export type AuditChange = {
     to: string | null;
 }
 
-export type AuditLogRecord = {
+export type AuditLogRecord = AuditActor & AuditOwner & AuditSubject & {
     id: number;
-    actor: AuditActor;
+    user_id: number;
     action: string;
-    subject: AuditSubject; // what was acted on
-    occured_at: string;
-    owner: AuditOwner; // owner of the subject
+    occurred_at?: string;
+    occured_at?: string;
     changes: AuditChange[] | null;
     details: {
         leave_type?: string;

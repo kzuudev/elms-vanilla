@@ -12,9 +12,9 @@ export default function buildActivityNarrative(row: LeaveActivityRecord): string
 
 export function buildAuditLogNarrative(row: AuditLogRecord) {
 
-    const {actor, action, subject, occured_at, owner, changes, details} = row;
+    const {actor_name, actor_role, action, subject_name, occurred_at, owner_name, changes, details} = row;
 
-    const specificActor = `${actor.name} (${actor.role})`;
+    const specificActor = `${actor_name} (${actor_role})`;
 
 
 }
