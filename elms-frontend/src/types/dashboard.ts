@@ -109,3 +109,46 @@ export type LeaveActivityRecord = {
     status: boolean;
     created_at: string;
 };
+
+export type AuditActor = {
+    id: number;
+    name: string; // first_name + last_name;
+    role: string;
+}
+
+export type AuditOwner = {
+    id: number;
+    name: string; // first_name + last_name;
+    role: string | null;
+}
+
+export type AuditSubject = {
+    type: "leave_request" | "user" | "manager" | "admin";
+    id: number;
+    name: string; // first_name + last_name;
+}
+
+export type AuditChange = {
+    field: string;
+    from: string | null;
+    to: string | null;
+}
+
+export type AuditLogRecord = {
+    id: number;
+    actor: AuditActor;
+    action: string;
+    subject: AuditSubject; // what was acted on
+    occured_at: string;
+    owner: AuditOwner; // owner of the subject
+    changes: AuditChange[] | null;
+    details: {
+        leave_type?: string;
+        start_date?: string;
+        end_date?: string;
+        total_days?: number;
+        rejection_reason?: string;
+        department?: string;
+        role?: string;
+      } | null;
+}

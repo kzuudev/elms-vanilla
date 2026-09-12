@@ -19,7 +19,6 @@ export default function TeamInsights() {
 
     const managementAnalytics = role.includes('manager') ? managerAnalytics : role.includes('admin') ? adminAnalytics : null;
 
-
     const teamSize = managementAnalytics?.teamAvailability?.length || 0;
 
     const activeWorkingCountFor = managementAnalytics?.teamAvailability || [];
@@ -60,7 +59,7 @@ export default function TeamInsights() {
     const activeWorkingPercentage = teamSize > 0 ? (activeWorkingCount / teamSize) * 100 : 0;
 
 
-    const backlogCount = managementAnalytics?.approvalBacklogs?.length || 0;
+    const backlogCount = Number(managementAnalytics?.approvalBacklogs?.[0]?.pending_count ?? 0);
 
 
 

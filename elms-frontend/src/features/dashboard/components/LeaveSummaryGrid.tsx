@@ -25,11 +25,11 @@ export default function LeaveSummaryGrid() {
         : isAdmin ? adminDashboardAnalytics?.remainingBalance?.[0]?.grand_total ?? 0 : leaveSummary?.totalRemainingBalance?.[0]?.grand_total ?? 0;
 
 
-    const pendingRequest = isManager ? managerDashboardAnalytics?.pendingRequest?.[0]?.total_days ?? 0
-        : isAdmin ? adminDashboardAnalytics?.pendingRequest?.[0]?.total_days ?? 0 : leaveSummary?.totalPendingRequest?.[0]?.total_days ?? 0;
+    const pendingRequest = isManager ? managerDashboardAnalytics?.pendingApprovalMetrics?.[0]?.total_days ?? 0
+        : isAdmin ? adminDashboardAnalytics?.pendingApprovalMetrics?.[0]?.total_days ?? 0 : leaveSummary?.totalPendingRequest?.[0]?.total_days ?? 0;
 
-    const pendingQueue = isManager ? managerDashboardAnalytics?.pendingRequest?.[0]?.queued_leave_count ?? 0
-        : isAdmin ? adminDashboardAnalytics?.pendingRequest?.[0]?.queued_leave_count ?? 0 : leaveSummary?.totalPendingRequest?.[0]?.queued_leave_count ?? 0;
+    const pendingQueue = isManager ? managerDashboardAnalytics?.pendingApprovalMetrics?.[0]?.queued_leave_count ?? 0
+        : isAdmin ? adminDashboardAnalytics?.pendingApprovalMetrics?.[0]?.queued_leave_count ?? 0 : leaveSummary?.totalPendingRequest?.[0]?.queued_leave_count ?? 0;
 
     const usedDays = isManager ? managerDashboardAnalytics?.usedDays?.[0]?.total_used_days ?? 0
         : isAdmin ? adminDashboardAnalytics?.usedDays?.[0]?.total_used_days ?? 0 : leaveSummary?.totalUsedDays?.[0]?.total_used_days ?? 0;

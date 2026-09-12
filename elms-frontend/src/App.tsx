@@ -29,6 +29,7 @@ import DepartmentDashboard from '@/features/department/DepartmentDashboard.tsx';
 import VerifyEmail from "@/pages/auth/verify-email.tsx";
 import SuperAdminLeavesDashboard from '@/pages/super-admin/SuperAdminLeavesDashboard.tsx';
 import SuperAdminLeaveTypeDashboard from '@/pages/super-admin/SuperAdminLeaveTypeDashboard.tsx';
+import AuditReportDashboard from '@/pages/super-admin/AuditReportDashboard.tsx';
 
 
 
@@ -227,6 +228,15 @@ function App() {
                                 element={
                                     <ProtectedRoute allowedRoles={['super-admin']}>
                                         <DepartmentDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+                            <Route
+                                path="/super-admin/audit-reports"
+                                element={
+                                    <ProtectedRoute allowedRoles={['super-admin']}>
+                                        <AuditReportDashboard />
                                     </ProtectedRoute>
                                 }
                             />

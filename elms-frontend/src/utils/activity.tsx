@@ -1,4 +1,4 @@
-import type {LeaveActivityRecord} from "@/types/dashboard.ts";
+import type {LeaveActivityRecord, AuditLogRecord} from "@/types/dashboard.ts";
 
 
 export default function buildActivityNarrative(row: LeaveActivityRecord): string {
@@ -10,3 +10,11 @@ export default function buildActivityNarrative(row: LeaveActivityRecord): string
     return "";
 }
 
+export function buildAuditLogNarrative(row: AuditLogRecord) {
+
+    const {actor, action, subject, occured_at, owner, changes, details} = row;
+
+    const specificActor = `${actor.name} (${actor.role})`;
+
+
+}

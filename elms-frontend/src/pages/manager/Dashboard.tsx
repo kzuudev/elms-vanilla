@@ -24,7 +24,8 @@ import type {
     MonthlyConsumption,
     TeamAvailability,
     TotalUsers,
-    LeaveActivityRecord
+    LeaveActivityRecord,
+    ApprovalBacklogs,
 } from "@/types/dashboard.ts";
 
 
@@ -36,13 +37,14 @@ export default function ManagerDashboard() {
     const [error, setError] = useState<string | null>(null);
 
     const [remainingBalance, setRemainingBalance] = useState<TotalRemainingBalance[]>([]);
-    const [pendingRequest, setPendingRequest] = useState<TotalPendingRequest[]>([]);
+    const [pendingApprovalMetrics, setPendingApprovalMetrics] = useState<TotalPendingRequest[]>([]);
     const [usedDays, setUsedDays] = useState<TotalUsedDays[]>([]);
     const [overlap, setOverlap] = useState<LeaveOverlap[]>([]);
     const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<MonthlyConsumption[]>([]);
     const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
     const [totalUsers, setTotalUsers] = useState<TotalUsers[]>([]);
     const [recentActivity, setRecentActivity] = useState<LeaveActivityRecord[]>([]);
+    const [approvalBacklogs, setApprovalBacklogs] = useState<ApprovalBacklogs[]>([]);
 
 
     const fetchManagerDashboard = async () => {
@@ -55,13 +57,14 @@ export default function ManagerDashboard() {
                 }
             });
             setRemainingBalance(response.data.data.remaining_balance);
-            setPendingRequest(response.data.data.pending_request);
+            setPendingApprovalMetrics(response.data.data.pending_request);
             setUsedDays(response.data.data.used_days);
             setOverlap(response.data.data.leave_overlap);
             setMonthlyLeaveConsumption(response.data.data.monthly_leave_consumption);
             setTeamAvailability(response.data.data.team_availability);
             setTotalUsers(response.data.data.total_users);
             setRecentActivity(response.data.data.recent_activity);
+            setApprovalBacklogs(response.data.data.approval_backlogs);
         }catch (e: any) {
             setError(e.response?.data?.message || "An error occurred while fetching manager dashboard");
         }
@@ -76,7 +79,7 @@ export default function ManagerDashboard() {
    return (
       <>
           <AppSidebar>
-              <ManagerAnalyticsContext.Provider value={{remainingBalance, pendingRequest, usedDays, overlap, teamAvailability, recentActivity, monthlyLeaveConsumption, totalUsers}}>
+              <ManagerAnalyticsContext.Provider value={{remainingBalance, pendingApprovalMetrics, usedDays, overlap, teamAvailability, recentActivity, monthlyLeaveConsumption, totalUsers, approvalBacklogs}}>
                   <div className="flex flex-col gap-4">
                       <div  className="w-full flex justify-between">
                           <div className="">

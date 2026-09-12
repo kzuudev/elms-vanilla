@@ -10,6 +10,7 @@ import { Controller, useForm } from "react-hook-form";
 import { roleOptions } from "@/config/role-options";
 
 import { AuthContext } from "@/features/context/auth/AuthContext";
+import type { DepartmentOptions } from "@/types/department";
 
 import {
   Field,
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
+
 // rules for registration form
 const schema = z.object({
   first_name: z.string().min(1, { message: "First Name is required" }),
@@ -36,6 +38,7 @@ const schema = z.object({
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().min(1, { message: "Phone number is required" }),
   role: z.string().min(1, { message: "Role is required" }),
+  department: z.string().min(1, { message: "Department is required" }),
   salary: z.string().min(1, { message: "Salary is required" }),
   assigned_to: z.string().nullable(),
 });
@@ -44,10 +47,12 @@ type AdminRegisterFormData = z.infer<typeof schema>;
 
 export default function AdminRegisterForm({
   managers,
+  departments,
   onSubmit,
   onCancel,
 }: {
   managers: { value: string; label: string }[];
+  departments: DepartmentOptions[];
   onSubmit: (data: AdminRegisterFormData) => void;
   onCancel: () => void;
 }) {
@@ -176,7 +181,7 @@ export default function AdminRegisterForm({
             />
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             <Controller
               name="role"
               control={form.control}
@@ -200,6 +205,38 @@ export default function AdminRegisterForm({
                       ))}
                     </SelectContent>
                   </Select>
+                  {fieldState.error && (
+                    <FieldError>{fieldState.error.message}</FieldError>
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="department"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="department" className="m-0">
+                    Department
+                  </FieldLabel>
+                  <Select
+                    name="department"
+                    value={field.value ?? undefined}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments?.map((department) => (
+                        <SelectItem key={department.id} value={department.name}>
+                          {department.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
                   {fieldState.error && (
                     <FieldError>{fieldState.error.message}</FieldError>
                   )}
@@ -250,9 +287,9 @@ export default function AdminRegisterForm({
                       disabled
                       value={user?.id != null ? String(user.id) : undefined}
                     >
-                     <SelectTrigger disabled>
+                      <SelectTrigger disabled>
                         <SelectValue />
-                     </SelectTrigger>
+                      </SelectTrigger>
                       <SelectContent>
                         {user?.id != null && (
                           <SelectItem value={String(user.id)}>

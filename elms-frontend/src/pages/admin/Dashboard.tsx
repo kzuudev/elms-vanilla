@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, getApiErrorMessage } from "@/lib/api.ts";
 
-
 import { AdminAnalyticsContext } from "@/features/context/analytics/AdminAnalyticsContext.tsx";
 
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
@@ -23,9 +22,8 @@ import type {
   TotalRemainingBalance,
   TotalUsedDays,
   TotalUsers,
+  ApprovalBacklogs,
 } from "@/types/dashboard.ts";
-
-
 
 import Search from "@/components/ui/search.tsx";
 
@@ -35,9 +33,9 @@ export default function AdminDashboard() {
   const [remainingBalance, setRemainingBalance] = useState<
     TotalRemainingBalance[]
   >([]);
-  const [pendingRequest, setPendingRequest] = useState<TotalPendingRequest[]>(
-    [],
-  );
+  const [pendingApprovalMetrics, setPendingApprovalMetrics] = useState<
+    TotalPendingRequest[]
+  >([]);
   const [usedDays, setUsedDays] = useState<TotalUsedDays[]>([]);
   const [overlap, setOverlap] = useState<LeaveOverlap[]>([]);
   const [monthlyLeaveConsumption, setMonthlyLeaveConsumption] = useState<
@@ -50,7 +48,9 @@ export default function AdminDashboard() {
   const [recentActivity, setRecentActivity] = useState<LeaveActivityRecord[]>(
     [],
   );
-
+  const [approvalBacklogs, setApprovalBacklogs] = useState<ApprovalBacklogs[]>(
+    [],
+  );
   const fetchAdminDashboard = async () => {
     try {
       const holder = localStorage.getItem("token");
@@ -60,20 +60,21 @@ export default function AdminDashboard() {
         },
       });
       setRemainingBalance(response.data.data.remaining_balance);
-      setPendingRequest(response.data.data.pending_request);
+      setPendingApprovalMetrics(response.data.data.pending_request);
       setUsedDays(response.data.data.used_days);
       setOverlap(response.data.data.leave_overlap);
       setMonthlyLeaveConsumption(response.data.data.monthly_leave_consumption);
       setTeamAvailability(response.data.data.team_availability);
       setTotalUsers(response.data.data.total_users);
       setRecentActivity(response.data.data.recent_activity);
+      setApprovalBacklogs(response.data.data.approval_backlogs);
     } catch (e: unknown) {
-        const message = getApiErrorMessage(e, "Failed to fetch admin dashboard");
-        if(!message) {
-            // If the error is unknown, return early
-            return;
-        }
-        setError(message);
+      const message = getApiErrorMessage(e, "Failed to fetch admin dashboard");
+      if (!message) {
+        // If the error is unknown, return early
+        return;
+      }
+      setError(message);
     }
   };
 
@@ -87,13 +88,14 @@ export default function AdminDashboard() {
         <AdminAnalyticsContext.Provider
           value={{
             remainingBalance,
-            pendingRequest,
+            pendingApprovalMetrics,
             usedDays,
             overlap,
             teamAvailability,
             recentActivity,
             monthlyLeaveConsumption,
             totalUsers,
+            approvalBacklogs,
           }}
         >
           <div className="flex flex-col gap-4">
