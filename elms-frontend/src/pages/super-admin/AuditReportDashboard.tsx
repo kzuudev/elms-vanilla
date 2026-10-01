@@ -10,13 +10,28 @@ import AuditLogFilterBar from "@/features/audit-report/AuditLogFilterBar";
 import { buildQueryString } from "@/utils/query-string.ts";
 
 import type { AuditLogRecord } from "@/types/dashboard";
+import AuditReportModal from "@/features/audit-report/AuditReportModal";
+import { type AuditModalProps } from "@/types/audit-modal";
+
 
 export default function AuditReportDashboard() {
 
   const [error, setError] = useState<string | null>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLogRecord[]>([]);
   const [auditLog, setAuditLog] = useState<AuditLogRecord | null>(null);
-  const [isViewingAuditLog, setIsViewingAuditLog] = useState(false);
+  const [openAuditModal, setOpenAuditModal] = useState(false);
+  const [auditModalProps, setAuditModalProps] = useState<AuditModalProps>({
+    open: false,
+    setOpen: (open: boolean) => setOpenAuditModal(open),
+    header: "",
+    actor: "",
+    owner: "",
+    subject: "",
+    action: "",
+    occurred_at: "",
+    changes: "",
+    details: "",
+  });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [actionQuery, setActionQuery] = useState("");
@@ -78,7 +93,19 @@ export default function AuditReportDashboard() {
   const handleViewAuditLog = async (id: number) => {
     const auditLog = await fetchAuditLog(id);
     setAuditLog(auditLog);
-    setIsViewingAuditLog(true);
+    setOpenAuditModal(true)
+    setAuditModalProps({
+      open: true,
+      setOpen: (open: boolean) => setOpenAuditModal(open),
+      header: "Audit Report",
+      actor: auditLog?.actor_name ?? "",
+      owner: auditLog?.owner_name ?? "",
+      subject: auditLog?.subject_name ?? "",
+      action: auditLog?.action ?? "",
+      occurred_at: auditLog?.occurred_at ?? "",
+      changes: auditLog?.changes ?? "",
+      details: JSON.stringify(auditLog?.details ?? {}),
+    });
   };
 
   const filters = {
@@ -143,10 +170,14 @@ export default function AuditReportDashboard() {
 
         <div className="mt-8 px-4">
           {auditLogs?.length > 0 ? (
+           <>
             <AuditLogTable
               auditLogs={auditLogs}
               onViewAuditLog={handleViewAuditLog}
             />
+            <AuditReportModal auditModalProps={{...auditModalProps, open: openAuditModal, setOpen: setOpenAuditModal}} />
+           </>
+
           ) : (
             <div className="text-center text-gray-500">
               {searchQuery || actionQuery || subjectTypeQuery || startDateQuery || endDateQuery
