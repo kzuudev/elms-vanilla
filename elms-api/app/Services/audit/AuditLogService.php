@@ -91,12 +91,49 @@ class AuditLogService
 
         $this->validateUser();
 
-        $audit_logs = $this->db->query(
-            "SELECT * FROM audit_logs WHERE user_id = :user_id ORDER BY occurred_at DESC",
-            [
-                'user_id' => $this->current_user_id,
-            ]
-        )->all();
+        $search = $_GET['search'] ?? "";
+        $action = $_GET['action'] ?? "";
+        $subject_type = $_GET['subject_type'] ?? "";
+        $start_date = $_GET['start_date'] ?? "";
+        $end_date = $_GET['end_date'] ?? "";
+
+        $query = "
+            SELECT * FROM audit_logs
+            WHERE user_id = :user_id
+        ";
+
+        $params = [
+            'user_id' => $this->current_user_id,
+        ];
+
+        if (!empty($search)) {
+            $query .= " AND (actor_name LIKE :search OR subject_name LIKE :search OR owner_name LIKE :search)";
+            $params['search'] = "%$search%";
+        }
+
+        if (!empty($action) && $action !== 'all') {
+            $query .= " AND action = :action";
+            $params['action'] = $action;
+        }
+
+        if (!empty($subject_type) && $subject_type !== 'all') {
+            $query .= " AND subject_type = :subject_type";
+            $params['subject_type'] = $subject_type;
+        }
+
+        if (!empty($start_date)) {
+            $query .= " AND DATE(occurred_at) >= :start_date";
+            $params['start_date'] = $start_date;
+        }
+
+        if (!empty($end_date)) {
+            $query .= " AND DATE(occurred_at) <= :end_date";
+            $params['end_date'] = $end_date;
+        }
+
+        $query .= " ORDER BY occurred_at DESC";
+
+        $audit_logs = $this->db->query($query, $params)->all();
 
         return $audit_logs;
     }

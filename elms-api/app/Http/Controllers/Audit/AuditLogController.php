@@ -21,13 +21,13 @@ class AuditLogController {
 
     public function index() {
         $audit_logs = $this->audit_log_service->getAuditLogs();
-        return $this->db->response(200, true, 'Audit logs fetched successfully', $audit_logs);
+        return $this->db->response(200, true, 'Audit logs fetched successfully', ['audit_logs' => $audit_logs]);
     }
 
     public function show(int $id) {
 
         $audit_log = $this->audit_log_service->getAuditLog($id);
-        return $this->db->response(200, true, 'Audit log fetched successfully', $audit_log);
+        return $this->db->response(200, true, 'Audit log fetched successfully', ['audit_log' => $audit_log]);
     }
 
 

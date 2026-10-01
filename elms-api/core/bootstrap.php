@@ -84,5 +84,9 @@ $container->bind(AuditLogService::class, function() {
     return new AuditLogService();
 });
 
+$container->bind(\App\Services\dashboard\SuperAdminDashboardService::class, function() {
+    return new \App\Services\dashboard\SuperAdminDashboardService();
+});
+
 App::setContainer($container);
 

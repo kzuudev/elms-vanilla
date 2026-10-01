@@ -105,5 +105,7 @@ $router->get('/audit-logs', [AuditLogController::class, 'index'])->only('auth');
 $router->get('/audit-logs/{id}', [AuditLogController::class, 'show'])->only('auth');
 
 
+$router->get('/super-admin-dashboard', [\App\Http\Controllers\Dashboard\SuperAdminDashboardController::class, 'index'])->only('auth');
+
 // return the router with existing routes inside it
 return $router;
