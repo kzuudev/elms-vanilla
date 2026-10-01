@@ -1,12 +1,14 @@
 "use client";
 
+import { SuperAdminAnalyticsContext } from "@/features/context/analytics/SuperAdminAnalyticsContext";
+
 
 import { useContext } from "react";
 
 import { EmployeeAnalyticsContext } from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
 import {ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
-import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
+import {useAuthContext} from "@/features/context/auth/AuthContext.tsx";
 
 import { employeeColumns, managerColumns, adminColumns } from "@/config/activity-columns.tsx";
 
@@ -20,25 +22,28 @@ import type {UserRole} from "@/utils/roles";
 
 export default function RecentActivityTable() {
 
-    const {user} = useContext(AuthContext);
-    const role = user.role || "";
+    const {user} = useAuthContext();
+    const role = user?.role || "";
 
     const currentRole = normalizeRole(role);
 
     const employeeAnalytics = useContext(EmployeeAnalyticsContext);
     const managerAnalytics = useContext(ManagerAnalyticsContext);
     const adminAnalytics = useContext(AdminAnalyticsContext);
+    const superAdminAnalytics = useContext(SuperAdminAnalyticsContext);
 
     const columnsByRole: Record<UserRole, ColumnConfig<LeaveActivityRecord>[]> = {
         employee: employeeColumns,
         manager: managerColumns,
         admin: adminColumns,
+        "super-admin": [...adminColumns.slice(0, 2), { header: "Department", render: row => row.employee_department }, ...adminColumns.slice(2)],
     };
 
     const dataByRole: Record<UserRole, LeaveActivityRecord[] | undefined> = {
         employee: employeeAnalytics?.recentActivity ?? [],
         manager: managerAnalytics?.recentActivity ?? [],
         admin: adminAnalytics?.recentActivity ?? [],
+        "super-admin": superAdminAnalytics?.recentActivity ?? [],
     };
 
     const columns = columnsByRole[currentRole] ?? employeeColumns;

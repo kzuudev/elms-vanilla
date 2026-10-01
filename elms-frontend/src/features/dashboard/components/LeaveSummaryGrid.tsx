@@ -1,5 +1,7 @@
 "use client";
 
+import { SuperAdminAnalyticsContext } from "@/features/context/analytics/SuperAdminAnalyticsContext";
+
 import { useContext } from "react";
 import { EmployeeAnalyticsContext } from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
 import { ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
@@ -15,11 +17,18 @@ export default function LeaveSummaryGrid() {
 
     const role = user?.role ?? null;
     const isManager = role === 'manager';
-    const isAdmin = role === 'admin';
+    const isAdmin = role === 'admin' || role === 'super-admin';
 
     const leaveSummary = useContext(EmployeeAnalyticsContext);
     const managerDashboardAnalytics = useContext(ManagerAnalyticsContext);
-    const adminDashboardAnalytics = useContext(AdminAnalyticsContext);
+    const adminAnalytics = useContext(AdminAnalyticsContext);
+    const superAdminAnalytics = useContext(SuperAdminAnalyticsContext);
+    const adminDashboardAnalytics = role === "super-admin" ? superAdminAnalytics : adminAnalytics;
+    const nextLeave = superAdminAnalytics?.nextUpcomingLeave;
+    const upcomingDate = nextLeave ? new Date(`${nextLeave.start_date}T00:00:00`) : null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const daysUntilLeave = upcomingDate ? Math.round((upcomingDate.getTime() - today.getTime()) / 86400000) : 0;
 
     const remainingBalance = isManager ? managerDashboardAnalytics?.remainingBalance?.[0]?.grand_total ?? 0
         : isAdmin ? adminDashboardAnalytics?.remainingBalance?.[0]?.grand_total ?? 0 : leaveSummary?.totalRemainingBalance?.[0]?.grand_total ?? 0;
@@ -119,13 +128,13 @@ export default function LeaveSummaryGrid() {
 
                     <div className="mt-6 flex flex-col gap-3">
                         <div className="flex flex-col">
-                            <span className="text-3xl font-bold">Oct 15th</span>
-                            <span className="text-sm font-medium opacity-90">Vacation</span>
+                            <span className="text-3xl font-bold">{role === "super-admin" ? upcomingDate?.toLocaleDateString(undefined, { month: "short", day: "numeric" }) ?? "No upcoming leave" : "Oct 15th"}</span>
+                            <span className="text-sm font-medium opacity-90">{role === "super-admin" ? nextLeave?.leave_type ?? "No approved leave scheduled" : "Vacation"}</span>
                         </div>
 
                         {/* Small white pill badge */}
                         <div className="bg-white text-[#0a3977] text-xs font-bold px-3 py-1.5 rounded-full w-max shadow-sm mt-1">
-                            In 14 Days
+                            {role === "super-admin" ? nextLeave ? daysUntilLeave === 0 ? "Starts today" : `In ${daysUntilLeave} ${daysUntilLeave === 1 ? "day" : "days"}` : "Not scheduled" : "In 14 Days"}
                         </div>
                     </div>
                 </Card>

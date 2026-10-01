@@ -21,7 +21,7 @@ import LeaveRequestDashboard from "@/pages/employee/LeaveRequestDashboard.tsx";
 import EmployeesDashboard from "@/features/employees/components/EmployeesDashboard.tsx";
 import ManagerLeavesDashboard from "@/pages/manager/ManagerLeavesDashboard.tsx";
 import AdminLeavesDashboard from "@/pages/admin/AdminLeavesDashboard.tsx";
-import SuperAdminDashboard from '@/pages/super-admin/SuperAdminLeavesDashboard.tsx';
+import SuperAdminDashboard from '@/pages/super-admin/Dashboard.tsx';
 
 import DepartmentDashboard from '@/features/department/DepartmentDashboard.tsx';
 

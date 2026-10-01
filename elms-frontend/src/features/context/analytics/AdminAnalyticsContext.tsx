@@ -2,7 +2,7 @@ import { createContext } from "react";
 
 import type { TotalRemainingBalance, TotalPendingRequest, TotalUsedDays, TeamAvailability, MonthlyConsumption, LeaveOverlap, TotalUsers, LeaveActivityRecord, ApprovalBacklogs} from "@/types/dashboard.ts";
 
-type AdminAnalyticsContextType = {
+export type AdminAnalyticsContextType = {
     remainingBalance: TotalRemainingBalance[] | null;
     pendingApprovalMetrics: TotalPendingRequest[] | null;
     usedDays: TotalUsedDays[] | null;
