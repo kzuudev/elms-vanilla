@@ -13,12 +13,9 @@ import type { AuditLogRecord } from "@/types/dashboard";
 import AuditReportModal from "@/features/audit-report/AuditReportModal";
 import { type AuditModalProps } from "@/types/audit-modal";
 
-
 export default function AuditReportDashboard() {
-
   const [error, setError] = useState<string | null>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLogRecord[]>([]);
-  const [auditLog, setAuditLog] = useState<AuditLogRecord | null>(null);
   const [openAuditModal, setOpenAuditModal] = useState(false);
   const [auditModalProps, setAuditModalProps] = useState<AuditModalProps>({
     open: false,
@@ -92,8 +89,7 @@ export default function AuditReportDashboard() {
 
   const handleViewAuditLog = async (id: number) => {
     const auditLog = await fetchAuditLog(id);
-    setAuditLog(auditLog);
-    setOpenAuditModal(true)
+    setOpenAuditModal(true);
     setAuditModalProps({
       open: true,
       setOpen: (open: boolean) => setOpenAuditModal(open),
@@ -170,17 +166,26 @@ export default function AuditReportDashboard() {
 
         <div className="mt-8 px-4">
           {auditLogs?.length > 0 ? (
-           <>
-            <AuditLogTable
-              auditLogs={auditLogs}
-              onViewAuditLog={handleViewAuditLog}
-            />
-            <AuditReportModal auditModalProps={{...auditModalProps, open: openAuditModal, setOpen: setOpenAuditModal}} />
-           </>
-
+            <>
+              <AuditLogTable
+                auditLogs={auditLogs}
+                onViewAuditLog={handleViewAuditLog}
+              />
+              <AuditReportModal
+                auditModalProps={{
+                  ...auditModalProps,
+                  open: openAuditModal,
+                  setOpen: setOpenAuditModal,
+                }}
+              />
+            </>
           ) : (
             <div className="text-center text-gray-500">
-              {searchQuery || actionQuery || subjectTypeQuery || startDateQuery || endDateQuery
+              {searchQuery ||
+              actionQuery ||
+              subjectTypeQuery ||
+              startDateQuery ||
+              endDateQuery
                 ? "No audit logs found for the selected filters"
                 : "No audit logs found"}
             </div>

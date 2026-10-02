@@ -1,5 +1,7 @@
 
 export type AuditModalProps = {
+    open: boolean;
+    setOpen: (open: boolean) => void;
     header: string;
     actor: string;
     owner: string;
