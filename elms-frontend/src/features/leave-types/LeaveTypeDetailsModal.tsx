@@ -14,7 +14,6 @@ import {
 
 import { Pencil } from "lucide-react";
 
-
 interface LeaveTypeDetailsModalProps {
   isViewMode: boolean;
   setIsViewMode: (open: boolean) => void;
@@ -30,7 +29,6 @@ export default function LeaveTypeDetailsModal({
   setMode,
   leaveTypeDetails,
 }: LeaveTypeDetailsModalProps) {
-
   return (
     <>
       <Dialog open={isViewMode} onOpenChange={setIsViewMode}>
@@ -81,8 +79,6 @@ export default function LeaveTypeDetailsModal({
             </div>
           </div>
         </DialogContent>
-
-
       </Dialog>
     </>
   );
