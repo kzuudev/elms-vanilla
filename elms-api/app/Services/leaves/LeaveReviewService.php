@@ -11,18 +11,21 @@ use App\Exceptions\domain\NotFoundException;
 use App\Exceptions\domain\ForbiddenException;
 use App\Exceptions\domain\BadRequestException;
 use App\Contracts\LeaveReviewInterface;
+use App\Services\audit\AuditLogService;
 
 
 class LeaveReviewService implements LeaveReviewInterface {
 
     private Database $db;
     private Auth $auth;
+    private AuditLogService $audit_log_service;
     private NotificationService $notification_service;
 
     public function __construct() {
 
         $this->db = App::resolve(Database::class);
         $this->auth = App::resolve(Auth::class);
+        $this->audit_log_service = App::resolve(AuditLogService::class);
         $this->notification_service = App::resolve(NotificationService::class);
     }
 
@@ -115,11 +118,14 @@ class LeaveReviewService implements LeaveReviewInterface {
             $query = "
                 SELECT 
                     lr.*, 
-                    e.first_name as employee_name,
-                    e.first_name as reviewer_name 
+                    CONCAT(e.first_name, ' ', e.last_name) as employee_name,
+                    e.role as employee_role,
+                    lt.name as leave_type_name,
+                    CONCAT(m.first_name, ' ', m.last_name) as reviewer_name
                 FROM leave_requests lr 
                 LEFT JOIN users e ON lr.user_id = e.id
-                LEFT JOIN users m ON lr.assigned_to = m.id 
+                LEFT JOIN users m ON lr.assigned_to = m.id
+                LEFT JOIN leave_types lt ON lr.leave_type_id = lt.id
                 WHERE lr.id = :id AND lr.deleted_at IS NULL 
             ";
 
@@ -167,6 +173,8 @@ class LeaveReviewService implements LeaveReviewInterface {
                 throw new BadRequestException('Leave request already approved or rejected');
             }
 
+            $actor_name = $current_user['first_name'] . ' ' . $current_user['last_name'];
+
             try{
 
                 $this->db->beginTransaction();
@@ -180,19 +188,42 @@ class LeaveReviewService implements LeaveReviewInterface {
                     ]);
 
                     if(!$rejected) {
-                        throw new Exception('Failed to reject leave request');
-                        
+                        throw new BadRequestException('Failed to reject leave request');
                     }
 
                     
                     $this->notification_service->createNotification($leave_request['user_id'], 
                         'Leave Request Rejected', 
                         'leave_request_rejected', 
-                        'Your Leave Request has been rejected by ' . $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'] . ' with the reason: ' . $rejection_reason, 
-                        'false',
+                        'Your Leave Request has been rejected by ' . $actor_name . ' with the reason: ' . $rejection_reason, 
+                        false,
                         [
                             'leave_request_id' => $id,
-                            'rejected_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
+                            'rejected_by' => $actor_name,
+                        ]
+                    );
+
+                    $this->audit_log_service->createAuditLog(
+                        $current_user_id,
+                        $current_user_id,
+                        $role,
+                        $actor_name,
+                        date('Y-m-d H:i:s'),
+                        $id,
+                        'reject_leave_request',
+                        'leave_request',
+                        $authorized_for_leave_request['leave_type_name'] . ' leave request',
+                        $authorized_for_leave_request['employee_name'],
+                        $authorized_for_leave_request['employee_role'],
+                        json_encode([
+                            'status' => ['old' => $leave_request['status'], 'new' => $status],
+                        ]),
+                        [
+                            'days_requested' => $leave_request['total_days'],
+                            'reason' => $leave_request['reason'],
+                            'status' => $status,
+                            'rejection_reason' => $rejection_reason,
+                            'assigned_to' => $leave_request['assigned_to'] ?? null,
                         ]
                     );
 
@@ -225,14 +256,42 @@ class LeaveReviewService implements LeaveReviewInterface {
                         'rejection_reason' => $rejection_reason
                     ]);
 
+                    if(!$update_leave_balance || !$approved) {
+                        throw new BadRequestException('Failed to approve leave request');
+                    }
+
                     $this->notification_service->createNotification($leave_request['user_id'], 
-                        'Leave Request Approved by ' . $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'], 
+                        'Leave Request Approved by ' . $actor_name, 
                         'leave_request_approved', 
-                        'Your Leave Request has been approved by ' . $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'], 
-                        'true',
+                        'Your Leave Request has been approved by ' . $actor_name, 
+                        true,
                         [
                             'leave_request_id' => $id,
-                            'approved_by' => $authorized_for_leave_request['first_name'] . ' ' . $authorized_for_leave_request['last_name'],
+                            'approved_by' => $actor_name,
+                        ]
+                    );
+
+                    $this->audit_log_service->createAuditLog(
+                        $current_user_id,
+                        $current_user_id,
+                        $role,
+                        $actor_name,
+                        date('Y-m-d H:i:s'),
+                        $id,
+                        'approve_leave_request',
+                        'leave_request',
+                        $authorized_for_leave_request['leave_type_name'] . ' leave request',
+                        $authorized_for_leave_request['employee_name'],
+                        $authorized_for_leave_request['employee_role'],
+                        json_encode([
+                            'status' => ['old' => $leave_request['status'], 'new' => $status],
+                        ]),
+                        [
+                            'days_requested' => $leave_request['total_days'],
+                            'reason' => $leave_request['reason'],
+                            'status' => $status,
+                            'rejection_reason' => $rejection_reason,
+                            'assigned_to' => $leave_request['assigned_to'] ?? null,
                         ]
                     );
 

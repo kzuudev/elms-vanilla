@@ -3,6 +3,7 @@
 use App\Services\dashboard\AdminDashboardService;
 use App\Services\dashboard\EmployeeDashboardService;
 use App\Services\dashboard\ManagerDashboardService;
+use App\Services\dashboard\SuperAdminDashboardService;
 use App\Services\employees\EmployeesService;
 use App\Services\employees\EmployeeSummaryService;
 use App\Services\notifications\NotificationService;
@@ -12,7 +13,8 @@ use App\Services\leaves\LeaveTypeService;
 use App\Services\department\DepartmentSummaryService;
 use App\Services\department\DepartmentEmployeesService;
 use App\Services\leaves\LeaveTypeSummaryService;
-use App\Services\audit\AuditLogService; 
+use App\Services\audit\AuditLogService;
+
 use Core\App;
 use Core\Container;
 use Core\Database;
@@ -46,6 +48,10 @@ $container->bind(ManagerDashboardService::class, function() {
 
 $container->bind(AdminDashboardService::class, function() {
     return new AdminDashboardService();
+});
+
+$container->bind(SuperAdminDashboardService::class, function() {
+    return new SuperAdminDashboardService();
 });
 
 $container->bind(EmployeeSummaryService::class, function() {
@@ -84,9 +90,7 @@ $container->bind(AuditLogService::class, function() {
     return new AuditLogService();
 });
 
-$container->bind(\App\Services\dashboard\SuperAdminDashboardService::class, function() {
-    return new \App\Services\dashboard\SuperAdminDashboardService();
-});
+
 
 App::setContainer($container);
 

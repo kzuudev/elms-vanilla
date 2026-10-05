@@ -81,7 +81,7 @@ class RegisterUserService
 
             $this->db->query($query, $params);
 
-
+            // get the user id of the newly created user (latest inserted user)
             $user_id = (int) $this->db->lastInsertId();
 
             // create a verification token for email verification of the registered user
@@ -102,14 +102,29 @@ class RegisterUserService
 
             // Notify the super-admin this admin is assigned to
             $assigned_to = $this->current_user['assigned_to'] ?? null;
-            if ($assigned_to) {
-                $this->notification_service->createNotification(
-                    (int) $assigned_to,
-                    'New Employee Added',
-                    'employee_added',
-                    'A new employee has been added to the system.'
-                );
+
+            if (!$assigned_to) {
+                throw new BadRequestException('No supervisor has been assigned to you.');
             }
+
+            $this->notification_service->createNotification(
+                (int) $assigned_to,
+                'New Employee Added',
+                'employee_added',
+                'A new employee has been added to the system.'
+            );
+
+            // Notify the new user that their account has been created and their assigned supervisor (manager)
+            $this->notification_service->createNotification(
+                $user_id,
+                'Your Account Has Been Created',
+                'account_created',
+                'Your account has been created successfully'
+            );
+
+
+
+
 
             $this->audit_log_service->createAuditLog(
                 $assigned_to,

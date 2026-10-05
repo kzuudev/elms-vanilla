@@ -88,7 +88,7 @@ class NotificationService
             throw new NotFoundException('Notification not found');
         }
 
-        if ($notification['read_at'] == date('Y-m-d H:i:s')) {
+        if ($notification['read_at'] != null) {
             throw new BadRequestException('Notification already marked as read');
         }
 
