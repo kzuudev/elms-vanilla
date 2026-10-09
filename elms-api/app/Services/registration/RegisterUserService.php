@@ -122,10 +122,6 @@ class RegisterUserService
                 'Your account has been created successfully'
             );
 
-
-
-
-
             $this->audit_log_service->createAuditLog(
                 $assigned_to,
                 $this->current_user['id'],
@@ -157,4 +153,3 @@ class RegisterUserService
         }
     }
 }
-

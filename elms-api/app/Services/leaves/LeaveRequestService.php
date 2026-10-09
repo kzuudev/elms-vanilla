@@ -252,11 +252,13 @@ class LeaveRequestService implements LeaveRequestInterface
         ])->find();
 
         if (!$leave_request) {
-            throw new NotFoundException('Leave request not found.');
+            throw new NotFoundException('Leave request details not found.');
         }
 
+
+
         if ($leave_request['user_id'] !== $user_id && $leave_request['assigned_to'] !== $user_id && $role !== 'admin') {
-            throw new ForbiddenException('You are not authorized to fetch this leave request.');
+            throw new ForbiddenException('You are not authorized to fetch this leave request details.');
         }
 
         return $leave_request;

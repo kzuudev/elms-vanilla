@@ -42,7 +42,7 @@ class AuditLogService
      * @param int $actor_id
      * @param string $actor_role
      * @param string $actor_name
-     * @param string $occured_at
+     * @param string $occurred_at
      * @param string $occurred_at
      * @param string $action
      * @param string $subject_type
@@ -105,7 +105,7 @@ class AuditLogService
         $start_date = $_GET['start_date'] ?? "";
         $end_date = $_GET['end_date']   ?? "";
 
-        // 
+        // (possible: might change the logic for capturing all audit logs via where subject type is not null)
         $query = "
             SELECT al.* FROM audit_logs al
             LEFT JOIN leave_requests lr ON al.subject_type = 'leave_request' AND lr.id = al.subject_id
