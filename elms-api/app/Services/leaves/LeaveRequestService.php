@@ -373,15 +373,16 @@ class LeaveRequestService implements LeaveRequestInterface
 
             $this->db->beginTransaction();
 
-            $this->db->query("UPDATE leave_requests SET start_date = :start_date, end_date = :end_date, reason = :reason, leave_type_id = :leave_type_id WHERE id = :id", [
+            $this->db->query("UPDATE leave_requests SET start_date = :start_date, end_date = :end_date, reason = :reason, leave_type_id = :leave_type_id, total_days = :total_days WHERE id = :id", [
                 'id' => $id,
                 'start_date' => $start_date,
                 'end_date' => $end_date,
                 'reason' => $reason,
-                'leave_type_id' => $new_leave_type['id']
+                'leave_type_id' => $existing_leave_type['id'],    
+                'total_days' => $days_requested,
             ]);
 
-            $leave_request_id = (int) $this->db->lastInsertId();
+            $leave_request_id = (int) $existing_leave_request['id'];
 
             $this->notification_service->createNotification(
                 $existing_leave_request['assigned_to'] ?? null,
@@ -393,6 +394,8 @@ class LeaveRequestService implements LeaveRequestInterface
                     'leave_request_id' => $id
                 ]
             );
+
+
 
             $actor_name = $this->db->query("SELECT CONCAT(first_name, ' ', last_name) AS name FROM users WHERE id = :id", [
                 'id' => $user_id
