@@ -101,7 +101,7 @@ class NotificationService
                 'user_id' => $this->current_user_id,
             ]);
             $this->db->commit();
-            return true;
+            return $notification;
         } catch (Throwable $e) {
             $this->db->rollBack();
             throw $e;

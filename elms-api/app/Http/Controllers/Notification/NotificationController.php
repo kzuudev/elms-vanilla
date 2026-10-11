@@ -34,7 +34,7 @@ class NotificationController {
             return $this->db->response(400, false, 'Failed to mark as read');
         }
 
-        return $this->db->response(200, true, 'Notification marked as read');
+        return $this->db->response(200, true, 'Notification marked as read', ['notification' => $mark_as_read]);
     }
 
 
