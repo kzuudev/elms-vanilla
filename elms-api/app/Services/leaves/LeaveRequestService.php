@@ -172,6 +172,9 @@ class LeaveRequestService implements LeaveRequestInterface
 
             // get the leave request id of the newly created leave request
             $leave_request_id = (int) $this->db->lastInsertId();
+
+            // throw new \RuntimeException('Testing transaction rollback');
+
             $this->db->commit();
 
             return $leave_request_id;

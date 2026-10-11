@@ -56,7 +56,7 @@ class LeaveRequestController
             $this->db->response(201, true, 'Leave request submitted successfully.', ['leave_request_id' => $leave_request]);
             return;
         }catch(DomainException $e) {
-            $this->db->response($e->getStatus(), false, $e->getMessage(), ['errors' => $e->getMessage()]);
+            $this->db->response($e->getStatus(), false, $e->getMessage(), 'e');
             return;
         }catch(Throwable $e) {
             $this->db->response(500, false, 'Something went wrong. Please try again later,');

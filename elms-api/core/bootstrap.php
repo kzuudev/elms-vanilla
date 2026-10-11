@@ -23,11 +23,27 @@ use App\Http\Middleware\Auth;
 
 $container = new Container();
 
-$container->bind('Core\Database', function() {
 
-    $config = require 'config.php';
+$container->bind(Database::class, function() {
 
-    return new Database($config['database'], $config['user'], $config['pass']);
+    // $config = require 'config.php';
+
+    // return new Database($config['database'], $config['user'], $config['pass']);
+
+    static $db = null;
+
+    if ($db === null) {
+        $config = require 'config.php';
+
+        $db = new Database(
+            $config['database'],
+            $config['user'],
+            $config['pass']
+        );
+    }
+
+    return $db;
+    
 });
 
 $container->bind(Auth::class, function() {

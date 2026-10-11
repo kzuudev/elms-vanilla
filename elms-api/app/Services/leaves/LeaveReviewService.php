@@ -242,12 +242,14 @@ class LeaveReviewService implements LeaveReviewInterface {
                         throw new BadRequestException('Remaining balance for this leave type is insufficient');
                     }
                 
-                    // update the leave balance
-                    $update_leave_balance = $this->db->query("UPDATE leave_balance SET remaining_balance = :remaining_balance WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
+                    // update the leave balance and used days
+                    $update_leave_balance = $this->db->query("UPDATE leave_balance SET remaining_balance = :remaining_balance, used_days = :used_days WHERE user_id = :employee_id AND leave_type_id = :leave_type_id", [
                         'employee_id' => $leave_request['user_id'],
                         'remaining_balance' => $remaining_balance['remaining_balance'] - $leave_request['total_days'],
                         'leave_type_id' => $leave_request['leave_type_id'],
+                        'used_days' => $leave_request['total_days'] + $remaining_balance['used_days'],
                     ]);
+
 
                     // approved the leave request status
                     $approved = $this->db->query("UPDATE leave_requests SET status = :status, rejection_reason = :rejection_reason WHERE id = :id", [
