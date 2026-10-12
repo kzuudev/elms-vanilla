@@ -30,7 +30,7 @@ class Auth {
 
         // Find the user
         $user = $db->query("
-            SELECT u.id, u.first_name, u.email, u.role, u.department, token
+            SELECT u.id, u.first_name, u.last_name, u.email, u.role, u.department, u.assigned_to, token
             FROM personal_access_tokens pat
             LEFT JOIN users u ON pat.user_id = u.id
             WHERE pat.token = :token AND pat.expires_at > NOW()

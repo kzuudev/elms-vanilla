@@ -10,18 +10,25 @@ use App\Http\Middleware\Auth;
 use App\Services\Auth\EmailVerificationService;
 use App\Exceptions\domain\BadRequestException;
 use App\Exceptions\domain\UnauthorizedException;
+use App\Services\notifications\NotificationService;
+use App\Services\audit\AuditLogService;
+use DateTimeImmutable;
 
 class RegisterUserService
 {
 
     private Database $db;
     private ?array $current_user;
+    private NotificationService $notification_service;
+    private AuditLogService $audit_log_service;
 
     public function __construct()
     {
 
         $this->db = App::resolve(Database::class);
         $this->current_user = Auth::user();
+        $this->notification_service = App::resolve(NotificationService::class);
+        $this->audit_log_service = App::resolve(AuditLogService::class);
     }
 
     private function validateUser()
@@ -65,7 +72,7 @@ class RegisterUserService
                     ? null : (int) $assigned_to,
             ];
 
-            if($role === 'super-admin') {
+            if ($role === 'super-admin') {
                 $query .= " (first_name, last_name, email, phone, password, role, department, salary, assigned_to) VALUES (:first_name, :last_name, :email, :phone, :password, :role, :department, :salary, :assigned_to)";
                 $params['department'] = $department;
             } else {
@@ -74,7 +81,7 @@ class RegisterUserService
 
             $this->db->query($query, $params);
 
-
+            // get the user id of the newly created user (latest inserted user)
             $user_id = (int) $this->db->lastInsertId();
 
             // create a verification token for email verification of the registered user
@@ -91,9 +98,53 @@ class RegisterUserService
 
             $email_verification_service = new EmailVerificationService();
             $name = $first_name . ' ' . $last_name;
-
-
             $email_verification_service->sendVerificationEmail($name, $email, $verification_token);
+
+            // Notify the super-admin this admin is assigned to
+            $assigned_to = $this->current_user['assigned_to'] ?? null;
+
+            if (!$assigned_to) {
+                throw new BadRequestException('No supervisor has been assigned to you.');
+            }
+
+            $this->notification_service->createNotification(
+                (int) $assigned_to,
+                'New Employee Added',
+                'employee_added',
+                'A new employee has been added to the system.'
+            );
+
+            // Notify the new user that their account has been created and their assigned supervisor (manager)
+            $this->notification_service->createNotification(
+                $user_id,
+                'Your Account Has Been Created',
+                'account_created',
+                'Your account has been created successfully'
+            );
+
+            $this->audit_log_service->createAuditLog(
+                $assigned_to,
+                $this->current_user['id'],
+                $this->current_user['role'],
+                $this->current_user['first_name'] . ' ' . $this->current_user['last_name'],
+                (new DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
+                (int) $user_id,
+                'create_user',
+                'registered_user',
+                $name, // subject_name
+                $name, // owner_name
+                'null', // owner_role
+                'added_user', // changes
+                [
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'role' => $role,
+                    'department' => $department,
+                ] // details
+            );
+
             $this->db->commit();
             return;
         } catch (Throwable $e) {

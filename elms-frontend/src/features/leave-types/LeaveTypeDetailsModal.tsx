@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dialog.tsx";
 
 import { Pencil } from "lucide-react";
-import { useState } from "react";
 
 interface LeaveTypeDetailsModalProps {
   isViewMode: boolean;
@@ -30,8 +29,6 @@ export default function LeaveTypeDetailsModal({
   setMode,
   leaveTypeDetails,
 }: LeaveTypeDetailsModalProps) {
-  const [error, setError] = useState<string | null>(null);
-
   return (
     <>
       <Dialog open={isViewMode} onOpenChange={setIsViewMode}>
@@ -82,8 +79,6 @@ export default function LeaveTypeDetailsModal({
             </div>
           </div>
         </DialogContent>
-
-        {error && <p className="text-red-500">{error}</p>}
       </Dialog>
     </>
   );

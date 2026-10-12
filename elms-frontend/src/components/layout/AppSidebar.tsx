@@ -209,6 +209,15 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
                                       </SidebarMenuButton>
                                   </SidebarMenuItem>
                               </SidebarMenu>
+
+                              <SidebarMenuItem>
+                                        <SidebarMenuButton asChild className="hover:bg-gray-100">
+                                          <Link to="/admin/audit-reports" className="flex items-center gap-2">
+                                              <FileText />
+                                              <span>Audit Reports</span>
+                                          </Link>
+                                      </SidebarMenuButton>
+                                  </SidebarMenuItem>
                           </SidebarContent>
                         ) : role === "super-admin" ? (
                             <SidebarContent>

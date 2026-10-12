@@ -12,6 +12,12 @@ export type TotalPendingRequest = {
     queued_leave_count: number,
 }
 
+export type ApprovalBacklogs = {
+    pending_count: number,
+    average_days_in_queue: number,
+    oldest_request_days: number,
+}
+
 export type TotalUsedDays = {
     total_used_days: string,
     total_allocated_days: string,
@@ -103,3 +109,44 @@ export type LeaveActivityRecord = {
     status: boolean;
     created_at: string;
 };
+
+export type AuditActor = {
+    actor_id: number;
+    actor_name: string; // first_name + last_name;
+    actor_role: string;
+}
+
+export type AuditOwner = {
+    owner_name: string; // first_name + last_name;
+    owner_role: string | null;
+}
+
+export type AuditSubject = {
+    subject_type: "leave_request" | "user" | "manager" | "admin";
+    subject_id: number;
+    subject_name: string; // first_name + last_name;
+}
+
+export type AuditChange = {
+    field: string;
+    from: string | null;
+    to: string | null;
+}
+
+export type AuditLogRecord = AuditActor & AuditOwner & AuditSubject & {
+    id: number;
+    user_id: number;
+    action: string;
+    occurred_at?: string;
+    occured_at?: string;
+    changes: AuditChange[] | null;
+    details: {
+        leave_type?: string;
+        start_date?: string;
+        end_date?: string;
+        total_days?: number;
+        rejection_reason?: string;
+        department?: string;
+        role?: string;
+      } | null;
+}

@@ -41,18 +41,21 @@ class EmployeeSummaryService {
             LEFT JOIN leave_requests lr ON u.id = lr.user_id
                 AND lr.status = 'approved'
                 AND CURRENT_DATE() BETWEEN lr.start_date AND lr.end_date
-            WHERE department = :department AND u.id != :user_id
+            WHERE u.id != :user_id
         ";
 
         $params = [
-            'department' => $this->current_user_department,
             'user_id' => $this->current_user_id,
-
         ];
 
-        if ($this->current_user_role === "manager") {
+        if ($this->current_user_role === "super-admin") {
+            // organization wide summary
+        }else if ($this->current_user_role === "manager") {
             $query .= " AND u.assigned_to = :manager_id";
             $params['manager_id'] = $this->current_user_id;
+        }else if ($this->current_user_role === "admin") {
+            $query .= " AND u.department = :department";
+            $params['department'] = $this->current_user_department;
         }
 
         $summary = $this->db->query($query, $params)->find();

@@ -1,16 +1,23 @@
 <?php
 
 namespace App\Services\Notifications;
+
 use Core\App;
 use Core\Database;
 use App\Http\Middleware\Auth;
+use App\Exceptions\domain\UnauthorizedException;
+use App\Exceptions\domain\NotFoundException;
+use App\Exceptions\domain\BadRequestException;
+use Throwable;
 
-class NotificationService {
+class NotificationService
+{
 
-    private $db;
-    private $current_user_id;
+    private Database $db;
+    private int $current_user_id;
 
-    public function __construct() {
+    public function __construct()
+    {
 
         $this->db = App::resolve(Database::class);
         $this->current_user_id = Auth::authenticate()['id'];
@@ -21,9 +28,10 @@ class NotificationService {
      * Create a new notification
      * @return array
      */
-    public function createNotification(int $user_id, string $title, string $type, string $message, bool $is_read = false, ?array $data = null) {
+    public function createNotification(int $user_id, string $title, string $type, string $message, bool $is_read = false, ?array $data = null)
+    {
 
-        if($this->current_user_id) {
+        if ($this->current_user_id) {
 
             $new_notification = $this->db->query("INSERT INTO notifications (user_id, title, message, type, read_at, data) VALUES (:user_id, :title, :message, :type, :read_at, :data)", [
                 'user_id' => $user_id, // recipient id (who will receive the notification)
@@ -44,34 +52,32 @@ class NotificationService {
      * Get all notifications for a user
      * @return array
      */
-    public function getNotifications() {
+    public function getNotifications()
+    {
 
-        if($this->current_user_id) {
+        if ($this->current_user_id) {
 
             $notifications = $this->db->query("SELECT * FROM notifications WHERE user_id = :user_id ORDER BY created_at DESC", [
-            'user_id' => $this->current_user_id, // list of notifications for the current user
+                'user_id' => $this->current_user_id, // list of notifications for the current user
             ])->all();
 
-            $this->db->response(200, true, 'Notifications fetched successfully', ['notifications' => $notifications]);
             return $notifications ?? [];
         }
 
-        $this->db->response(401, false, 'Unathorized Access', ['user_id' => $this->current_user_id]);
-        return;
-
-       
+        return [];
     }
 
 
     /**
      * Update a notification (mark as read)
-     * @return void
+     * @return bool
      */
-    public function markAsRead(int $id): bool {
+    public function markAsRead(int $id): bool
+    {
 
-        if(!$this->current_user_id) {
-            $this->db->response(401, false, 'Unathorized Access', ['user_id' => $this->current_user_id]);
-            return false;
+        if (!$this->current_user_id) {
+
+            throw new UnauthorizedException('Unathorized Access');
         }
 
         $notification = $this->db->query("SELECT * FROM notifications WHERE id = :id AND user_id = :user_id", [
@@ -79,44 +85,54 @@ class NotificationService {
             'user_id' => $this->current_user_id,
         ])->find();
 
-        if(!$notification) {
-            $this->db->response(404, false, 'Notification not found', ['user_id' => $this->current_user_id]);
-            return false;
-        }
-        
-        if($notification['read_at'] == date('Y-m-d H:i:s')) {
-            $this->db->response(400, false, 'Notification already marked as read', ['user_id' => $this->current_user_id]);
-            return false;
+        if (!$notification) {
+            throw new NotFoundException('Notification not found');
         }
 
-        $this->db->query("UPDATE notifications SET read_at = :read_at WHERE id = :id AND user_id = :user_id", [
-            'read_at' => date('Y-m-d H:i:s'),
-            'id' => $id,
-            'user_id' => $this->current_user_id,
-        ])->find();
+        if ($notification['read_at'] != null) {
+            throw new BadRequestException('Notification already marked as read');
+        }
 
-        $this->db->response(200, true, 'Notification marked as read', ['user_id' => $this->current_user_id]);
-        return true;
+        try {
+            $this->db->beginTransaction();
+
+            $this->db->query("UPDATE notifications SET read_at = :read_at WHERE id = :id AND user_id = :user_id", [
+                'read_at' => date('Y-m-d H:i:s'),
+                'id' => $id,
+                'user_id' => $this->current_user_id,
+            ]);
+            $this->db->commit();
+            return true;
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     /**
      * Delete a notification
+     * @param int $id
      * @return void
+     * @throws UnauthorizedException
+     * @throws Throwable
      */
-    public function destroyNotification(int $id): void {
-        
-        if(!$this->current_user_id) {
-            $this->db->response(401, false, 'Unathorized Access', ['user_id' => $this->current_user_id]);
-            return;
+    public function destroyNotification(int $id): void
+    {
+
+        if (!$this->current_user_id) {
+            throw new UnauthorizedException('Unathorized Access');
         }
 
-        $this->db->query("DELETE FROM notifications WHERE id = :id AND user_id = :user_id", [
-            'id' => $id,
-            'user_id' => $this->current_user_id,
-        ])->find();
-
-        $this->db->response(200, true, 'Notification deleted successfully', ['user_id' => $this->current_user_id]);
-        return;
+        try {
+            $this->db->beginTransaction();
+            $this->db->query("DELETE FROM notifications WHERE id = :id AND user_id = :user_id", [
+                'id' => $id,
+                'user_id' => $this->current_user_id,
+            ]);
+            $this->db->commit();
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
-
 }

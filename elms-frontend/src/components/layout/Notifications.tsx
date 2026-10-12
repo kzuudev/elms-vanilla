@@ -26,13 +26,9 @@ export default function Notifications() {
     const fetchNotifications = async () => {
 
         setError(null);
-        const holder = localStorage.getItem("token");
+
         try {   
-            const response = await api.get("/notifications", {
-                headers: {
-                    Authorization: `Bearer ${holder}`
-                },
-            });
+            const response = await api.get("/notifications");
             setIsLoading(false);
             setNotifications(response.data.data.notifications);
             console.log(response.data.data.notifications);
@@ -45,17 +41,9 @@ export default function Notifications() {
     }
 
     const fetchMarkAsRead = async (id: number) => {
-        const holder = localStorage.getItem("token");
 
        try{
-            const response = await api.patch(
-                `/notifications/${id}`, {notifications: {read_at: new Date().toISOString()}},
-                {
-                    headers: {
-                        Authorization: `Bearer ${holder}`
-                    },
-                }
-            );
+            const response = await api.patch(`/notifications/${id}`, {notifications: {read_at: new Date().toISOString()}});
             return response.data.data.mark_as_read;
        }catch (error: any) {
             if(axios.isCancel(error)) {

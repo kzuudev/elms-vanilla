@@ -1,5 +1,7 @@
 "use client";
 
+import { SuperAdminAnalyticsContext } from "@/features/context/analytics/SuperAdminAnalyticsContext";
+
 import { useContext, useMemo } from "react";
 import type { ApexOptions } from "apexcharts";
 import Chart from "react-apexcharts";
@@ -12,16 +14,17 @@ import type { LeaveOverlap } from "@/types/dashboard.ts";
 import {Card} from "@/components/ui/card.tsx";
 
 
-export default function LeaveOverlapTimeline({role}: {role: "manager" | "admin"}) {
+export default function LeaveOverlapTimeline({role}: {role: "manager" | "admin" | "super-admin"}) {
 
 
     const managerAnalytics = useContext(ManagerAnalyticsContext);
     const adminAnalytics = useContext(AdminAnalyticsContext);
+    const superAdminAnalytics = useContext(SuperAdminAnalyticsContext);
 
     const isManager = role === 'manager';
     const isAdmin = role === 'admin';
 
-    const dashboardAnalytics = isManager ? managerAnalytics : isAdmin ? adminAnalytics : null;
+    const dashboardAnalytics = role === "super-admin" ? superAdminAnalytics : isManager ? managerAnalytics : isAdmin ? adminAnalytics : null;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const overlapData: LeaveOverlap[] = dashboardAnalytics?.overlap || [];

@@ -9,7 +9,9 @@ use Core\Database;
 use App\Exceptions\domain\NotFoundException;
 use App\Exceptions\domain\UnauthorizedException;
 use App\Exceptions\domain\BadRequestException;
+use App\Services\notifications\NotificationService;
 use Throwable;
+
 
 class EmployeesService
 {
@@ -94,8 +96,9 @@ class EmployeesService
             $params['role'] = $role;
         }
 
-        $employees = $this->db->query($query, $params)->all();
 
+
+        $employees = $this->db->query($query, $params)->all();
         return $employees;
     }
 

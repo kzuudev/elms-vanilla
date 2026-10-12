@@ -46,14 +46,24 @@ export default function LeaveRequestDashboard() {
   const [startDateQuery, setStartDateQuery] = useState<string>("");
   const [endDateQuery, setEndDateQuery] = useState<string>("");
 
-  const fetchLeaveRequests = async () => {
+  const fetchLeaveRequests = async ({
+    leave_type,
+    start_date,
+    end_date,
+    status,
+  }: {
+    leave_type: string;
+    start_date: string;
+    end_date: string;
+    status: string;
+  }) => {
     try {
       const holder = localStorage.getItem("token");
       const queryString = buildQueryString({
-        leaveType: leaveTypeQuery,
-        status: statusQuery,
-        startDate: startDateQuery,
-        endDate: endDateQuery,
+        leave_type,
+        start_date,
+        end_date,
+        status,
       });
       const response = await api.get(`/leave-request${queryString}`, {
         headers: {
@@ -65,6 +75,7 @@ export default function LeaveRequestDashboard() {
           ? response.data.data.leave_requests
           : (response.data.data.leave_requests?.data ?? []),
       );
+      setError(null);
     } catch (e) {
       if (axios.isCancel(e)) return;
       if (axios.isAxiosError(e)) {
@@ -100,9 +111,35 @@ export default function LeaveRequestDashboard() {
     }
   };
 
+  const filters = {
+    leave_type: leaveTypeQuery,
+    start_date: startDateQuery,
+    end_date: endDateQuery,
+    status: statusQuery,
+  };
+
+  const emptyFilters = {
+    leave_type: "",
+    start_date: "",
+    end_date: "",
+    status: "",
+  };
+
+  const onSearchSubmit = () => {
+    fetchLeaveRequests(filters);
+  };
+
+  const onClearFilters = () => {
+    setLeaveTypeQuery("");
+    setStartDateQuery("");
+    setEndDateQuery("");
+    setStatusQuery("");
+    fetchLeaveRequests(emptyFilters);
+  };
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchLeaveRequests();
+    fetchLeaveRequests(filters);
 
     if (isSuccessfullySubmitted) {
       setSuccessAlert(true);
@@ -132,9 +169,10 @@ export default function LeaveRequestDashboard() {
       <AppSidebar>
         <LeaveContext.Provider
           value={{
-            fetchLeaveRequests,
+            fetchLeaveRequests: () => fetchLeaveRequests(filters),
             fetchLeaveRequestDetails,
             leaveRequests,
+            personalLeaveRequests: [],
             leaveRequestDetails,
             reviewerLeaveRequests: [],
           }}
@@ -200,12 +238,21 @@ export default function LeaveRequestDashboard() {
                   setStartDateQuery={setStartDateQuery}
                   endDateQuery={endDateQuery}
                   setEndDateQuery={setEndDateQuery}
-                  onSearchSubmit={fetchLeaveRequests}
+                  onSearchSubmit={onSearchSubmit}
+                  onClearFilters={onClearFilters}
                 />
               </div>
 
               <div className="mt-4">
-                <EmployeeLeaveTable />
+                {leaveRequests.length > 0 ? (
+                  <EmployeeLeaveTable />
+                ) : (
+                  <div className="text-center text-gray-500">
+                    {leaveTypeQuery || statusQuery || startDateQuery || endDateQuery
+                      ? "No leave requests found for the selected filters"
+                      : "No leave requests found"}
+                  </div>
+                )}
               </div>
             </div>
           </div>

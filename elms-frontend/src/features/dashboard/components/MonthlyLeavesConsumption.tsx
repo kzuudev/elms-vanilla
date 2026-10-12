@@ -1,10 +1,12 @@
 "use client";
 
+import { SuperAdminAnalyticsContext } from "@/features/context/analytics/SuperAdminAnalyticsContext";
+
 import { useContext } from "react";
 import { EmployeeAnalyticsContext } from "@/features/context/analytics/EmployeeAnalyticsContext.tsx";
 import { ManagerAnalyticsContext} from "@/features/context/analytics/ManagerAnalyticsContext.tsx";
 import {AdminAnalyticsContext} from "@/features/context/analytics/AdminAnalyticsContext.tsx";
-import {AuthContext} from "@/features/context/auth/AuthContext.tsx";
+import {useAuthContext} from "@/features/context/auth/AuthContext.tsx";
 
 import { Card } from '@/components/ui/card.tsx';
 
@@ -13,16 +15,18 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 export default function MonthlyLeavesConsumption() {
 
-    const { user } = useContext(AuthContext);
+    const { user } = useAuthContext();
 
     const managerAnalytics = useContext(ManagerAnalyticsContext);
     const adminAnalytics = useContext(AdminAnalyticsContext);
+    const superAdminAnalytics = useContext(SuperAdminAnalyticsContext);
     const employeeAnalytics = useContext(EmployeeAnalyticsContext);
 
-    const role = user.role || null;
+    const role = user?.role || null;
 
     const isManager  = role === 'manager';
-    const isAdmin = role === 'admin';
+    const isAdmin = role === 'admin' || role === 'super-admin';
+    const managementAnalytics = role === 'super-admin' ? superAdminAnalytics : adminAnalytics;
 
 
 
@@ -45,7 +49,7 @@ export default function MonthlyLeavesConsumption() {
                 "Days Used": matchMonth ? Number(totalDaysUsed) : 0
             };
         }else if (isAdmin) {
-            const matchMonth = adminAnalytics?.monthlyLeaveConsumption?.filter(
+            const matchMonth = managementAnalytics?.monthlyLeaveConsumption?.filter(
                 (item: any) => item.month_name?.substring(0, 3).toLowerCase() === month.toLowerCase()
             );
 
@@ -58,7 +62,7 @@ export default function MonthlyLeavesConsumption() {
             };
         }
 
-        const matchMonth = employeeAnalytics.monthlyLeaveConsumption?.find(
+        const matchMonth = employeeAnalytics?.monthlyLeaveConsumption?.find(
             (item: any) => item.month_name?.substring(0, 3).toLowerCase() === month.toLowerCase()
         );
 

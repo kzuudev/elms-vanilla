@@ -3,6 +3,7 @@
 use App\Services\dashboard\AdminDashboardService;
 use App\Services\dashboard\EmployeeDashboardService;
 use App\Services\dashboard\ManagerDashboardService;
+use App\Services\dashboard\SuperAdminDashboardService;
 use App\Services\employees\EmployeesService;
 use App\Services\employees\EmployeeSummaryService;
 use App\Services\notifications\NotificationService;
@@ -12,6 +13,8 @@ use App\Services\leaves\LeaveTypeService;
 use App\Services\department\DepartmentSummaryService;
 use App\Services\department\DepartmentEmployeesService;
 use App\Services\leaves\LeaveTypeSummaryService;
+use App\Services\audit\AuditLogService;
+
 use Core\App;
 use Core\Container;
 use Core\Database;
@@ -20,11 +23,27 @@ use App\Http\Middleware\Auth;
 
 $container = new Container();
 
-$container->bind('Core\Database', function() {
 
-    $config = require 'config.php';
+$container->bind(Database::class, function() {
 
-    return new Database($config['database'], $config['user'], $config['pass']);
+    // $config = require 'config.php';
+
+    // return new Database($config['database'], $config['user'], $config['pass']);
+
+    static $db = null;
+
+    if ($db === null) {
+        $config = require 'config.php';
+
+        $db = new Database(
+            $config['database'],
+            $config['user'],
+            $config['pass']
+        );
+    }
+
+    return $db;
+    
 });
 
 $container->bind(Auth::class, function() {
@@ -45,6 +64,10 @@ $container->bind(ManagerDashboardService::class, function() {
 
 $container->bind(AdminDashboardService::class, function() {
     return new AdminDashboardService();
+});
+
+$container->bind(SuperAdminDashboardService::class, function() {
+    return new SuperAdminDashboardService();
 });
 
 $container->bind(EmployeeSummaryService::class, function() {
@@ -78,6 +101,12 @@ $container->bind(DepartmentEmployeesService::class, function() {
 $container->bind(LeaveTypeSummaryService::class, function() {
     return new LeaveTypeSummaryService();
 });
+
+$container->bind(AuditLogService::class, function() {
+    return new AuditLogService();
+});
+
+
 
 App::setContainer($container);
 
