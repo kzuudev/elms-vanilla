@@ -266,7 +266,7 @@ class LeaveReviewService implements LeaveReviewInterface {
                         'Leave Request Approved by ' . $actor_name, 
                         'leave_request_approved', 
                         'Your Leave Request has been approved by ' . $actor_name, 
-                        true,
+                        false,
                         [
                             'leave_request_id' => $id,
                             'approved_by' => $actor_name,

@@ -7,7 +7,7 @@ use Core\App;
 use Core\Database;
 use App\Http\Middleware\Auth;
 use App\Exceptions\domain\UnauthorizedException;
-use Throwable;
+
 
 class AuditLogService
 {
@@ -23,7 +23,7 @@ class AuditLogService
         $current_user = Auth::authenticate();
         $this->current_user_id = (int) $current_user['id'];
         $this->current_user_role = $current_user['role'];
-        $this->current_user_department = $current_user['department'] ?? null;
+        $this->current_user_department = $current_user['department'] ?? null;   
     }
 
     private function validateUser()
@@ -42,7 +42,6 @@ class AuditLogService
      * @param int $actor_id
      * @param string $actor_role
      * @param string $actor_name
-     * @param string $occurred_at
      * @param string $occurred_at
      * @param string $action
      * @param string $subject_type

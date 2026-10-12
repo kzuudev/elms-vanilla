@@ -76,6 +76,7 @@ class NotificationService
     {
 
         if (!$this->current_user_id) {
+
             throw new UnauthorizedException('Unathorized Access');
         }
 
@@ -101,7 +102,7 @@ class NotificationService
                 'user_id' => $this->current_user_id,
             ]);
             $this->db->commit();
-            return $notification;
+            return true;
         } catch (Throwable $e) {
             $this->db->rollBack();
             throw $e;
