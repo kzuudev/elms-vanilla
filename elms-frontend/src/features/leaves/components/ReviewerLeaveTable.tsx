@@ -60,13 +60,11 @@ export default function ReviewerLeaveTable() {
         setError(null);
 
         try {
-            const holder = localStorage.getItem("token");
             const response = await api.patch(`/leave-requests/${id}/review`, {
                 status: status,
                 rejection_reason: rejection_reason,
             }, {
                 headers: {
-                    Authorization: `Bearer ${holder}`,
                 }
             })
 
@@ -85,10 +83,8 @@ export default function ReviewerLeaveTable() {
         setError(null);
 
         try {
-            const holder = localStorage.getItem("token");
             const response = await api.get(`/leave-requests/${id}/overlaps`, {
                 headers: {
-                    Authorization: `Bearer ${holder}`,
                 }
             });
             if (response.data.success) {

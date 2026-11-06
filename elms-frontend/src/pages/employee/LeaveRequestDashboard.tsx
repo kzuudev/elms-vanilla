@@ -58,7 +58,6 @@ export default function LeaveRequestDashboard() {
     status: string;
   }) => {
     try {
-      const holder = localStorage.getItem("token");
       const queryString = buildQueryString({
         leave_type,
         start_date,
@@ -67,7 +66,6 @@ export default function LeaveRequestDashboard() {
       });
       const response = await api.get(`/leave-request${queryString}`, {
         headers: {
-          Authorization: `Bearer ${holder}`,
         },
       });
       setLeaveRequests(
@@ -90,10 +88,8 @@ export default function LeaveRequestDashboard() {
 
   const fetchLeaveRequestDetails = async (id: number) => {
     try {
-      const holder = localStorage.getItem("token");
       const response = await api.get(`/leave-request/${id}`, {
         headers: {
-          Authorization: `Bearer ${holder}`,
         },
       });
       // Support flat leave_request OR legacy { data: leave_request }

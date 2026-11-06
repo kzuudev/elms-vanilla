@@ -55,7 +55,6 @@ export default function LeavesDashboard({ role }: { role: string }) {
     status: string;
   }) => {
     try {
-      const holder = localStorage.getItem("token");
       const queryString = buildQueryString({
         leave_type,
         start_date,
@@ -64,7 +63,6 @@ export default function LeavesDashboard({ role }: { role: string }) {
       });
       const response = await api.get(`/leave-requests${queryString}`, {
         headers: {
-          Authorization: `Bearer ${holder}`,
         },
       });
       setReviewerLeaveRequests(response.data.data.leave_requests);
@@ -96,7 +94,6 @@ export default function LeavesDashboard({ role }: { role: string }) {
     status: string;
   }) => {
     try {
-      const holder = localStorage.getItem("token");
       const queryString = buildQueryString({
         leave_type,
         start_date,
@@ -105,7 +102,6 @@ export default function LeavesDashboard({ role }: { role: string }) {
       });
       const response = await api.get(`/leave-requests/me${queryString}`, {
         headers: {
-          Authorization: `Bearer ${holder}`,
         },
       });
       setPersonalLeaveRequests(response.data.data.leave_requests);
@@ -125,10 +121,8 @@ export default function LeavesDashboard({ role }: { role: string }) {
 
   const fetchLeaveRequestDetails = async (id: number) => {
     try {
-      const holder = localStorage.getItem("token");
       const response = await api.get(`/leave-requests/${id}`, {
         headers: {
-          Authorization: `Bearer ${holder}`,
         },
       });
       setLeaveRequestDetails(response.data.data.leave_request);

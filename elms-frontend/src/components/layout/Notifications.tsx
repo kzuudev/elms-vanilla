@@ -31,12 +31,12 @@ export default function Notifications() {
             const response = await api.get("/notifications");
             setIsLoading(false);
             setNotifications(response.data.data.notifications);
-            console.log(response.data.data.notifications);
         }catch (error: any) {
             if(axios.isCancel(error)) {
                 return;
             }
-            setError(error.response?.data?.message || "An error occurred while fetching notifications");
+            
+            setError(error.response?.data?.message);
         }
     }
 
@@ -44,7 +44,7 @@ export default function Notifications() {
 
        try{
             const response = await api.patch(`/notifications/${id}`, {notifications: {read_at: new Date().toISOString()}});
-            return response.data.data.mark_as_read;
+            return response.data.data.notification;
        }catch (error: any) {
             if(axios.isCancel(error)) {
                 return;

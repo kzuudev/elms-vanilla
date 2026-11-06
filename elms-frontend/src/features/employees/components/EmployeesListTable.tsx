@@ -131,10 +131,8 @@ export default function EmployeesListTable({
 
   const fetchEmployeeDetails = async (id: number) => {
     try {
-      const holder = localStorage.getItem("token");
       const response = await api.get(`/employees/${id}/profile`, {
         headers: {
-          Authorization: `Bearer ${holder}`,
         },
       });
       const data = response.data.data.employee;
@@ -192,10 +190,8 @@ export default function EmployeesListTable({
     });
 
     try {
-      const holder = localStorage.getItem("token");
       const response = await api.patch(`/employees/${id}`, data, {
         headers: {
-          Authorization: `Bearer ${holder}`,
         },
       });
       onUserMutated();
@@ -210,11 +206,9 @@ export default function EmployeesListTable({
   };
 
   const fetchDeleteEmployee = async (id: number) => {
-    const holder = localStorage.getItem("token");
     try {
       const response = await api.delete(`/employees/${id}`, {
         headers: {
-          Authorization: `Bearer ${holder}`,
         },
       });
       onUserMutated();
@@ -248,9 +242,8 @@ export default function EmployeesListTable({
 
   const fetchManagers = async () => {
     try {
-      const holder = localStorage.getItem("token");
       const response = await api.get("/employees/managers", {
-        headers: { Authorization: `Bearer ${holder}` },
+        headers: {  },
       });
 
       setManagers(
@@ -279,9 +272,8 @@ export default function EmployeesListTable({
 
   const fetchAdmins = async () => {
     try {
-      const holder = localStorage.getItem("token");
       const response = await api.get("/employees/admins", {
-        headers: { Authorization: `Bearer ${holder}` },
+        headers: {  },
       });
 
       setAdmins(

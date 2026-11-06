@@ -4,12 +4,13 @@ import { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { api, getApiErrorMessage } from "@/lib/api.ts";
 import type { EmployeeSummary, EmployeeData } from "@/types/employees.ts";
-import type { Department, DepartmentOptions } from "@/types/department.ts";
+
 
 import UserFilterBar from "@/features/employees/components/UserFilterBar.tsx";
 import { buildQueryString } from "@/utils/query-string.ts";
 import { EmployeesSummaryContext } from "@/features/context/employees/EmployeesSummaryContext";
 import { AuthContext } from "@/features/context/auth/AuthContext.tsx";
+import { useDepartmentContext } from "@/features/context/department/DepartmentContext.tsx";
 
 import EmployeesListTable from "@/features/employees/components/EmployeesListTable.tsx";
 import AppSidebar from "@/components/layout/AppSidebar.tsx";
@@ -27,7 +28,9 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 
 export default function EmployeesDashboard({ role }: { role: string }) {
-    
+  
+  const { departmentOptions } = useDepartmentContext();
+
   const { user } = useContext(AuthContext);
 
   const [isFormOpen, setIsOpenForm] = useState(false);
@@ -37,7 +40,6 @@ export default function EmployeesDashboard({ role }: { role: string }) {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [departmentOptions, setDepartmentOptions] = useState<DepartmentOptions[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState<string | null>(null);
 
@@ -64,7 +66,6 @@ export default function EmployeesDashboard({ role }: { role: string }) {
     roleFilter: string;
   }) => {
     try {
-      const holder = localStorage.getItem("token");
       const queryString = buildQueryString({
         search: searchQuery ?? "",
         status: statusFilter ?? "",
@@ -72,34 +73,25 @@ export default function EmployeesDashboard({ role }: { role: string }) {
         role: roleFilter ?? "",
       });
       const response = await api.get(`/employees${queryString}`, {
-        headers: { Authorization: `Bearer ${holder}` },
+        headers: {  },
       });
       setEmployees(response.data.data.employees);
       setError(null);
     } catch (e) {
       if (axios.isCancel(e)) return;
-      setError("Network error occurred.");
-    }
-  };
-
-  const fetchDepartments = async () => {
-    try {
-      const response = await api.get("/departments");
-      setDepartmentOptions(response.data.data.departments);
-    } catch (error: unknown) {
-      const message = getApiErrorMessage(error, "Failed to load departments");
-      if(!message) {
-        return;
+   
+      if(axios.isAxiosError(e)) {
+        setError(getApiErrorMessage(e, "Failed to fetch employees"));
+      } else {
+        setError("An unexpected error occurred.");
       }
-      setError(message);
     }
   };
 
   const fetchEmployeeSummary = async () => {
     try {
-      const holder = localStorage.getItem("token");
       const response = await api.get("/employees/summary", {
-        headers: { Authorization: `Bearer ${holder}` },
+        headers: {  },
       });
 
       if (response.data?.data?.employee_summary) {
@@ -144,7 +136,6 @@ export default function EmployeesDashboard({ role }: { role: string }) {
   useEffect(() => {
     fetchEmployees(filters);
     fetchEmployeeSummary();
-    fetchDepartments();
   }, []);
 
   return (

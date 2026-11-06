@@ -50,10 +50,8 @@ export default function ManagerDashboard() {
     const fetchManagerDashboard = async () => {
 
         try {
-            const holder = localStorage.getItem("token");
             const response = await api.get("/manager-dashboard", {
                 headers: {
-                    Authorization: `Bearer ${holder}`,
                 }
             });
             setRemainingBalance(response.data.data.remaining_balance);

@@ -49,9 +49,8 @@ export default function Register({
 
   const fetchManagers = async () => {
     try {
-      const holder = localStorage.getItem("token");
       const response = await api.get("/employees/managers", {
-        headers: { Authorization: `Bearer ${holder}` },
+        headers: {  },
       });
 
       setManagers(
@@ -80,9 +79,8 @@ export default function Register({
 
   const fetchAdmins = async () => {
     try {
-      const holder = localStorage.getItem("token");
       const response = await api.get("/employees/admins", {
-        headers: { Authorization: `Bearer ${holder}` },
+        headers: {  },
       });
 
       setAdmins(
@@ -122,8 +120,6 @@ export default function Register({
 
   const onSubmit = async (data: RegisterFormData) => {
 
-    const token = localStorage.getItem("token");
-
     const payload = {
       first_name: data.first_name,
       last_name: data.last_name,
@@ -138,7 +134,6 @@ export default function Register({
     try {
       const response = await api.post("/register", payload, {
         headers: {
-          Authorization: `Bearer ${token}`,
         },
       });
       if (response.data.success) {

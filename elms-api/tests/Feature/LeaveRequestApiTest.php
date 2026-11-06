@@ -111,4 +111,23 @@ final class LeaveRequestApiTest extends TestCase
         $this->assertSame(401, $response['status']);
         $this->assertFalse($response['body']['success']);
     }
+
+    public function test_missing_reason_is_rejected(): void
+    {
+
+
+        $payload = $this->payload();
+        unset($payload['reason']);
+
+        $response = $this->post($payload, $this->token());
+        $body = $response['body'];
+
+        $this->assertSame(
+            422,
+            $response['status'],
+            json_encode($body, JSON_PRETTY_PRINT)
+        );
+        $this->assertFalse($body['success']);
+        $this->assertArrayHasKey('reason', $body['data']['errors']);
+    }
 }

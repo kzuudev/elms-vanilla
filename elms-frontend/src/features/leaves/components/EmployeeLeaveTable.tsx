@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { format } from 'date-fns';
-import {api} from "@/lib/api.ts";
+import {api, getApiErrorMessage} from "@/lib/api.ts";
 
 import { useLeaveContext } from "@/features/context/leaves/LeaveContext.tsx";
 import { useLeaveBalanceContext } from "@/features/context/leaves/LeaveBalanceContext.tsx";
@@ -43,19 +44,25 @@ export default function EmployeeLeaveTable() {
 
     const fetchLeaveRequestEdit = async (id: number, data: LeaveRequestFormData) => {
 
-        setError("Server error");
-
+        setError(null);
         try {
-            const holder = localStorage.getItem("token");
             const response = await api.patch(`/leave-request/${id}`, data, {
                 headers: {
-                    Authorization: `Bearer ${holder}`,
                 }
             });
             return response;
         }catch (e) {
-            setError(e.response.data.message as string);
-            throw e;
+            if(axios.isCancel(e)) throw e;
+
+            if(axios.isAxiosError(e)) {
+                setError(getApiErrorMessage(e, 'Failed to edit leave request'));
+                throw e;
+            }
+
+            if(!axios.isAxiosError(e)) {
+                setError('An unexpected error occurred');
+                throw e;
+            }
         }
     }
 
@@ -63,16 +70,25 @@ export default function EmployeeLeaveTable() {
     const fetchLeaveRequestDelete = async (id: number) => {
 
         try {
-            const holder = localStorage.getItem("token");
-            const response = await api.delete(`/leave-request/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${holder}`,
-                }
-            });
-            console.log(response.data.message);
+            const response = await api.delete(`/leave-request/${id}`);
             return response;
         }catch (e: any) {
-            setError(e.response?.data?.message ?? "Failed to delete leave request");
+            if(axios.isCancel(e)) throw e;
+
+            if(axios.isAxiosError(e)) {
+                setError(getApiErrorMessage(e, 'Failed to delete leave request'));
+                throw e;
+            }
+
+            if(!axios.isAxiosError(e)) {
+                setError('An unexpected error occurred');
+                throw e;
+            }
+
+            if(!axios.isAxiosError(e)) {
+                setError('An unexpected error occurred');
+                throw e;
+            }
         }
     }
 

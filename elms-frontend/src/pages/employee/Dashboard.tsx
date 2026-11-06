@@ -31,10 +31,8 @@ export default function EmployeeDashboard() {
     const fetchEmployeeDashboard = async () => {
 
         try {
-            const holder = localStorage.getItem("token");
             const response = await api.get("/employee-dashboard", {
                 headers: {
-                    Authorization: `Bearer ${holder}`,
                 }
             });
             setTotalRemainingBalance(response.data.data.total_remaining_balance);
