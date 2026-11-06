@@ -53,10 +53,8 @@ export default function AdminDashboard() {
   );
   const fetchAdminDashboard = async () => {
     try {
-      const holder = localStorage.getItem("token");
       const response = await api.get("/admin-dashboard", {
         headers: {
-          Authorization: `Bearer ${holder}`,
         },
       });
       setRemainingBalance(response.data.data.remaining_balance);

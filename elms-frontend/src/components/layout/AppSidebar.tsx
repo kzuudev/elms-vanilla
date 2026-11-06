@@ -55,7 +55,6 @@ export default function AppSidebar({ children } : DashboardLayoutProps) {
         try{
             const response = await api.post('/logout', {}, {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
 

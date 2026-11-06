@@ -1,0 +1,21 @@
+$kind: http-request
+name: http://localhost:8000/
+description: ""
+url: http://localhost:8000/
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "email": "john.andrei@super.admin",
+      "password": "superadmin123",
+    }
+auth:
+  type: bearer
+  credentials:
+    token: 44117c193f507296026ee6d0958f5d9bc9e7597daed9a1397ba325885b7c39d766fbfdfaee3e81a74932704af5bbd7e666e6e9b377005fbf0e487f6bbbe6570f
+scripts:
+  - type: afterResponse
+    code: ""
+    language: text/javascript
+order: 1787290267541

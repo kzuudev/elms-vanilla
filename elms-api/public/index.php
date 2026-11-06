@@ -10,6 +10,7 @@ require base_path('core/Env.php');
 
 // load the autoloader
 require base_path('vendor/autoload.php');
+
 // load the bootstrap file
 require base_path('core/bootstrap.php');
 

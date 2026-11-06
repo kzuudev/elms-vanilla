@@ -34,10 +34,8 @@ export default function LeavesFilterBar(props: LeavesFilterBarProps) {
 
     const fetchLeaveTypes = async() => {
         try {
-            const holder = localStorage.getItem("token");
             const response = await api.get("/leave-types", {
                 headers: {
-                    Authorization: `Bearer ${holder}`,
                 },
             })
             setLeaveTypes(response.data.data.leave_types);

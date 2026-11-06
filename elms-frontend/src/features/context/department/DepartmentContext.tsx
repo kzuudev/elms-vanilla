@@ -1,9 +1,10 @@
 import { createContext, useContext } from "react";
 
-import type { Department } from "@/types/department";
+import type { Department, DepartmentOptions } from "@/types/department";
 
 interface DepartmentContextType {
     departments: Department[];
+    departmentOptions: DepartmentOptions[];
     fetchDepartments: () => Promise<void>;
     departmentDetails: Department | null;
     fetchDepartmentDetails: (id: number) => Promise<void>;

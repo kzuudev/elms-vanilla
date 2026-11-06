@@ -30,15 +30,12 @@ export default function EmployeesListDashboard() {
 
     const [error, setError] = useState<string | null>(null);
 
-    const holder = localStorage.getItem("token");
 
     const fetchEmployees = async () => {
        try{
-            const holder = localStorage.getItem("token");
 
             const response = await api.get("/employees-list", {
                 headers: {
-                    Authorization: `Bearer ${holder}`,
                 },
             });
             setEmployees(response.data.data.employee_list);
@@ -57,7 +54,6 @@ export default function EmployeesListDashboard() {
 
             const response = await api.get(`/employees-list/${id}`, {
                 headers: {
-                    Authorization: `Bearer ${holder}`,
                 }
             });
             setEmployeeDetails(response.data.data.employee_details);

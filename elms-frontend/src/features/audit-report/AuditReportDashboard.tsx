@@ -50,7 +50,6 @@ export default function AuditReportDashboard() {
     endDateQuery: string;
   }) => {
     try {
-      const holder = localStorage.getItem("token");
       const queryString = buildQueryString({
         search: searchQuery ?? "",
         action: actionQuery ?? "",
@@ -59,7 +58,7 @@ export default function AuditReportDashboard() {
         end_date: endDateQuery ?? "",
       });
       const response = await api.get(`/audit-logs${queryString}`, {
-        headers: { Authorization: `Bearer ${holder}` },
+        headers: {  },
       });
       setAuditLogs(response.data.data.audit_logs);
       setError(null);

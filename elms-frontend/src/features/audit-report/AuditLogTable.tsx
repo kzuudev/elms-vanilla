@@ -68,7 +68,7 @@ export default function AuditLogTable({
     "Actor",
     "Action",
     "Subject",
-    "Occurred At",
+    "Date",
     "Owner",
     "Changes",
     "Details",
@@ -95,7 +95,7 @@ export default function AuditLogTable({
             {auditLogs?.map((auditLog) => (
               <TableRow key={auditLog.id}>
                 <TableCell>{auditLog?.actor_name}</TableCell>
-                <TableCell>{auditLog?.actor_role}</TableCell>
+                <TableCell>{auditLog?.action}</TableCell>
                 <TableCell>{auditLog?.subject_type}</TableCell>
                 <TableCell>{formatDateTime(auditLog.occurred_at ?? auditLog.occured_at ?? "")}</TableCell>
                 <TableCell>{auditLog?.owner_name}</TableCell>

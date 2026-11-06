@@ -18,5 +18,8 @@
       "ext-pdo": "*",
       "ext-json": "*",
         "phpmailer/phpmailer": "^7.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4"
     }
 }
